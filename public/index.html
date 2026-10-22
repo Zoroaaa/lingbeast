@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#f2ede2">
+<title>灵兽录 · 山海新契</title>
+<link rel="stylesheet" href="vendor/nes.min.css?v=31">
+<link rel="stylesheet" href="style.css?v=31">
+</head>
+<body>
+<div id="app">
+
+  <section id="view-title" class="view view-title">
+    <div class="title-scene" aria-hidden="true">
+      <div class="ts-sky"></div>
+      <div class="ts-sun"></div>
+      <div class="ts-cloud c1"></div>
+      <div class="ts-cloud c2"></div>
+      <div class="ts-cloud c3"></div>
+      <div class="ts-mountain back"></div>
+      <div class="ts-mountain mid"></div>
+      <div class="ts-mountain front"></div>
+      <div class="ts-ground"></div>
+      <div class="ts-torii"><i></i><i></i><i></i></div>
+      <div class="ts-hero"></div>
+      <div class="title-beast" id="title-beast"></div>
+      <div class="ts-fireflies"><i></i><i></i><i></i><i></i><i></i><i></i></div>
+    </div>
+    <div class="title-col">
+      <p class="eyebrow">回合制 · 灵兽收集 · 像素山海</p>
+      <h1 class="title">灵兽录</h1>
+      <p class="subtitle">山有灵，契而生。</p>
+      <p class="title-volume">山海新契 · 九嶂卷 · PIXEL EDITION</p>
+      <div class="title-actions">
+        <button class="btn btn-ink" id="btn-start">入山</button>
+        <button class="btn btn-ghost" id="btn-continue" hidden>续前缘</button>
+      </div>
+      <p class="title-progress" id="title-progress" hidden></p>
+    </div>
+    <button class="account-chip" id="account-chip"><span class="dot" id="account-dot"></span><span id="account-label">未登录 · 云端未连接</span></button>
+    <p class="title-foot">点击行走 · 空格交谈 · 回合制对战</p>
+  </section>
+
+  <section id="view-world" class="view view-world" hidden>
+    <header class="world-hud">
+      <div class="hud-left">
+        <div class="scene-chip">
+          <span class="scene-chapter" id="scene-chapter"></span>
+          <span class="scene-name" id="scene-name"></span>
+          <span class="time-chip" id="time-weather"></span>
+        </div>
+        <div class="quest-chip">
+          <span class="quest-label">主线</span>
+          <b id="quest-title"></b>
+          <span class="quest-step" id="quest-step"></span>
+        </div>
+        <div class="jade-chip" title="灵玉"><span class="jade-glyph">玉</span><b id="jade-count">0</b></div>
+      </div>
+      <nav class="hud-right" aria-label="功能">
+        <button class="link-btn" id="btn-map">山河图<em>M</em></button>
+        <button class="link-btn" id="btn-codex">灵兽录<em>B</em></button>
+        <button class="link-btn" id="btn-bag">行囊<em>I</em></button>
+        <button class="link-btn" id="btn-quests">任务<em>J</em></button>
+        <button class="link-btn" id="btn-team">队伍<em>T</em></button>
+        <button class="link-btn" id="btn-save">存档<em>Q</em></button>
+        <button class="link-btn" id="btn-settings">设置</button>
+        <button class="link-btn" id="btn-exit">出山</button>
+      </nav>
+    </header>
+
+    <div class="stage-wrap">
+      <div id="game-canvas" aria-label="场景地图"></div>
+      <div class="minimap-wrap" id="minimap-wrap">
+        <canvas id="minimap" width="180" height="120" aria-label="小地图"></canvas>
+        <span class="minimap-label" id="minimap-label"></span>
+      </div>
+      <div class="region-title" id="region-title" hidden>
+        <span class="region-title-chapter" id="region-title-chapter"></span>
+        <span class="region-title-name" id="region-title-name"></span>
+        <span class="region-title-sub" id="region-title-sub"></span>
+      </div>
+    </div>
+
+    <div class="world-foot">
+      <div class="party-mini" id="party-mini"></div>
+      <p class="hint-bar">点击地面自动寻路 · 点击人物 / 灵物交互 · WASD 行走 · M 山河图</p>
+      <button class="talk-btn" id="btn-talk">交谈</button>
+    </div>
+
+    <div class="touch-layer" id="touch-layer">
+      <div class="joystick" id="joystick"><span class="joystick-knob" id="joystick-knob"></span></div>
+      <button class="touch-action" id="btn-interact" aria-label="交互">契</button>
+    </div>
+
+    <div class="dialog" id="dialog" hidden>
+      <div class="dialog-seal" id="dialog-seal"></div>
+      <div class="dialog-main">
+        <p class="dialog-name" id="dialog-name"></p>
+        <p class="dialog-text" id="dialog-text"></p>
+      </div>
+      <button class="dialog-next" id="dialog-next">继续</button>
+    </div>
+  </section>
+
+  <section id="view-battle" class="view view-battle" hidden>
+    <div id="battle-scene" class="battle-scene">
+      <div class="battle-bg" id="battle-bg" aria-hidden="true"></div>
+
+      <header class="battle-head">
+        <div class="foe-info">
+          <div class="foe-head">
+            <span class="foe-name" id="foe-name"></span>
+            <span class="foe-meta" id="foe-meta"></span>
+          </div>
+          <div class="hp hp-foe"><i id="foe-hp"></i></div>
+          <div class="hp-num" id="foe-hpnum"></div>
+          <div class="status-row" id="foe-status"></div>
+        </div>
+        <div class="turn-order" id="turn-order"></div>
+      </header>
+
+      <div class="boss-banner" id="boss-banner" hidden>
+        <span class="boss-banner-eyebrow" id="boss-banner-eyebrow">渊兽异动</span>
+        <b id="boss-banner-text"></b>
+      </div>
+
+      <div class="arena">
+        <div class="art-slot foe-slot" id="foe-art"></div>
+        <div class="art-slot self-slot" id="self-art"></div>
+      </div>
+
+      <div class="battle-log" id="battle-log"></div>
+      <div class="party-strip" id="party-strip"></div>
+
+      <div class="battle-bottom">
+        <div class="self-line">
+          <div class="self-head">
+            <span class="self-name" id="self-name"></span>
+            <span class="self-meta" id="self-meta"></span>
+          </div>
+          <div class="hp hp-self"><i id="self-hp"></i></div>
+          <div class="hp hp-exp"><i id="self-exp"></i></div>
+          <div class="status-row" id="self-status"></div>
+          <div class="bond" id="bond" title="契势槽"><span class="bond-label" id="bond-label">契势</span><span class="bond-track"><i id="bond-fill"></i></span></div>
+        </div>
+        <div class="commands" id="commands"></div>
+      </div>
+
+      <div class="float-layer" id="float-layer"></div>
+      <div class="battle-overlay" id="battle-overlay" hidden></div>
+    </div>
+  </section>
+
+  <section id="view-end" class="view view-end" hidden>
+    <div class="end-inner">
+      <p class="eyebrow" id="end-eyebrow">终</p>
+      <h2 id="end-title">山门重开</h2>
+      <p class="end-text" id="end-text"></p>
+      <ul class="end-stats" id="end-stats"></ul>
+      <p class="end-extra" id="end-extra"></p>
+      <div class="end-actions">
+        <button class="btn btn-ink" id="btn-back-title">归山门</button>
+        <button class="btn btn-ghost" id="btn-postgame">继续游历</button>
+      </div>
+    </div>
+  </section>
+
+  <div class="fade" id="fade"></div>
+  <div class="toast" id="toast" hidden></div>
+
+  <div class="modal" id="modal" hidden>
+    <div class="modal-sheet">
+      <header class="modal-head">
+        <h3 id="modal-title"></h3>
+        <button class="close" id="modal-close" aria-label="关闭">×</button>
+      </header>
+      <div class="modal-body" id="modal-body"></div>
+      <footer class="modal-foot" id="modal-foot"></footer>
+    </div>
+  </div>
+
+</div>
+<script src="vendor/phaser.min.js"></script>
+<script src="cloud.js"></script>
+<!-- 数据层 -->
+<script src="js/data/core.js?v=31"></script>
+<script src="js/data/skills.js?v=31"></script>
+<script src="js/data/species.js?v=31"></script>
+<script src="js/data/items.js?v=31"></script>
+<script src="js/data/bosses.js?v=31"></script>
+<script src="js/data/map-core.js?v=31"></script>
+<script src="js/data/regions-west.js?v=31"></script>
+<script src="js/data/regions-east.js?v=31"></script>
+<script src="js/data/weather.js?v=31"></script>
+<script src="js/data/quests.js?v=31"></script>
+<script src="js/data/lore.js?v=31"></script>
+<script src="js/data/validate.js?v=31"></script>
+<!-- 图像层 -->
+<script src="js/art.js?v=31"></script>
+<!-- 界面层 -->
+<script src="js/ui/ui-core.js?v=31"></script>
+<script src="js/ui/ui-hud.js?v=31"></script>
+<script src="js/ui/ui-codex.js?v=31"></script>
+<script src="js/ui/ui-shop.js?v=31"></script>
+<script src="js/ui/ui-world.js?v=31"></script>
+<script src="js/ui/ui-exports.js?v=31"></script>
+<!-- 探索层 -->
+<script src="js/world/world-core.js?v=31"></script>
+<script src="js/world/world-terrain.js?v=31"></script>
+<script src="js/world/world-props.js?v=31"></script>
+<script src="js/world/world-entities.js?v=31"></script>
+<script src="js/world/world-weather.js?v=31"></script>
+<script src="js/world/world-input.js?v=31"></script>
+<script src="js/world/world-boot.js?v=31"></script>
+<!-- 战斗层 -->
+<script src="js/battle/battle-core.js?v=31"></script>
+<script src="js/battle/battle-view.js?v=31"></script>
+<script src="js/battle/battle-engine.js?v=31"></script>
+<script src="js/battle/battle-flow.js?v=31"></script>
+<!-- 主控层 -->
+<script src="js/main/main-state.js?v=31"></script>
+<script src="js/main/main-shell.js?v=31"></script>
+<script src="js/main/main-progress.js?v=31"></script>
+<script src="js/main/main-economy.js?v=31"></script>
+<script src="js/main/main-world.js?v=31"></script>
+<script src="js/main/main-battle-flow.js?v=31"></script>
+<script src="js/main/main-boot.js?v=31"></script>
+</body>
+</html>

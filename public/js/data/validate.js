@@ -1,0 +1,235 @@
+// 灵兽录 · 数据层 · 内容工具与校验
+// ---------- 工具 ----------
+// 读取当前主线章节（载入时不执行）
+function chapterNow() {
+  if (typeof LB === 'undefined' || !LB.saveState) return 1;
+  var s = LB.saveState();
+  return (s && s.chapter) || 1;
+}
+
+// ---------- 内容校验 ----------
+// 返回错误数组；主控在启动时输出到控制台
+function validateContent() {
+  var errs = [];
+  var id;
+
+  function inRegion(region, x, y) {
+    return region && x >= 0 && y >= 0 && x < region.w && y < region.h;
+  }
+
+  function reachSet(region) {
+    var seen = {};
+    var queue = [[region.spawn.x, region.spawn.y]];
+    seen[region.spawn.x + ',' + region.spawn.y] = 1;
+    var dirs = [[1, 0], [-1, 0], [0, 1], [0, -1]];
+    while (queue.length) {
+      var p = queue.shift();
+      for (var i = 0; i < 4; i += 1) {
+        var nx = p[0] + dirs[i][0], ny = p[1] + dirs[i][1];
+        if (nx < 0 || ny < 0 || nx >= region.w || ny >= region.h) continue;
+        if (!WALKABLE[region.tiles[ny][nx]]) continue;
+        var k = nx + ',' + ny;
+        if (seen[k]) continue;
+        seen[k] = 1;
+        queue.push([nx, ny]);
+      }
+    }
+    return seen;
+  }
+
+  // 区域
+  REGION_ORDER.forEach(function (rid) {
+    var r = REGIONS[rid];
+    if (!r) { errs.push('REGION_ORDER 指向不存在的区域：' + rid); return; }
+    if (!inRegion(r, r.spawn.x, r.spawn.y) || r.tiles[r.spawn.y][r.spawn.x] !== 'S') {
+      errs.push('区域 ' + rid + ' 的出生点不是 S 瓦片');
+    }
+    var seen = reachSet(r);
+    (r.exits || []).forEach(function (ex) {
+      if (!REGIONS[ex.to]) errs.push('区域 ' + rid + ' 的出口指向不存在的区域：' + ex.to);
+      if (!inRegion(r, ex.x, ex.y) || r.tiles[ex.y][ex.x] !== 'E') {
+        errs.push('区域 ' + rid + ' 的出口 ' + ex.to + ' 不在 E 瓦片上');
+      } else if (!seen[ex.x + ',' + ex.y]) {
+        errs.push('区域 ' + rid + ' 的出口 ' + ex.to + ' 不可达');
+      }
+    });
+    if (r.boss && !BOSSES[r.boss]) errs.push('区域 ' + rid + ' 引用了不存在的 Boss：' + r.boss);
+    (r.pool || []).forEach(function (p) {
+      if (!SPECIES[p.sp]) errs.push('区域 ' + rid + ' 的遭遇池含有不存在的灵兽：' + p.sp);
+    });
+    (r.steles || []).forEach(function (st) {
+      if (!CODEX[st.codex]) errs.push('区域 ' + rid + ' 的碑文 ' + st.id + ' 引用了不存在的山海志：' + st.codex);
+      if (!inRegion(r, st.x, st.y)) errs.push('区域 ' + rid + ' 的碑文 ' + st.id + ' 越界');
+    });
+    ['npcs', 'herbs', 'chests', 'gathers'].forEach(function (kind) {
+      (r[kind] || []).forEach(function (e) {
+        if (!inRegion(r, e.x, e.y)) errs.push('区域 ' + rid + ' 的 ' + kind + ' ' + (e.id || '?') + ' 越界');
+        else if (!seen[e.x + ',' + e.y]) errs.push('区域 ' + rid + ' 的 ' + kind + ' ' + (e.id || '?') + ' 不可达');
+      });
+    });
+    if (r.boss && BOSSES[r.boss] && !seen[BOSSES[r.boss].x + ',' + BOSSES[r.boss].y]) {
+      errs.push('区域 ' + rid + ' 的 Boss ' + r.boss + ' 不可达');
+    }
+  });
+  REGION_ORDER.forEach(function (rid) { if (!REGIONS[rid]) errs.push('区域缺失：' + rid); });
+  if (REGION_ORDER.length !== 8) errs.push('REGION_ORDER 数量应为 8');
+
+  // Boss
+  Object.keys(BOSSES).forEach(function (bid) {
+    var b = BOSSES[bid];
+    var r = REGIONS[b.region];
+    if (!r) { errs.push('Boss ' + bid + ' 指向不存在的区域：' + b.region); return; }
+    if (r.boss !== bid) errs.push('Boss ' + bid + ' 与区域 ' + b.region + ' 的 boss 字段不一致');
+    if (!SPECIES[b.sp]) errs.push('Boss ' + bid + ' 引用不存在的灵兽：' + b.sp);
+    if (b.el && !ELEMENTS[b.el]) errs.push('Boss ' + bid + ' 的五行不存在：' + b.el);
+    if (!inRegion(r, b.x, b.y)) errs.push('Boss ' + bid + ' 坐标越界');
+    if (!['aggressive', 'guardian', 'healer', 'trickster'].includes(b.ai)) {
+      errs.push('Boss ' + bid + ' 的 AI 原型无效：' + b.ai);
+    }
+    if (b.cannotCatch !== true) errs.push('Boss ' + bid + ' 未标记不可结契');
+    if (!b.phases || b.phases.length < 2) errs.push('Boss ' + bid + ' 缺少 60%/30% 阶段提示');
+  });
+
+  // 灵兽与技能
+  Object.keys(SPECIES).forEach(function (sid) {
+    var sp = SPECIES[sid];
+    if (!ELEMENTS[sp.el]) errs.push('灵兽 ' + sid + ' 的五行不存在：' + sp.el);
+    if (!ELEMENTS[sp.weakness]) errs.push('灵兽 ' + sid + ' 的弱点不存在：' + sp.weakness);
+    if (!sp.sk || sp.sk.length !== 4) errs.push('灵兽 ' + sid + ' 应有 4 个技能');
+    (sp.sk || []).forEach(function (entry) {
+      if (!SKILLS[entry[1]]) errs.push('灵兽 ' + sid + ' 引用不存在的技能：' + entry[1]);
+    });
+    if (sp.evolve) {
+      if (!SPECIES[sp.evolve.to]) errs.push('灵兽 ' + sid + ' 进化目标不存在：' + sp.evolve.to);
+      (sp.evolve.mats || []).forEach(function (m) {
+        if (!MATERIALS[m.id]) errs.push('灵兽 ' + sid + ' 的进化材料不存在：' + m.id);
+      });
+    }
+    if (sp.evolved && sp.wild !== false) errs.push('进化形态 ' + sid + ' 不应参与野外结契');
+  });
+  Object.keys(SKILLS).forEach(function (kid) {
+    var sk = SKILLS[kid];
+    if (!ELEMENTS[sk.el]) errs.push('技能 ' + kid + ' 的五行不存在：' + sk.el);
+    if (sk.status && !STATUSES[sk.status]) errs.push('技能 ' + kid + ' 引用了不存在的状态：' + sk.status);
+  });
+
+  // 道具、材料、配方、商店
+  Object.keys(ITEMS).forEach(function (iid) { if (!ITEMS[iid].name) errs.push('道具 ' + iid + ' 缺少名称'); });
+  Object.keys(MATERIALS).forEach(function (mid) {
+    var m = MATERIALS[mid];
+    (m.regions || []).forEach(function (rid) { if (!REGIONS[rid]) errs.push('材料 ' + mid + ' 指向不存在的区域：' + rid); });
+  });
+  Object.keys(RECIPES).forEach(function (rid) {
+    var rec = RECIPES[rid];
+    if (!ITEMS[rec.out.item]) errs.push('配方 ' + rid + ' 的产物不存在：' + rec.out.item);
+    (rec.mats || []).forEach(function (m) {
+      if (!MATERIALS[m.id]) errs.push('配方 ' + rid + ' 的材料不存在：' + m.id);
+    });
+    if (rec.unlock && rec.unlock.kind === 'quest') {
+      var hasQuest = SIDE_QUESTS.some(function (q) { return q.id === rec.unlock.id; });
+      if (!hasQuest) errs.push('配方 ' + rid + ' 解锁的支线不存在：' + rec.unlock.id);
+    }
+    if (rec.unlock && rec.unlock.kind === 'stele') {
+      var hasStele = Object.keys(REGIONS).some(function (regionId) {
+        return (REGIONS[regionId].steles || []).some(function (st) { return st.id === rec.unlock.id; });
+      });
+      if (!hasStele) errs.push('配方 ' + rid + ' 解锁的碑文不存在：' + rec.unlock.id);
+    }
+  });
+  Object.keys(SHOPS).forEach(function (sid) {
+    var shop = SHOPS[sid];
+    if (!REGIONS[shop.region]) errs.push('商店 ' + sid + ' 指向不存在的区域：' + shop.region);
+    (shop.stock || []).forEach(function (s) {
+      if (!ITEMS[s.item] && !MATERIALS[s.item]) errs.push('商店 ' + sid + ' 售卖不存在的物品：' + s.item);
+    });
+  });
+  SECRETS.forEach(function (sec) {
+    var sr = REGIONS[sec.region];
+    if (!sr) { errs.push('暗格 ' + sec.id + ' 指向不存在的区域：' + sec.region); return; }
+    var st = sr.tiles[sec.y] && sr.tiles[sec.y][sec.x];
+    if (!WALKABLE[st]) errs.push('暗格 ' + sec.id + ' 不在可通行格：' + sec.x + ',' + sec.y);
+    if (sec.mat && !MATERIALS[sec.mat]) errs.push('暗格 ' + sec.id + ' 的材料不存在：' + sec.mat);
+  });
+
+  // 主线
+  var usedBoss = {};
+  MAIN_CHAPTERS.forEach(function (ch) {
+    if (!REGIONS[ch.region]) errs.push('主线 ' + ch.id + ' 指向不存在的区域：' + ch.region);
+    (ch.objectives || []).forEach(function (ob, i) {
+      if (ob.type === 'boss') {
+        if (!BOSSES[ob.key]) errs.push('主线 ' + ch.id + ' 目标 ' + i + ' 的 Boss 不存在：' + ob.key);
+        usedBoss[ob.key] = 1;
+      } else if (ob.type === 'region') {
+        if (!REGIONS[ob.key]) errs.push('主线 ' + ch.id + ' 目标 ' + i + ' 的区域不存在：' + ob.key);
+      } else if (ob.type === 'talk') {
+        var hasNpc = Object.keys(REGIONS).some(function (rid) {
+          return (REGIONS[rid].npcs || []).some(function (n) { return n.id === ob.key; });
+        });
+        if (!hasNpc) errs.push('主线 ' + ch.id + ' 目标 ' + i + ' 的 NPC 不存在：' + ob.key);
+      } else if (ob.type === 'item') {
+        if (!ITEMS[ob.key] && !MATERIALS[ob.key]) errs.push('主线 ' + ch.id + ' 目标 ' + i + ' 的物品不存在：' + ob.key);
+      } else if (['flag', 'catch', 'count'].indexOf(ob.type) < 0) {
+        errs.push('主线 ' + ch.id + ' 目标 ' + i + ' 的类型无效：' + ob.type);
+      }
+    });
+  });
+  Object.keys(BOSSES).forEach(function (bid) { if (!usedBoss[bid]) errs.push('Boss ' + bid + ' 未进入任何主线章节'); });
+
+  // 支线
+  SIDE_QUESTS.forEach(function (q) {
+    var r = REGIONS[q.giver.region];
+    if (!r) { errs.push('支线 ' + q.id + ' 的发布区域不存在：' + q.giver.region); return; }
+    if (!(r.npcs || []).some(function (n) { return n.id === q.giver.npc; })) {
+      errs.push('支线 ' + q.id + ' 的发布 NPC 不在该区域：' + q.giver.npc);
+    }
+    if (typeof q.reward !== 'function') errs.push('支线 ' + q.id + ' 缺少 reward');
+    if (q.stages && q.stages.length) {
+      q.stages.forEach(function (st, i) {
+        if (!st || (!st.flag && typeof st.check !== 'function')) {
+          errs.push('支线 ' + q.id + ' 第 ' + (i + 1) + ' 阶段缺少完成条件');
+        }
+      });
+    } else if (typeof q.check !== 'function') {
+      errs.push('支线 ' + q.id + ' 缺少 check');
+    }
+  });
+  if (SIDE_QUESTS.length < 12) errs.push('支线数量不足 12');
+
+  // 悬赏
+  BOUNTIES.forEach(function (b) {
+    if (b.type === 'hunt' || b.type === 'patrol') {
+      if (!REGIONS[b.target]) errs.push('悬赏 ' + b.id + ' 的目标区域不存在：' + b.target);
+    } else if (b.type === 'gather') {
+      if (!MATERIALS[b.target]) errs.push('悬赏 ' + b.id + ' 的目标材料不存在：' + b.target);
+    } else {
+      errs.push('悬赏 ' + b.id + ' 的类型无效：' + b.type);
+    }
+  });
+
+  // 山海志
+  var codexIds = Object.keys(CODEX);
+  Object.keys(CODEX).forEach(function (cid) {
+    var c = CODEX[cid];
+    if (c.unlock && c.unlock.type === 'stele') {
+      var okStele = Object.keys(REGIONS).some(function (rid) {
+        return (REGIONS[rid].steles || []).some(function (st) { return st.id === c.unlock.id; });
+      });
+      if (!okStele) errs.push('山海志 ' + cid + ' 解锁的碑文不存在：' + c.unlock.id);
+    }
+    if (c.unlock && c.unlock.type === 'npc') {
+      var okNpc = Object.keys(REGIONS).some(function (rid) {
+        return (REGIONS[rid].npcs || []).some(function (n) { return n.id === c.unlock.id; });
+      });
+      if (!okNpc) errs.push('山海志 ' + cid + ' 解锁的 NPC 不存在：' + c.unlock.id);
+    }
+  });
+  if (codexIds.length < 12) errs.push('山海志词条应不少于 12 条');
+
+  // 试炼
+  TRIALS.forEach(function (t) {
+    if (!BOSSES[t.boss.ref]) errs.push('试炼 ' + t.floor + ' 引用的 Boss 不存在：' + t.boss.ref);
+  });
+  if (TRIALS.length !== 5) errs.push('试炼层数应为 5');
+
+  return errs;
+}
