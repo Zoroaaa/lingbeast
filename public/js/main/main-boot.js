@@ -375,6 +375,7 @@ LB.maxLevel = MAX_LV;
 
 LB.pauseWorld = pauseWorld;
 LB.resumeWorld = function () { if (window.World && typeof World.resume === 'function') World.resume(); };
+
 LB.onWorldReady = function () { updateHud(); };
 
 // ---------- 启动 ----------

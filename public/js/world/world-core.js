@@ -113,7 +113,7 @@ Object.assign(WorldScene.prototype, {
     const vw = this.scale.width || window.innerWidth || 960;
     const vh = this.scale.height || window.innerHeight || 540;
     const fitZoom = Math.max(vw / this.worldW, vh / this.worldH);
-    const baseZoom = vw < 720 ? 1.25 : 0.95;
+    const baseZoom = vw < 720 ? 1.25 : 1.2;
     cam.setZoom(Math.max(baseZoom, fitZoom));
     this.layoutWeather();
     if (!this.reduceMotion) cam.fadeIn(420, 233, 223, 197);

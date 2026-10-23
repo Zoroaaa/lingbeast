@@ -48,7 +48,7 @@ function openBattle(cfg) {
 
   battle.foe = {
     sp: cfg.sp, lv: lv,
-    name: cfg.displayName || (boss && boss.name) || d.name,
+    name: cfg.displayName || (boss && boss.name) || (cfg.isBoss || cfg.trialFloor ? d.name : '野生 · ' + d.name),
     el: boss && boss.el ? boss.el : d.el,
     maxHp: maxHp, hp: maxHp,
     atk: Math.round(st.atk * atkMul), def: st.def, spd: st.spd,
@@ -128,12 +128,17 @@ function battleBackdrop(regionId) {
   const water = P.water
     ? '<g fill="' + P.waterCol + '" opacity=".5"><rect x="0" y="524" width="1200" height="6"/><rect x="60" y="540" width="420" height="4"/><rect x="560" y="556" width="560" height="5"/><rect x="220" y="574" width="300" height="4"/></g>'
     : '';
+  // 地面压暗：把立绘脚下压进阴影里，拉开前中后景
+  let floor = '';
+  for (let i = 0; i < 5; i += 1) {
+    floor += '<rect x="0" y="' + (472 + i * 26) + '" width="1200" height="26" fill="' + P.ink + '" opacity="' + (0.05 + i * 0.04).toFixed(2) + '"/>';
+  }
   return '<svg viewBox="0 0 1200 600" preserveAspectRatio="xMidYMid slice" shape-rendering="crispEdges" aria-hidden="true">' +
     bands + stars + clouds +
     '<rect x="120" y="64" width="64" height="64" fill="' + P.sun + '" opacity=".8"/>' +
     '<rect x="112" y="72" width="80" height="48" fill="' + P.sun + '" opacity=".2"/>' +
     '<rect x="136" y="56" width="32" height="8" fill="' + P.sun + '" opacity=".35"/>' +
-    far + mist + mid + ground + water +
+    far + mist + mid + ground + water + floor +
     '<rect x="0" y="592" width="1200" height="8" fill="' + P.ink + '" opacity=".8"/>' +
     '</svg>';
 }
@@ -141,7 +146,7 @@ function battleBackdrop(regionId) {
 const BACKDROPS = {
   // 八境战斗天幕统一为明亮日间，只保留地貌色相差异
   shanmen: { sky: ['#a8c9dd', '#bcd6e3', '#d6e2df', '#ecdcc0', '#f2d49a', '#f7e0ae'], cloud: '#fbf7ec', far: '#a3b4c4', mid: '#93a7b8', near: '#7c9284', sun: '#fff2c0', accent: '#ffe08a', ink: '#3a3226', waterCol: '#5cc8e6' },
-  qingxi: { sky: ['#a9d0e0', '#b9d9e3', '#cfe4dc', '#e6e7c9', '#cfe0a2', '#eef2cf'], cloud: '#f4fbf6', far: '#8fb7ab', mid: '#7aa596', near: '#5f8974', sun: '#fff8cc', accent: '#cdffb0', ink: '#2c4a36', waterCol: '#5cc8e6', mist: true },
+  qingxi: { sky: ['#8fc0d6', '#a3cbdb', '#c0d9d6', '#e5dfc0', '#f0cf9c', '#f6e2b8'], cloud: '#fbf7ec', far: '#7fa294', mid: '#527f6a', near: '#3a624e', sun: '#fff0c0', accent: '#ffe08a', ink: '#243a2c', waterCol: '#5cc8e6', mist: true },
   wuyin: { sky: ['#b6c6cc', '#c2d0d2', '#d2dcd8', '#e2e6dd', '#eef0e6', '#f6f7f0'], cloud: '#ffffff', far: '#a7b5b2', mid: '#95a5a2', near: '#7d9089', sun: '#f4f6e8', accent: '#c9f2ff', ink: '#35443f', waterCol: '#78a8b8', mist: true },
   luoxing: { sky: ['#b9c1d8', '#cbc9dd', '#e2ccd0', '#f0d0a8', '#f5c07c', '#f8d79a'], cloud: '#fbf1dc', far: '#b99fb0', mid: '#a88f9c', near: '#8c7466', sun: '#ffe6a0', accent: '#fff3b8', ink: '#3f3428', waterCol: '#5cc8e6' },
   guixu: { sky: ['#9fd4e4', '#b3deea', '#cbe9ee', '#dff2ef', '#e9f6ee', '#f5fbf4'], cloud: '#ffffff', far: '#8dbcc4', mid: '#7cabb4', near: '#5f8f96', sun: '#fffbe0', accent: '#c9f2ff', ink: '#284850', waterCol: '#63d6e8', water: true },
@@ -389,6 +394,8 @@ function renderPartyStrip() {
   const box = $b('party-strip');
   const s = saveGame();
   if (!box || !s) return;
+  // 只有一只灵兽时，上方契位条与下方状态条信息重复，直接隐藏
+  box.className = 'party-strip' + (s.team.length > 1 ? '' : ' solo');
   box.innerHTML = s.team.map((m, i) => {
     const st = monStats(m);
     const pct = Math.round(clamp(m.hp / st.hp, 0, 1) * 100);
@@ -447,11 +454,11 @@ function renderCommands() {
   const items = battleItemIds().filter((id) => !itemBlockReason(id, mon)).length;
   const benchAlive = s.team.filter((m, i) => i !== battle.idx && m.hp > 0).length;
 
-  addCmd('术法', skills.length + ' 式', showSkills, skills.length === 0);
+  addCmd('术法', skills.length + ' 式', showSkills, skills.length === 0, 'primary');
   addCmd('结契', battle.foe.cannotCatch ? '不可结契' : ((s.items.charm || 0) > 0 ? '灵符 ' + s.items.charm : '徒手'),
     attemptCatch, battle.foe.cannotCatch);
-  addCmd('换灵', aliveCount() > 1 ? '可战 ' + aliveCount() : '仅一', showSwitch, aliveCount() <= 1);
-  addCmd('丹药', items > 0 ? '道具 ' + items : '无可用', showBattleItems, items <= 0);
+  addCmd('换灵', aliveCount() > 1 ? '可战 ' + aliveCount() : '仅一', showSwitch, aliveCount() <= 1, 'ghost');
+  addCmd('丹药', items > 0 ? '道具 ' + items : '无可用', showBattleItems, items <= 0, 'ghost');
 
   let bondSub = '契势 ' + Math.round(battle.bond) + '/100';
   let bondOff = battle.bond < 100;
@@ -478,7 +485,7 @@ function showSkills() {
     const sub = left > 0 ? '冷却 ' + left : el.ch + (s.power ? ' · 威力 ' + s.power : ' · 辅助');
     addCmd(s.name, sub, () => playerSkill(id), left > 0, 'skill el-' + s.el);
   });
-  addCmd('返回', '收起', renderCommands, false, 'ghost');
+  addCmd('返回', '收起', renderCommands, false, 'back');
 }
 
 function showSwitch() {
@@ -493,7 +500,7 @@ function showSwitch() {
     addCmd(st.name, m.hp <= 0 ? '已力竭' : 'Lv.' + m.lv + ' · ' + m.hp + '/' + st.maxHp,
       () => playerSwitch(i), m.hp <= 0, 'skill el-' + st.el);
   });
-  addCmd('返回', '收起', renderCommands, false, 'ghost');
+  addCmd('返回', '收起', renderCommands, false, 'back');
 }
 
 function itemBlockReason(id, mon) {
@@ -527,7 +534,7 @@ function showBattleItems() {
     const reason = itemBlockReason(id, mon);
     addCmd(item.name, reason || ('x' + n + ' · ' + itemEffect(id)), () => useBattleItem(id), !!reason, 'item');
   });
-  addCmd('返回', '收起', renderCommands, false, 'ghost');
+  addCmd('返回', '收起', renderCommands, false, 'back');
 }
 
 function showBondTargets() {
@@ -544,5 +551,5 @@ function showBondTargets() {
       () => playerBond(i), false, 'skill el-' + monEl(m));
   });
   if (!n) addCmd('合契', '无后备灵兽', null, true);
-  addCmd('返回', '收起', renderCommands, false, 'ghost');
+  addCmd('返回', '收起', renderCommands, false, 'back');
 }

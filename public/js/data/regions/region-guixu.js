@@ -37,6 +37,8 @@ REGIONS.guixu = makeRegion({
       { sp: 'guixujiao', lv: [13, 16] },
       { sp: 'jinyu', lv: [12, 15] },
       { sp: 'yunmengbei', lv: [12, 14] },
+      { sp: 'qianxi', lv: [12, 16] },
+      { sp: 'chaowen', lv: [13, 16] },
     ],
     boss: 'suolingjiao',
     npcs: [
@@ -203,6 +205,12 @@ REGIONS.guixu = makeRegion({
       { type: 'dock', x: 48, y: 32 },
       { type: 'ruin', x: 10, y: 34 },
       { type: 'ruin', x: 40, y: 10 },
+      // 海市街口
+      { type: 'tea', x: 22, y: 15 },
+      { type: 'jars', x: 24, y: 16 },
+      { type: 'barrels', x: 26, y: 16 },
+      { type: 'wish', x: 29, y: 15 },
+      { type: 'notice', x: 26, y: 18 },
     ],
     steles: [
       { id: 'guixu_stele1', x: 12, y: 16, title: '海市旧约', text: '「潮退则市开，潮满则市散。买卖不问来路，欠账必还。」落款是三十六年前的商盟。', codex: 'guixushangmeng' },

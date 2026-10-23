@@ -43,6 +43,8 @@ REGIONS.wuyin = makeRegion({
       { sp: 'qingheng', lv: [5, 7] },
       { sp: 'chaoxi', lv: [5, 7] },
       { sp: 'moyu', lv: [5, 6] },
+      { sp: 'taiyi', lv: [5, 8] },
+      { sp: 'ludeng', lv: [5, 8] },
     ],
     boss: 'wuyinxiao',
     npcs: [
@@ -219,6 +221,12 @@ REGIONS.wuyin = makeRegion({
       { type: 'ruin', x: 44, y: 39 },
       { type: 'stall', x: 55, y: 19 },
       { type: 'dock', x: 33, y: 40 },
+      // 药庐前场
+      { type: 'jars', x: 14, y: 18 },
+      { type: 'censer', x: 20, y: 17 },
+      { type: 'offering', x: 22, y: 18 },
+      { type: 'sweep', x: 13, y: 20 },
+      { type: 'wish', x: 24, y: 17 },
     ],
     steles: [
       { id: 'wuyin_stele1', x: 22, y: 16, title: '断契旧刻', text: '「三十年前，十二门同铸锁器。灵脉逆流，渊兽自裂谷出。」刻到这里，石面焦黑。', codex: 'duanqi' },

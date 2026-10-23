@@ -191,9 +191,10 @@ Object.assign(WorldScene.prototype, {
     const ch = this.mapCanvas.height || 120;
     const bw = this.mapBw || 4;
     ctx.clearRect(0, 0, cw, ch);
-    ctx.fillStyle = '#e6dabd';
+    // 未探索区域用深色雾遮住，已走过的地形成图，避免小地图看起来像一块空白羊皮
+    ctx.fillStyle = '#3b3427';
     ctx.fillRect(0, 0, cw, ch);
-    ctx.fillStyle = 'rgba(90,72,46,.12)';
+    ctx.fillStyle = 'rgba(240,225,190,.05)';
     for (let gy = 0; gy < ch; gy += 6) ctx.fillRect(0, gy, cw, 1);
 
     const size = Math.ceil(bw);

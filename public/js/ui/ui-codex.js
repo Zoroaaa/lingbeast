@@ -7,38 +7,69 @@ function milestoneText(pct, flag, text) {
 function bestiaryCardHtml(spid) {
   var s = LB.saveState();
   var sp = SPECIES[spid];
+  if (!sp) return '';
   var b = (s.bestiary && s.bestiary[spid]) || {};
   var known = !!b.seen;
+  var r = rarityOf(sp);
+  var gi = growthInfo(sp);
   var marks = '';
-  if (b.caught) marks += '<span class="seal-chip">已契</span>';
-  if (b.defeated) marks += '<span class="seal-chip">已遇</span>';
-  return '<article class="beast-card' + (known ? '' : ' locked') + '" data-codex-beast="' + uiEsc(spid) + '" role="button" tabindex="0" style="--el:' + uiElOf(sp.el).color + '">' +
+  if (known && b.caught) marks += '<span class="seal-chip">已契</span>';
+  if (known && b.defeated) marks += '<span class="seal-chip">已遇</span>';
+  if (known && sp.evolved) marks += '<span class="seal-chip">进化</span>';
+  // 未见过的灵兽不泄露立绘，只留一枚问号印
+  var art = known ? beastSvg(sp.art, sp.el) : '<span class="beast-unknown">?</span>';
+  // 稀有度始终显示：未见的灵兽只封住立绘，不封住卡框，让收藏目标有层次
+  var badge = '<span class="rarity-badge" title="稀有度 ' + sp.rarity + ' · ' + r.name + '">' + sp.rarity + '</span>';
+  return '<article class="beast-card r-' + sp.rarity + (known ? '' : ' locked') + '" data-codex-beast="' + uiEsc(spid) + '" role="button" tabindex="0" style="--el:' + uiElOf(sp.el).color + ';--rar:' + r.color + ';--rar-soft:' + r.soft + '">' +
     '<div class="beast-head">' +
-    beastSvg(sp.art, sp.el) +
+    '<div class="beast-art-wrap">' + art + badge + '</div>' +
     '<div class="beast-title"><b>' + uiEsc(known ? sp.name : '未识之灵') + '</b><span>' +
-    uiEsc(known ? uiElOf(sp.el).ch + ' · ' + sp.habitat : '尚未显影') + '</span></div>' +
+    uiEsc(known ? uiElOf(sp.el).ch + ' · ' + sp.habitat : '尚未显影') + '</span>' +
+    (known ? '<span class="growth-line gr-' + gi.rank + '">成长 ' + gi.rank + ' · 每级 +' + gi.total + '</span>' : '') +
+    '</div>' +
     '</div>' +
     (marks ? '<div class="beast-stats">' + marks + '</div>' : '') +
     '</article>';
 }
 
+function codexEntryHtml(e, key) {
+  if (!e.unlocked) {
+    if (key === 'chron') {
+      return '<li class="codex-node locked-node"><span class="codex-dot"></span><span class="codex-lock-line">未解 · 墨渍未干</span></li>';
+    }
+    return '<article class="codex-card locked"><span class="codex-lock-seal">墨</span><span class="codex-lock-text">未解</span></article>';
+  }
+  var body = '<h4>' + uiEsc(e.title) + '</h4><p>' + uiEsc(e.body) + '</p>';
+  if (key === 'chron') {
+    return '<li class="codex-node"><span class="codex-dot"></span><article class="codex-card">' + body + '</article></li>';
+  }
+  if (key === 'elem') {
+    return '<article class="codex-card elem"><span class="codex-glyph">' + uiEsc(e.title.charAt(0)) + '</span>' + body + '</article>';
+  }
+  if (key === 'person') {
+    return '<article class="codex-card person"><span class="codex-seal">' + uiEsc(e.title.charAt(0)) + '</span>' + body + '</article>';
+  }
+  return '<article class="codex-card">' + body + '</article>';
+}
+
 function codexPageHtml(entries) {
   var cats = ['年表', '五灵', '山门', '势力', '地理', '术语', '人物'];
+  var keys = { '年表': 'chron', '五灵': 'elem', '山门': 'sect', '势力': 'faction', '地理': 'geo', '术语': 'term', '人物': 'person' };
   var unlocked = 0;
   entries.forEach(function (e) { if (e.unlocked) unlocked += 1; });
   var html = '<div class="sheet-bar">山海志 · 已解锁 <b>' + unlocked + '</b>/' + entries.length + '</div>';
   cats.forEach(function (cat) {
     var group = entries.filter(function (e) { return e.category === cat; });
     if (!group.length) return;
-    html += '<section class="quest-block"><h4>' + uiEsc(cat) + '</h4><div class="sheet-list">';
-    group.forEach(function (e) {
-      html += '<article class="sheet-card codex-entry' + (e.unlocked ? '' : ' locked') + '">' +
-        (e.unlocked
-          ? '<h4>' + uiEsc(e.title) + '</h4><p>' + uiEsc(e.body) + '</p>'
-          : '<p class="codex-stain">墨渍未干</p>') +
-        '</article>';
-    });
-    html += '</div></section>';
+    var key = keys[cat] || 'term';
+    var inner = group.map(function (e) { return codexEntryHtml(e, key); }).join('');
+    var wrap;
+    if (key === 'chron') wrap = '<ol class="codex-timeline">' + inner + '</ol>';
+    else if (key === 'elem') wrap = '<div class="codex-elem-grid">' + inner + '</div>';
+    else if (key === 'person') wrap = '<div class="codex-person-grid">' + inner + '</div>';
+    else if (key === 'geo') wrap = '<div class="codex-geo-grid">' + inner + '</div>';
+    else wrap = '<div class="codex-term-list">' + inner + '</div>';
+    html += '<section class="codex-group cat-' + key + '"><h4>' + uiEsc(cat) + '<i>' + group.length + '</i></h4>' + wrap + '</section>';
   });
   return html;
 }
@@ -60,9 +91,19 @@ function renderCodex(active) {
 
   var body = tabs;
   if (tab === 'bestiary') {
+    var counts = {};
+    RARITY_ORDER.forEach(function (k) { counts[k] = 0; });
+    Object.keys(SPECIES).forEach(function (id) {
+      var rr = SPECIES[id].rarity || 'B';
+      counts[rr] = (counts[rr] || 0) + 1;
+    });
+    var legend = RARITY_ORDER.slice().reverse().map(function (k) {
+      return '<span class="rar-legend r-' + k + '"><i>' + k + '</i><b>' + counts[k] + '</b></span>';
+    }).join('');
     body += '<div class="sheet-bar bestiary-progress">' +
       '<span>图鉴 <b>' + prog.seen + '</b>/' + prog.total + ' · ' + prog.pct + '%</span>' +
       '<div class="progress-track"><i style="width:' + prog.pct + '%"></i></div>' +
+      '<div class="rar-legend-row">' + legend + '</div>' +
       '<div class="milestone-row">' +
       milestoneText(25, LB.flag('bestiary_25'), '灵玉 +20 · 十二山门') +
       milestoneText(50, LB.flag('bestiary_50'), '灵玉 +30 · 灵符 +3') +
@@ -113,15 +154,27 @@ function openBeastDetail(spid, back, backLabel) {
       '</section>';
   } else {
     var st = uiStatsOf({ sp: spid, lv: 1, talent: 1 });
+    var rar = rarityOf(sp);
+    var gi = growthInfo(sp);
     var skills = (sp.sk || []).map(function (entry) {
       var sk = SKILLS[entry[1]];
       if (!sk) return '';
       return '<span class="mat-chip" style="--el:' + uiElOf(sk.el).color + '">' + uiEsc(sk.name) + ' <i>Lv.' + entry[0] +
         (sk.power ? ' · 威 ' + sk.power : '') + '</i></span>';
     }).join('');
-    body = '<section class="beast-detail" style="--el:' + uiElOf(sp.el).color + '">' +
+    var growthCells = [['气血', gi.hp], ['攻击', gi.atk], ['防御', gi.def], ['速度', gi.spd]].map(function (g) {
+      return '<li><i>' + g[0] + '</i><b>+' + g[1] + '</b></li>';
+    }).join('');
+    body = '<section class="beast-detail r-' + sp.rarity + '" style="--el:' + uiElOf(sp.el).color + ';--rar:' + rar.color + ';--rar-soft:' + rar.soft + '">' +
       '<div class="beast-detail-art">' + beastSvg(sp.art, sp.el, true) + '</div>' +
-      '<div class="beast-detail-name">' + sealSvg(sp.name, sp.el) + '<b>' + uiEsc(sp.name) + '</b></div>' +
+      '<div class="beast-detail-name">' + sealSvg(sp.name, sp.el) + '<b>' + uiEsc(sp.name) + '</b>' +
+      '<span class="rarity-badge lg" title="稀有度 ' + sp.rarity + ' · ' + rar.name + '">' + sp.rarity + '</span></div>' +
+      '<div class="rarity-line">稀有度 ' + sp.rarity + ' · ' + rar.name + ' · 属性 ×' + rar.mult.toFixed(2) + '</div>' +
+      '<div class="growth-panel">' +
+      '<div class="growth-rank gr-' + gi.rank + '"><b>' + gi.rank + '</b><span>成长资质</span></div>' +
+      '<ul class="growth-list">' + growthCells + '</ul>' +
+      '<p class="growth-total">每级合计<br><b>+' + gi.total + '</b></p>' +
+      '</div>' +
       '<div class="beast-stats">' + uiElChip(sp.el) +
       '<span>栖息地：' + uiEsc(sp.habitat) + '</span>' +
       '<span>弱点：' + uiEsc(uiElOf(sp.weakness).ch) + '</span>' +

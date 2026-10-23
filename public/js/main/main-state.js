@@ -103,16 +103,18 @@ function statsOf(sp, lv, mon) {
   const l = Math.max(1, Number(lv) || 1);
   const b = d.base;
   const g = d.grow;
+  // 稀有度直接决定强度
+  const rm = typeof rarityOf === 'function' ? rarityOf(d).mult : 1;
   const ge = typeof gearEffect === 'function' ? gearEffect(mon) : {};
   const hpPct = 1 + (ge.hpPct || 0);
   const atkPct = 1 + (ge.atkPct || 0);
   const defPct = 1 + (ge.defPct || 0);
   const spdPct = 1 + (ge.spdPct || 0);
   return {
-    hp: Math.round((b.hp + g.hp * (l - 1)) * t * hpPct),
-    atk: Math.round((b.atk + g.atk * (l - 1)) * t * atkPct),
-    def: Math.round((b.def + g.def * (l - 1)) * t * defPct),
-    spd: Math.round((b.spd + g.spd * (l - 1)) * t * spdPct),
+    hp: Math.round((b.hp + g.hp * (l - 1)) * rm * t * hpPct),
+    atk: Math.round((b.atk + g.atk * (l - 1)) * rm * t * atkPct),
+    def: Math.round((b.def + g.def * (l - 1)) * rm * t * defPct),
+    spd: Math.round((b.spd + g.spd * (l - 1)) * rm * t * spdPct),
     el: d.el,
     name: d.name,
   };

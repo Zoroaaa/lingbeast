@@ -182,6 +182,68 @@ const CODEX = {
     body: '人呼其名，灵应其声。名在则契在，名亡则契亡。此约不刻于石，刻于口——所以它要两个人一起记着才算数。',
     unlock: { type: 'stele', id: 'shenyuan_stele5' },
   },
+
+  // ===== 扩充：五脉、旧炉与新城 =====
+  zhumen: {
+    id: 'zhumen', category: '年表', title: '铸门',
+    body: '十二门铸锁灵器那年，落星原的炉火烧了七夜。第七夜炉顶塌下一角，铁水顺着山脊流成一条不会冷的沟。',
+    unlock: { type: 'codexPct', value: 30 },
+  },
+  xuhuo: {
+    id: 'xuhuo', category: '年表', title: '续火',
+    body: '断契之后，各门只余一盏灯。青溪的灯由老丈添油，古坛的灯埋在火洲底下，归墟的灯挂在海市最高一根桩上。',
+    unlock: { type: 'codexPct', value: 60 },
+  },
+  jinmai: {
+    id: 'jinmai', category: '五灵', title: '金脉',
+    body: '金脉生铁，铁能锁灵，也能铸铃。铃响一声，走失的灵兽会停一停；锁灵器响一声，它便再也想不起回头的路。',
+    unlock: { type: 'codexPct', value: 40 },
+  },
+  mumai: {
+    id: 'mumai', category: '五灵', title: '木脉',
+    body: '木脉主生，也主忘。林子长得越深，被记住的事越少；所以药庐采药，总要在手腕上系一根不会褪色的线。',
+    unlock: { type: 'codexPct', value: 38 },
+  },
+  shuimai: {
+    id: 'shuimai', category: '五灵', title: '水脉',
+    body: '水脉记路。归墟的潮每天退两次，退到哪块礁石、绕过哪根旧桩，一千年不改。鲛人唱歌，唱的是水记下的路。',
+    unlock: { type: 'codexPct', value: 42 },
+  },
+  huomai: {
+    id: 'huomai', category: '五灵', title: '火脉',
+    body: '火脉不灭，只换地方烧。古坛的火沉下去以后，在云梦泽的苇岸又冒了头；守火的人换了一代，火还记得旧名。',
+    unlock: { type: 'codexPct', value: 44 },
+  },
+  tumai: {
+    id: 'tumai', category: '五灵', title: '土脉',
+    body: '土脉载名。埋下去的名字会顺着土走，走到碑下便停。古坛的守碑人拖回倒下的碑座，不是怕碑倒，是怕名字走散。',
+    unlock: { type: 'codexPct', value: 46 },
+  },
+  luding: {
+    id: 'luding', category: '地理', title: '炉顶',
+    body: '落星原旧炉的顶，如今只剩半圈铁梁。灼金雕落在梁上磨喙，铁屑落下去，隔年便生出一丛不生花的草。',
+    unlock: { type: 'codexPct', value: 55 },
+  },
+  yaozhou: {
+    id: 'yaozhou', category: '地理', title: '药洲',
+    body: '云梦泽的浮洲一年换一次位置，只有衔药鹿找得到。洲上生着九种药，第九种从不入方子，只用来送人。',
+    unlock: { type: 'codexPct', value: 65 },
+  },
+  shagu: {
+    id: 'shagu', category: '地理', title: '砂谷',
+    body: '断崖下的砂谷没有风，砂会自己合拢。走进去的人若不留石子记路，出来时会发现自己绕回了同一截断墙。',
+    unlock: { type: 'codexPct', value: 70 },
+  },
+  zhulingshi: {
+    id: 'zhulingshi', category: '人物', title: '铸灵师',
+    body: '他姓祝，右手缺一根指。铸过锁灵器，也补过旧灵笼；两样活计他都做得好，只是再不提那年炉火。',
+    unlock: { type: 'npc', id: 'zhuling' },
+  },
+  haishizhu: {
+    id: 'haishizhu', category: '人物', title: '海市主',
+    body: '没人知道她的名字，只知道海市每次开张，她都站在最高那根桩上。她收落水之物，也收没说完的话。',
+    unlock: { type: 'npc', id: 'haishi' },
+  },
 };
 
 // ---------- 隐藏暗格 ----------

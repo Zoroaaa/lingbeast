@@ -16,6 +16,37 @@ const ELEMENTS = {
 // 克：木→土→水→火→金→木
 const BEATS = { wood: 'earth', earth: 'water', water: 'fire', fire: 'metal', metal: 'wood' };
 
+// ---------- 灵兽资质 ----------
+// 稀有度直接决定强度：S > A > B > C > D。
+// C/D 为后续内容预留，当前只少量使用。
+const RARITY = {
+  S: { name: '绝', color: '#c8912f', soft: '#f6e2b2', ink: '#3a2a10', mult: 1.18, order: 5 },
+  A: { name: '珍', color: '#7c4fb8', soft: '#e2d4f4', ink: '#2a1c40', mult: 1.1, order: 4 },
+  B: { name: '良', color: '#2f6fa8', soft: '#cfe2f2', ink: '#16283c', mult: 1, order: 3 },
+  C: { name: '常', color: '#5c7a5a', soft: '#d8e4d2', ink: '#20301f', mult: 0.92, order: 2 },
+  D: { name: '凡', color: '#7d7466', soft: '#e3dcce', ink: '#2c2820', mult: 0.85, order: 1 },
+};
+const RARITY_ORDER = ['D', 'C', 'B', 'A', 'S'];
+
+function rarityOf(sp) { return RARITY[sp && sp.rarity] || RARITY.B; }
+
+// 成长资质：四项每级成长折成综合评级，与稀有度分离展示
+function growthInfo(sp) {
+  const g = (sp && sp.grow) || { hp: 0, atk: 0, def: 0, spd: 0 };
+  const score = g.hp / 8 + g.atk / 2 + g.def / 2 + g.spd;
+  let rank = 'D';
+  if (score >= 4.5) rank = 'S';
+  else if (score >= 4.15) rank = 'A';
+  else if (score >= 3.6) rank = 'B';
+  else if (score >= 3.2) rank = 'C';
+  return {
+    hp: g.hp, atk: g.atk, def: g.def, spd: g.spd,
+    total: Math.round((g.hp + g.atk + g.def + g.spd) * 10) / 10,
+    score: Math.round(score * 100) / 100,
+    rank: rank,
+  };
+}
+
 // ---------- 状态 ----------
 // kind: dot 持续伤害 / debuff 削弱 / buff 增益
 const STATUSES = {

@@ -38,6 +38,8 @@ REGIONS.yunmeng = makeRegion({
       { sp: 'guixujiao', lv: [16, 19] },
       { sp: 'youmu', lv: [16, 18] },
       { sp: 'chaoxi', lv: [16, 18] },
+      { sp: 'chier', lv: [16, 19] },
+      { sp: 'xianyao', lv: [16, 19] },
     ],
     boss: 'shenmu',
     npcs: [
@@ -211,6 +213,12 @@ REGIONS.yunmeng = makeRegion({
       { type: 'dock', x: 49, y: 33 },
       { type: 'dock', x: 53, y: 34 },
       { type: 'stall', x: 16, y: 27 },
+      // 泽畔渔家
+      { type: 'jars', x: 15, y: 19 },
+      { type: 'tea', x: 18, y: 19 },
+      { type: 'barrels', x: 21, y: 19 },
+      { type: 'stoneTable', x: 24, y: 19 },
+      { type: 'sweep', x: 27, y: 19 },
     ],
     steles: [
       { id: 'yunmeng_stele1', x: 22, y: 22, title: '云梦泽记', text: '「泽上多雾，雾中见心。行舟者勿答雾中之问，答则迷。」', codex: 'yunmengze' },

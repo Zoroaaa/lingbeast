@@ -41,6 +41,8 @@ REGIONS.qingxi = makeRegion({
       { sp: 'qingheng', lv: [2, 4] },
       { sp: 'moyu', lv: [2, 3] },
       { sp: 'yanwei', lv: [2, 3] },
+      { sp: 'tongling', lv: [2, 4] },
+      { sp: 'taishi', lv: [2, 4] },
     ],
     boss: 'shougu',
     npcs: [
@@ -191,6 +193,12 @@ REGIONS.qingxi = makeRegion({
       { type: 'lantern', x: 31, y: 36 },
       { type: 'lantern', x: 39, y: 36 },
       { type: 'sign', x: 30, y: 34 },
+      // 溪谷村口的生活痕迹
+      { type: 'tea', x: 14, y: 18 },
+      { type: 'jars', x: 17, y: 18 },
+      { type: 'notice', x: 20, y: 18 },
+      { type: 'stoneTable', x: 24, y: 20 },
+      { type: 'sweep', x: 28, y: 21 },
     ],
     steles: [
       { id: 'qingxi_stele1', x: 10, y: 20, title: '初立门碑', text: '「立门者不立碑，碑在山上。」落款是初代契灵者，字迹被水汽晕开。', codex: 'limen' },

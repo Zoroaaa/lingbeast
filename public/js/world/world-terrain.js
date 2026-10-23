@@ -23,6 +23,23 @@ const REGION_PAL = {
 
 function palOf(region) { return REGION_PAL[region.id] || REGION_PAL.qingxi; }
 
+function groundColor(t, h, pal) {
+  if (t === ',') return h > 0.5 ? pal.path : pal.path2;
+  if (t === 'g') return h > 0.5 ? pal.grass : pal.grass2;
+  if (t === 'W') return h > 0.5 ? pal.water : pal.water2;
+  if (t === 'Z') return h > 0.5 ? pal.marsh : pal.water2;
+  if (t === 'T') return pal.tree;
+  if (t === 'R') return pal.base2;
+  if (t === 'H') return pal.wood;
+  if (t === 'C') return pal.cliff;
+  if (t === 'A') return pal.stone;
+  if (t === 'L') return pal.lava;
+  if (t === 'D') return pal.sand;
+  if (t === 'M') return pal.plank;
+  if (t === 'S' || t === 'E') return pal.path;
+  return pal.base;
+}
+
 // 2px 网格铺设：让所有地面细节保持像素颗粒
 function pxRect(c, x, y, w, h, color, alpha) {
   if (w <= 0 || h <= 0) return;
@@ -76,40 +93,69 @@ Object.assign(WorldScene.prototype, {
       }
     }
 
+    this.ditherEdges(c);
     canvas.refresh();
     this.add.image(0, 0, key).setOrigin(0, 0).setDepth(-20);
     this.add.rectangle(0, 0, W, H, worldHex(r.tint || '#f2ede2'), 0.03).setOrigin(0, 0).setDepth(-19);
   },
 
+  // 材质交界锯齿化：把相邻地表色咬进边角，消除横平竖直的格子感
+  ditherEdges(c) {
+    const r = this.region;
+    const pal = palOf(r);
+    const soft = { '.': 1, g: 1, ',': 1, D: 1, Z: 1 };
+    const dirs = [[0, -1], [1, 0], [0, 1], [-1, 0]];
+    for (let y = 1; y < r.h - 1; y += 1) {
+      for (let x = 1; x < r.w - 1; x += 1) {
+        const t = r.tiles[y][x];
+        if (!soft[t]) continue;
+        for (let d = 0; d < 4; d += 1) {
+          const nt = this.tileAt(x + dirs[d][0], y + dirs[d][1]);
+          if (nt === t || !soft[nt]) continue;
+          const seed = hash01(x * 37 + d * 11, y * 53 + d * 7);
+          if (seed < 0.42) continue;
+          const col = groundColor(nt, seed, pal);
+          const px = x * TILE;
+          const py = y * TILE;
+          for (let i = 0; i < 2; i += 1) {
+            const o = Math.floor(hash01(x + i * 7 + d * 13, y + i * 5 + d * 3) * (TILE - 5));
+            const s = 2 + (i % 2) * 2;
+            if (d === 0) pxRect(c, px + o, py, s + 1, s, col);
+            else if (d === 1) pxRect(c, px + TILE - s, py + o, s, s, col);
+            else if (d === 2) pxRect(c, px + o, py + TILE - s, s + 1, s, col);
+            else pxRect(c, px, py + o, s, s, col);
+          }
+        }
+      }
+    }
+  },
+
   drawGroundTile(c, px, py, t, x, y, pal, h) {
-    let base = pal.base;
-    if (t === ',') base = h > 0.5 ? pal.path : pal.path2;
-    else if (t === 'g') base = h > 0.5 ? pal.grass : pal.grass2;
-    else if (t === 'W') base = h > 0.5 ? pal.water : pal.water2;
-    else if (t === 'Z') base = h > 0.5 ? pal.marsh : pal.water2;
-    else if (t === 'T') base = pal.tree;
-    else if (t === 'R') base = pal.base2;
-    else if (t === 'H') base = pal.wood;
-    else if (t === 'C') base = pal.cliff;
-    else if (t === 'A') base = pal.stone;
-    else if (t === 'L') base = pal.lava;
-    else if (t === 'D') base = pal.sand;
-    else if (t === 'M') base = pal.plank;
-    else if (t === 'S' || t === 'E') base = pal.path;
-    pxRect(c, px, py, TILE + 1, TILE + 1, base);
+    const base = groundColor(t, h, pal);
+    pxRect(c, px, py, TILE, TILE, base);
 
     // 2px 棋盘微差，避免纯色块
     if (h > 0.56) pxRect(c, px + 2, py + 2, 6, 2, base, 0.5);
     if (h < 0.18) pxRect(c, px + TILE - 10, py + TILE - 6, 6, 2, '#000000', 0.08);
 
-    // 山门中庭：石板铺装
+    // 山门中庭：大块错缝石板，避免整张图出现均匀网格
     if (t === '.' && this.region.id === 'shanmen') {
-      const off = (y % 2) * 8;
-      pxRect(c, px, py + 15, TILE, 2, '#7a6d58', 0.55);
-      pxRect(c, px + 15, py, 2, TILE, '#7a6d58', 0.4);
-      pxRect(c, px + 7 + off, py, 2, 16, '#85775f', 0.35);
-      pxRect(c, px + 23 - off, py + 17, 2, 15, '#85775f', 0.35);
-      if (h > 0.7) pxRect(c, px + 5, py + 5, 4, 2, '#b3a487', 0.45);
+      const slab = hash01(Math.floor(x / 3) + 91, Math.floor(y / 2) + 57);
+      if (slab > 0.66) pxRect(c, px, py, TILE, TILE, '#cdbb95', 0.3);
+      else if (slab < 0.28) pxRect(c, px, py, TILE, TILE, '#b9a780', 0.16);
+      // 横向接缝：每两行一条，且并非每条都画全
+      if (y % 2 === 0 && slab > 0.18) {
+        pxRect(c, px, py, TILE, 2, '#8a7b5e', 0.28);
+        pxRect(c, px + 2, py + 2, TILE - 6, 1, '#e6d7b2', 0.16);
+      }
+      // 纵向接缝：相邻石板行错位一格
+      const shift = Math.floor(y / 2) % 2 ? 1 : 0;
+      if ((x - shift) % 3 === 0 && x > 0) {
+        pxRect(c, px, py, 2, TILE, '#8a7b5e', 0.26);
+        pxRect(c, px + 2, py + 2, 1, TILE - 6, '#e6d7b2', 0.14);
+      }
+      // 磨损坑洼
+      if (h > 0.8) pxRect(c, px + 6 + Math.floor(hash01(x + 5, y + 11) * 14), py + 9, 6, 2, '#a2947a', 0.5);
     } else if (t === '.' && this.region.id === 'luoxing') {
       pxRect(c, px + 3, py + 6, 11, 2, '#7d6c42', 0.5);
       pxRect(c, px + 16, py + 20, 9, 2, '#8d7c4c', 0.5);

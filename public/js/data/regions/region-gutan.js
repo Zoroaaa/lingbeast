@@ -39,6 +39,8 @@ REGIONS.gutan = makeRegion({
       { sp: 'yanwei', lv: [20, 23] },
       { sp: 'shijiatuo', lv: [20, 23] },
       { sp: 'jinyu', lv: [20, 22] },
+      { sp: 'chisha', lv: [20, 24] },
+      { sp: 'shaxing', lv: [20, 24] },
     ],
     boss: 'chiyuan',
     npcs: [
@@ -198,6 +200,12 @@ REGIONS.gutan = makeRegion({
       { type: 'house', x: 48, y: 30, frame: 'house2' },
       { type: 'stall', x: 18, y: 26 },
       { type: 'dock', x: 54, y: 35 },
+      // 古坛祭场
+      { type: 'censer', x: 22, y: 19 },
+      { type: 'offering', x: 23, y: 18 },
+      { type: 'barrels', x: 18, y: 19 },
+      { type: 'wish', x: 20, y: 17 },
+      { type: 'sweep', x: 28, y: 20 },
     ],
     steles: [
       { id: 'gutan_stele1', x: 16, y: 26, title: '洪荒残言', text: '「五灵祖兽以身化石，以息成河。山是它们睡下时压出的褶皱。」', codex: 'honghuang' },

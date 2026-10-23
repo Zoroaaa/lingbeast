@@ -36,6 +36,8 @@ REGIONS.shenyuan = makeRegion({
       { sp: 'guixujiao', lv: [24, 27] },
       { sp: 'xingxi', lv: [24, 27] },
       { sp: 'jinta', lv: [24, 26] },
+      { sp: 'hansui', lv: [24, 28] },
+      { sp: 'shuangling', lv: [25, 28] },
     ],
     boss: 'wuxiang',
     npcs: [
@@ -193,6 +195,12 @@ REGIONS.shenyuan = makeRegion({
       { type: 'sign', x: 55, y: 21 },
       { type: 'dock', x: 57, y: 29 },
       { type: 'house', x: 12, y: 36, frame: 'house1' },
+      // 守碑人的火与供
+      { type: 'censer', x: 20, y: 24 },
+      { type: 'offering', x: 20, y: 25 },
+      { type: 'barrels', x: 24, y: 23 },
+      { type: 'sweep', x: 16, y: 23 },
+      { type: 'stoneTable', x: 28, y: 25 },
     ],
     steles: [
       { id: 'shenyuan_stele1', x: 12, y: 22, title: '锁灵术源碑', text: '「抽其息，留其形，抹其名。无名者不为灵，故不能契。」碑下堆着空灵笼。', codex: 'wuxiang' },

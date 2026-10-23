@@ -37,6 +37,8 @@ REGIONS.luoxing = makeRegion({
       { sp: 'xingxi', lv: [9, 12] },
       { sp: 'jinyu', lv: [8, 11] },
       { sp: 'moyu', lv: [8, 9] },
+      { sp: 'yanbei', lv: [8, 12] },
+      { sp: 'yuntie', lv: [9, 12] },
     ],
     boss: 'xingyun',
     npcs: [
@@ -202,6 +204,12 @@ REGIONS.luoxing = makeRegion({
       { type: 'ruin', x: 39, y: 6 },
       { type: 'ruin', x: 27, y: 31 },
       { type: 'ruin', x: 53, y: 37 },
+      // 矿工歇脚处
+      { type: 'barrels', x: 14, y: 19 },
+      { type: 'stoneTable', x: 16, y: 20 },
+      { type: 'jars', x: 10, y: 19 },
+      { type: 'notice', x: 25, y: 20 },
+      { type: 'sweep', x: 13, y: 23 },
     ],
     steles: [
       { id: 'luoxing_stele1', x: 45, y: 17, title: '天工司炉铭', text: '「器可载契，亦可夺契。匠人不问用途，用途自问匠人。」铭下有一道锤痕。', codex: 'tiangongsi' },

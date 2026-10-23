@@ -289,8 +289,13 @@ Object.assign(WorldScene.prototype, {
     const key = h > 0.5 ? 'pixel-tree-a' : 'pixel-tree-b';
     const px = x * TILE + TILE / 2 + (h - 0.5) * 8;
     const py = (y + 1) * TILE + 5;
+    const s = 1 + h * 0.35;
+    // 树冠投影：把树“钉”在地面上，避免贴片感
+    const sg = this.add.graphics().setDepth((y + 1) * TILE + 5);
+    gRect(sg, 0x0a0d14, px - 20 * s, py - 5, 40 * s, 5, 0.18);
+    gRect(sg, 0x0a0d14, px - 13 * s, py - 9, 26 * s, 4, 0.13);
     const img = this.add.image(px, py, key);
-    img.setOrigin(0.5, 1).setDepth((y + 1) * TILE + 6).setScale(0.85 + h * 0.32);
+    img.setOrigin(0.5, 1).setDepth((y + 1) * TILE + 6).setScale(s);
     const regionTint = {
       gutan: 0x9a7058, shenyuan: 0x7f8fa8, luoxing: 0xb8a878,
       wuyin: 0x7f9a88, guixu: 0x9ac0a8, yunmeng: 0x9ab08a,
@@ -353,6 +358,24 @@ Object.assign(WorldScene.prototype, {
       this.addStall(px, py);
     } else if (p.type === 'dock') {
       this.addDock(px, py);
+    } else if (p.type === 'notice') {
+      this.addNoticeBoard(p.x, p.y);
+    } else if (p.type === 'jars') {
+      this.addWaterJars(p.x, p.y);
+    } else if (p.type === 'tea') {
+      this.addTeaStall(p.x, p.y);
+    } else if (p.type === 'wish') {
+      this.addWishRack(p.x, p.y);
+    } else if (p.type === 'censer') {
+      this.addCenser(p.x, p.y);
+    } else if (p.type === 'offering') {
+      this.addOfferingTable(p.x, p.y);
+    } else if (p.type === 'sweep') {
+      this.addSweepPile(p.x, p.y);
+    } else if (p.type === 'stoneTable') {
+      this.addStoneTable(p.x, p.y);
+    } else if (p.type === 'barrels') {
+      this.addBarrels(p.x, p.y);
     }
   },
 
@@ -453,6 +476,256 @@ Object.assign(WorldScene.prototype, {
     g.fillStyle(0x7d5a38, 1); g.fillRect(px - 30, py - 25, 60, 4);
     g.fillStyle(0x5b4128, 0.6); g.fillRect(px - 12, py - 32, 2, 7);
     g.fillRect(px + 4, py - 32, 2, 7);
+  },
+
+  // ---------- 中庭叙事物件 ----------
+
+  addNoticeBoard(x, y) {
+    this.blockTile(x, y);
+    const px = x * TILE + TILE / 2;
+    const py = (y + 1) * TILE;
+    const g = this.add.graphics().setDepth(py + 2);
+    gRect(g, 0x0a0d14, px - 24, py - 4, 48, 4, 0.2);
+    gRect(g, 0x5b4128, px - 20, py - 48, 4, 48);
+    gRect(g, 0x5b4128, px + 16, py - 48, 4, 48);
+    gRect(g, 0x8a6238, px - 30, py - 82, 60, 40);
+    gRect(g, 0xc9a36a, px - 28, py - 80, 56, 36);
+    gRect(g, 0x9a7448, px - 28, py - 46, 56, 3);
+    // 三张新旧不一的告示
+    gRect(g, 0xf2e6c8, px - 24, py - 76, 16, 19);
+    gRect(g, 0x8d7a5c, px - 21, py - 71, 10, 1);
+    gRect(g, 0x8d7a5c, px - 21, py - 68, 8, 1);
+    gRect(g, 0xbf4c38, px - 13, py - 75, 4, 4);
+    gRect(g, 0xf2e6c8, px - 4, py - 76, 14, 15);
+    gRect(g, 0x8d7a5c, px - 1, py - 72, 8, 1);
+    gRect(g, 0xf2e6c8, px - 4, py - 58, 24, 11);
+    gRect(g, 0x8d7a5c, px - 1, py - 55, 16, 1);
+    gRect(g, 0xbf4c38, px + 15, py - 73, 3, 3);
+  },
+
+  addWaterJars(x, y) {
+    const px = x * TILE + TILE / 2;
+    const py = (y + 1) * TILE;
+    const g = this.add.graphics().setDepth(py + 2);
+    gRect(g, 0x0a0d14, px - 30, py - 3, 60, 4, 0.18);
+    // 大水缸
+    gRect(g, 0x6f6a5c, px - 16, py - 26, 24, 24);
+    gRect(g, 0x8f8a7a, px - 18, py - 28, 28, 4);
+    gRect(g, 0x2c3a3a, px - 14, py - 26, 20, 4);
+    gRect(g, 0x9fb4b0, px - 12, py - 25, 7, 2);
+    gRect(g, 0x5f584c, px - 14, py - 4, 4, 3);
+    gRect(g, 0x5f584c, px + 6, py - 4, 4, 3);
+    // 小陶罐
+    gRect(g, 0xd8b06a, px + 14, py - 16, 12, 14);
+    gRect(g, 0x8a6238, px + 13, py - 18, 14, 3);
+    // 木桶
+    gRect(g, 0x8a6238, px - 32, py - 13, 12, 11);
+    gRect(g, 0x5b4128, px - 32, py - 10, 12, 1);
+    gRect(g, 0x5b4128, px - 32, py - 6, 12, 1);
+  },
+
+  addTeaStall(x, y) {
+    this.blockTile(x, y);
+    const px = x * TILE + TILE / 2;
+    const py = (y + 1) * TILE;
+    const g = this.add.graphics().setDepth(py + 2);
+    gRect(g, 0x0a0d14, px - 36, py - 4, 72, 5, 0.2);
+    // 立柱与蓝布顶棚
+    gRect(g, 0x5b4128, px - 28, py - 60, 4, 60);
+    gRect(g, 0x5b4128, px + 24, py - 60, 4, 60);
+    gRect(g, 0x3b4b78, px - 38, py - 66, 76, 13);
+    gRect(g, 0x4f5f8e, px - 38, py - 66, 76, 3);
+    gRect(g, 0x2e3c62, px - 38, py - 55, 76, 3);
+    gRect(g, 0x3b4b78, px - 36, py - 52, 8, 7);
+    gRect(g, 0x3b4b78, px + 28, py - 52, 8, 7);
+    // 柜台
+    gRect(g, 0x8a6238, px - 32, py - 22, 64, 11);
+    gRect(g, 0xa87c4a, px - 32, py - 22, 64, 3);
+    gRect(g, 0x5b4128, px - 28, py - 11, 4, 11);
+    gRect(g, 0x5b4128, px + 24, py - 11, 4, 11);
+    // 茶壶与两只茶盏
+    gRect(g, 0x7a5a34, px - 9, py - 33, 13, 11);
+    gRect(g, 0xc9a36a, px - 11, py - 35, 17, 3);
+    gRect(g, 0x7a5a34, px + 6, py - 31, 5, 4);
+    gRect(g, 0xe8dcc0, px - 24, py - 27, 7, 5);
+    gRect(g, 0xe8dcc0, px + 14, py - 26, 6, 4);
+    // 热气
+    const steam = this.add.graphics().setDepth(py + 3);
+    gRect(steam, 0xf6f0e0, 0, 0, 3, 6, 0.3);
+    gRect(steam, 0xf6f0e0, -3, -7, 4, 6, 0.2);
+    gRect(steam, 0xf6f0e0, 2, -13, 3, 5, 0.12);
+    steam.setPosition(px - 2, py - 36);
+    if (!this.reduceMotion) {
+      this.tweens.add({
+        targets: steam, alpha: { from: 0.7, to: 0.2 },
+        y: { from: py - 36, to: py - 44 }, duration: 2400, yoyo: true, repeat: -1, ease: 'Sine.easeInOut',
+      });
+    }
+  },
+
+  addWishRack(x, y) {
+    this.blockTile(x, y);
+    const px = x * TILE + TILE / 2;
+    const py = (y + 1) * TILE;
+    const g = this.add.graphics().setDepth(py + 2);
+    gRect(g, 0x0a0d14, px - 32, py - 4, 64, 5, 0.2);
+    // 立柱
+    gRect(g, 0x5b4128, px - 24, py - 66, 5, 66);
+    gRect(g, 0x7a5836, px - 23, py - 66, 2, 66);
+    gRect(g, 0x5b4128, px + 19, py - 66, 5, 66);
+    gRect(g, 0x7a5836, px + 20, py - 66, 2, 66);
+    // 横梁与斜顶
+    gRect(g, 0x5b4128, px - 36, py - 74, 72, 5);
+    gRect(g, 0x8a6238, px - 32, py - 68, 64, 5);
+    gRect(g, 0xa87c4a, px - 32, py - 68, 64, 2);
+    // 祈愿木牌：高低错落，红绿结绳
+    const tags = [[-26, 12], [-14, 18], [-2, 14], [10, 20], [22, 11]];
+    tags.forEach((t, i) => {
+      const tx = px + t[0];
+      const len = t[1];
+      gRect(g, 0xbfae8e, tx, py - 64, 1, len);
+      gRect(g, 0xe8dcc0, tx - 6, py - 64 + len, 12, 9);
+      gRect(g, 0xc9a36a, tx - 6, py - 64 + len, 12, 2);
+      gRect(g, i % 2 ? 0xbf4c38 : 0x2f7e6f, tx - 2, py - 64 + len, 4, 3);
+    });
+    // 两侧红布
+    gRect(g, 0xcf4b3a, px - 33, py - 60, 4, 17);
+    gRect(g, 0xcf4b3a, px + 29, py - 56, 4, 13);
+  },
+
+  addCenser(x, y) {
+    this.blockTile(x, y);
+    const px = x * TILE + TILE / 2;
+    const py = (y + 1) * TILE;
+    const g = this.add.graphics().setDepth(py + 2);
+    gRect(g, 0x0a0d14, px - 16, py - 3, 32, 4, 0.22);
+    // 三足铜炉
+    gRect(g, 0x5f5530, px - 10, py - 6, 4, 5);
+    gRect(g, 0x5f5530, px + 6, py - 6, 4, 5);
+    gRect(g, 0x5f5530, px - 2, py - 6, 4, 5);
+    gRect(g, 0x8f8a5a, px - 12, py - 26, 24, 20);
+    gRect(g, 0xa8a06a, px - 15, py - 29, 30, 4);
+    gRect(g, 0x6d6438, px - 12, py - 26, 24, 2);
+    gRect(g, 0xd8c66a, px - 9, py - 23, 4, 3, 0.85);
+    gRect(g, 0x8f8a5a, px - 18, py - 27, 4, 8);
+    gRect(g, 0x8f8a5a, px + 14, py - 27, 4, 8);
+    // 三炷香
+    gRect(g, 0x8a4a32, px - 6, py - 40, 2, 13);
+    gRect(g, 0x8a4a32, px, py - 43, 2, 16);
+    gRect(g, 0x8a4a32, px + 5, py - 40, 2, 13);
+    gRect(g, 0xffcf6a, px - 6, py - 42, 2, 2);
+    gRect(g, 0xffcf6a, px, py - 45, 2, 2);
+    gRect(g, 0xffcf6a, px + 5, py - 42, 2, 2);
+    // 香烟
+    const smoke = this.add.graphics().setDepth(py + 3);
+    gRect(smoke, 0xe8e0d0, 0, 0, 3, 6, 0.2);
+    gRect(smoke, 0xe8e0d0, -2, -9, 4, 6, 0.13);
+    gRect(smoke, 0xe8e0d0, 1, -18, 3, 5, 0.08);
+    smoke.setPosition(px, py - 46);
+    if (!this.reduceMotion) {
+      this.tweens.add({
+        targets: smoke, alpha: { from: 0.7, to: 0.2 },
+        y: { from: py - 46, to: py - 54 }, duration: 2800, yoyo: true, repeat: -1, ease: 'Sine.easeInOut',
+      });
+    }
+  },
+
+  addOfferingTable(x, y) {
+    this.blockTile(x, y);
+    const px = x * TILE + TILE / 2;
+    const py = (y + 1) * TILE;
+    const g = this.add.graphics().setDepth(py + 2);
+    gRect(g, 0x0a0d14, px - 30, py - 3, 60, 4, 0.2);
+    // 供桌
+    gRect(g, 0x6b4a2c, px - 26, py - 22, 52, 6);
+    gRect(g, 0x8a6238, px - 26, py - 24, 52, 3);
+    gRect(g, 0x5b4128, px - 22, py - 16, 4, 16);
+    gRect(g, 0x5b4128, px + 18, py - 16, 4, 16);
+    // 两只烛台
+    gRect(g, 0xb8b0a0, px - 20, py - 33, 4, 9);
+    gRect(g, 0xffe69a, px - 20, py - 37, 4, 4);
+    gRect(g, 0xfff6d0, px - 19, py - 39, 2, 3);
+    gRect(g, 0xb8b0a0, px + 16, py - 33, 4, 9);
+    gRect(g, 0xffe69a, px + 16, py - 37, 4, 4);
+    gRect(g, 0xfff6d0, px + 17, py - 39, 2, 3);
+    // 小香炉与供果
+    gRect(g, 0x8f8a5a, px - 6, py - 30, 12, 7);
+    gRect(g, 0xa8a06a, px - 8, py - 32, 16, 3);
+    gRect(g, 0x8a4a32, px - 1, py - 38, 2, 7);
+    gRect(g, 0xffcf6a, px - 1, py - 39, 2, 2);
+    gRect(g, 0xd8b06a, px + 6, py - 27, 5, 4);
+    gRect(g, 0xcf4b3a, px + 10, py - 28, 5, 5);
+  },
+
+  addSweepPile(x, y) {
+    const px = x * TILE + TILE / 2;
+    const py = (y + 1) * TILE;
+    const g = this.add.graphics().setDepth(py + 2);
+    gRect(g, 0x0a0d14, px - 22, py - 3, 44, 4, 0.16);
+    // 落叶堆
+    gRect(g, 0xc07a3a, px - 16, py - 8, 16, 6);
+    gRect(g, 0xd89a4a, px - 12, py - 11, 10, 4);
+    gRect(g, 0x8f5a2a, px - 4, py - 7, 12, 5);
+    gRect(g, 0xe8b45a, px - 8, py - 5, 4, 2);
+    gRect(g, 0xa8642e, px - 2, py - 12, 5, 3);
+    // 斜靠的竹扫帚
+    for (let i = 0; i < 15; i += 1) {
+      gRect(g, i % 4 === 0 ? 0x9a7448 : 0x7d5a38, px + 8 + i, py - 4 - i * 2, 2, 3, 0.95);
+    }
+    gRect(g, 0xd8c66a, px + 20, py - 32, 6, 8);
+    gRect(g, 0xc9a36a, px + 19, py - 25, 10, 3);
+    gRect(g, 0x9a8a4a, px + 18, py - 22, 12, 2);
+    gRect(g, 0xbfae6a, px + 20, py - 20, 8, 2);
+  },
+
+  addStoneTable(x, y) {
+    this.blockTile(x, y);
+    const px = x * TILE + TILE / 2;
+    const py = (y + 1) * TILE;
+    const g = this.add.graphics().setDepth(py + 2);
+    gRect(g, 0x0a0d14, px - 26, py - 4, 52, 4, 0.18);
+    // 石桌
+    gRect(g, 0x8d8471, px - 20, py - 22, 40, 7);
+    gRect(g, 0xa9a294, px - 20, py - 24, 40, 3);
+    gRect(g, 0x6d6352, px - 16, py - 15, 5, 15);
+    gRect(g, 0x6d6352, px + 11, py - 15, 5, 15);
+    gRect(g, 0x7d7362, px - 14, py - 20, 10, 1);
+    gRect(g, 0x7d7362, px + 4, py - 19, 8, 1);
+    // 茶壶与两只盏
+    gRect(g, 0x7a5a34, px - 5, py - 30, 10, 7);
+    gRect(g, 0xc9a36a, px - 6, py - 31, 12, 2);
+    gRect(g, 0xe8dcc0, px - 16, py - 27, 6, 4);
+    gRect(g, 0xe8dcc0, px + 10, py - 27, 6, 4);
+    // 两侧石凳
+    gRect(g, 0x6d6352, px - 34, py - 12, 12, 5);
+    gRect(g, 0x8d8471, px - 34, py - 14, 12, 3);
+    gRect(g, 0x6d6352, px + 22, py - 12, 12, 5);
+    gRect(g, 0x8d8471, px + 22, py - 14, 12, 3);
+    gRect(g, 0x5f584c, px - 31, py - 9, 3, 9);
+    gRect(g, 0x5f584c, px + 25, py - 9, 3, 9);
+  },
+
+  addBarrels(x, y) {
+    this.blockTile(x, y);
+    const px = x * TILE + TILE / 2;
+    const py = (y + 1) * TILE;
+    const g = this.add.graphics().setDepth(py + 2);
+    gRect(g, 0x0a0d14, px - 26, py - 4, 60, 4, 0.2);
+    // 两只酒坛
+    gRect(g, 0x8a6238, px - 24, py - 26, 20, 24);
+    gRect(g, 0x5b4128, px - 26, py - 28, 24, 4);
+    gRect(g, 0x5b4128, px - 24, py - 18, 20, 2);
+    gRect(g, 0x5b4128, px - 24, py - 10, 20, 2);
+    gRect(g, 0xe8dcc0, px - 18, py - 24, 7, 3);
+    gRect(g, 0x8a6238, px - 2, py - 20, 18, 18);
+    gRect(g, 0x5b4128, px - 3, py - 21, 20, 3);
+    gRect(g, 0x5b4128, px - 2, py - 13, 18, 2);
+    // 麻袋与木箱
+    gRect(g, 0xd8cbb0, px + 18, py - 12, 14, 10);
+    gRect(g, 0xbfae8e, px + 20, py - 14, 10, 4);
+    gRect(g, 0x8a6238, px + 18, py - 4, 14, 2);
+    gRect(g, 0x9a7448, px + 16, py - 22, 12, 9);
+    gRect(g, 0x5b4128, px + 20, py - 22, 1, 9);
   },
 });
 

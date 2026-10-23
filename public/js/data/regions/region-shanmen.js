@@ -115,6 +115,17 @@ REGIONS.shanmen = makeRegion({
       { type: 'lantern', x: 22, y: 20 },
       { type: 'sign', x: 16, y: 21 },
       { type: 'well', x: 6, y: 13 },
+      // 中庭叙事物件：让广场中段有生活痕迹，而不是一片空地
+      { type: 'notice', x: 14, y: 14 },
+      { type: 'jars', x: 7, y: 14 },
+      { type: 'tea', x: 6, y: 17 },
+      { type: 'wish', x: 20, y: 15 },
+      { type: 'censer', x: 15, y: 12 },
+      { type: 'censer', x: 21, y: 12 },
+      { type: 'offering', x: 7, y: 23 },
+      { type: 'sweep', x: 15, y: 28 },
+      { type: 'stoneTable', x: 13, y: 25 },
+      { type: 'barrels', x: 24, y: 22 },
     ],
     steles: [
       { id: 'shanmen_stele1', x: 5, y: 22, title: '山门残碑', text: '碑面被人反复摩挲，只剩两行：「守契者不入渊，入渊者不守契。」', codex: 'qingxishanmen' },

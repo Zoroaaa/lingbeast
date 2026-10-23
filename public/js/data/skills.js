@@ -27,6 +27,17 @@ const SKILLS = {
   jinren: { name: '金刃', el: 'metal', power: 21, cd: 1, desc: '金气成刃，破其甲', status: 'break', statusTurns: 2 },
   wanjian: { name: '万剑', el: 'metal', power: 33, cd: 4, desc: '万剑归一，贯阵而下', status: 'break', statusTurns: 3 },
   zhuihun: { name: '坠魂', el: 'wood', power: 26, cd: 3, desc: '拽魂坠地，蚀其灵息', status: 'corrode', statusTurns: 2 },
+  // 扩充灵兽后补充的术法
+  lingming: { name: '铃鸣', el: 'metal', power: 15, cd: 0, desc: '铃音穿耳，扰其灵息', status: 'slow', statusTurns: 1 },
+  suojin: { name: '锁金', el: 'metal', power: 22, cd: 2, desc: '金气锁脉，破其甲', status: 'break', statusTurns: 2 },
+  genshu: { name: '根守', el: 'wood', power: 0, guard: 2, cd: 3, desc: '根须盘结，减伤四成', status: 'shield', statusTurns: 2 },
+  jingsheng: { name: '荆生', el: 'wood', power: 18, cd: 1, desc: '荆棘抽生，蚀其筋骨', status: 'corrode', statusTurns: 1 },
+  liuxing: { name: '流萤', el: 'fire', power: 14, cd: 0, desc: '火星四散，留一点余烬', status: 'burn', statusTurns: 1 },
+  fenxin: { name: '焚心', el: 'fire', power: 27, cd: 3, desc: '心火倒卷，灼烧不止', status: 'burn', statusTurns: 2 },
+  suishi: { name: '碎石', el: 'earth', power: 15, cd: 0, desc: '掷石碎甲' },
+  shanyong: { name: '山涌', el: 'earth', power: 24, cd: 2, desc: '地脉涌动，甲片崩裂', status: 'break', statusTurns: 2 },
+  xiliu: { name: '细流', el: 'water', power: 14, cd: 0, desc: '水线切隙' },
+  chaohu: { name: '潮护', el: 'water', power: 0, guard: 2, cd: 3, desc: '潮水成幕，减伤四成', status: 'shield', statusTurns: 2 },
 };
 
 // ---------- 灵诀（被动） ----------
