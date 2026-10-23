@@ -42,6 +42,7 @@ function updateHud() {
 }
 
 function refreshTitle() {
+  if (typeof renderAccountChip === 'function') renderAccountChip();
   const cont = byId('btn-continue');
   if (cont) cont.hidden = !state;
   const prog = byId('title-progress');

@@ -34,6 +34,24 @@ function backToTitle() {
 }
 
 // ---------- 云端账号（沿用旧协议） ----------
+// 标题页账号角标必须由 Cloud 状态驱动，否则登录后仍显示「未登录」
+function renderAccountChip() {
+  const label = byId('account-label');
+  const dot = byId('account-dot');
+  const chip = byId('account-chip');
+  if (!label) return;
+  const cloud = window.Cloud;
+  const online = !!(cloud && cloud.online);
+  label.textContent = online
+    ? '云端已连接 · ' + (cloud.username || '道号')
+    : (cloud ? '未登录 · 云端未连接' : '未登录 · 单机游玩');
+  if (dot) {
+    dot.classList.toggle('online', online);
+    dot.classList.toggle('offline', !!cloud && !online);
+  }
+  if (chip) chip.title = online ? '已连接云端存档，点击查看' : '点击登录云端存档';
+}
+
 function adoptCloud(entry, quiet) {
   if (!entry || !entry.payload) {
     if (!quiet) toast('云端暂无存档');
