@@ -140,6 +140,22 @@ Object.assign(WorldScene.prototype, {
   },
 
   minimapTileColor(t) {
+    // 小地图跟随本境地表色板，八境一眼可辨
+    const pal = this.region && typeof palOf === 'function' ? palOf(this.region) : null;
+    if (pal) {
+      if (t === 'W') return pal.water;
+      if (t === 'g') return pal.grass;
+      if (t === ',') return pal.path;
+      if (t === 'b' || t === 'M') return pal.plank;
+      if (t === 'D') return pal.sand;
+      if (t === 'Z') return pal.marsh;
+      if (t === 'T') return pal.tree;
+      if (t === 'R' || t === 'C') return pal.cliff;
+      if (t === 'H') return pal.wood;
+      if (t === 'A') return pal.stone;
+      if (t === 'L') return pal.lava;
+      return pal.base;
+    }
     if (t === 'W') return '#2f8fa8';
     if (t === 'g') return '#5f8c49';
     if (t === ',') return '#b99a6e';
@@ -175,9 +191,9 @@ Object.assign(WorldScene.prototype, {
     const ch = this.mapCanvas.height || 120;
     const bw = this.mapBw || 4;
     ctx.clearRect(0, 0, cw, ch);
-    ctx.fillStyle = '#0b1120';
+    ctx.fillStyle = '#e6dabd';
     ctx.fillRect(0, 0, cw, ch);
-    ctx.fillStyle = 'rgba(59,77,120,.18)';
+    ctx.fillStyle = 'rgba(90,72,46,.12)';
     for (let gy = 0; gy < ch; gy += 6) ctx.fillRect(0, gy, cw, 1);
 
     const size = Math.ceil(bw);

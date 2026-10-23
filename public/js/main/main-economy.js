@@ -244,3 +244,16 @@ function evolveMon(mon) {
   checkSideQuests();
   return { ok: true, name: SPECIES[ev.to].name, msg: '化形已成 · ' + SPECIES[ev.to].name };
 }
+
+// ---------- 声望价格 ----------
+// 山门/归墟声望 >= 2 时，本地商店 9 折
+function shopPrice(shopId, base) {
+  const shop = SHOPS[shopId];
+  if (!shop || !state) return base;
+  let faction = null;
+  if (shop.region === 'shanmen') faction = 'shanmen';
+  else if (shop.region === 'guixu') faction = 'guixu';
+  if (!faction) return base;
+  const r = state.rep ? (Number(state.rep[faction]) || 0) : 0;
+  return r >= 2 ? Math.floor(base * 0.9) : base;
+}

@@ -3,6 +3,11 @@ Object.assign(WorldScene.prototype, {
   bindInput() {
     this.input.on('pointerdown', this._pointerHandler = (pointer, over) => {
       if (over && over.length) return;
+      // 仅接受画布本身的指针；对话框、模态框等 HTML 覆盖层上的点击不得触发寻路
+      const domTarget = pointer && pointer.event ? pointer.event.target : null;
+      if (domTarget && domTarget !== this.game.canvas) return;
+      // UI 关闭后的同一手势可能继续冒泡到画布，短暂屏蔽避免角色被带走
+      if (window.__uiTapGuardUntil && Date.now() < window.__uiTapGuardUntil) return;
       // 实体点击与场景点击可能在同一帧先后触发，避免重复动作
       if (this._lastInteractAt && this.time.now - this._lastInteractAt < 160) return;
       if (window.LB && LB.isBlocked && LB.isBlocked()) return;

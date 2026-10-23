@@ -4,6 +4,7 @@ const BOSSES = {
   shougu: {
     id: 'shougu', name: '守谷灵', region: 'qingxi', sp: 'qingheng', lv: 6,
     hpMul: 1.9, atkMul: 1.2, ai: 'guardian', cannotCatch: true,
+    gear: 'shougu_bell',
     x: 26, y: 8,
     line: '谷口的风忽然停了。石阶上一只鹿抬起头，角上蘅草无风自摇。',
     field: '守谷之阵：守谷灵立于旧契纹上，受击时有几率回气。',
@@ -26,6 +27,7 @@ const BOSSES = {
   xingyun: {
     id: 'xingyun', name: '星陨傀', region: 'luoxing', sp: 'xingxi', lv: 14,
     hpMul: 2.1, atkMul: 1.2, ai: 'aggressive', cannotCatch: true,
+    gear: 'xingyun_seal',
     x: 40, y: 9,
     line: '陨坑里的石头站了起来。',
     field: '星陨之地：土属伤害上升，落石更沉。',
@@ -37,6 +39,7 @@ const BOSSES = {
   suolingjiao: {
     id: 'suolingjiao', name: '锁灵鲛', region: 'guixu', sp: 'guixujiao', lv: 18,
     hpMul: 2.0, atkMul: 1.3, ai: 'aggressive', cannotCatch: true,
+    gear: 'suolingjiao_talisman',
     x: 36, y: 34,
     line: '退潮的水里，有一条影子不肯走。',
     field: '锁灵渡口：水属伤害上升，结契成功率下降。',
@@ -70,6 +73,7 @@ const BOSSES = {
   wuxiang: {
     id: 'wuxiang', name: '无相', region: 'shenyuan', sp: 'youmu', lv: 28, el: 'metal',
     hpMul: 2.2, atkMul: 1.3, ai: 'trickster', cannotCatch: true,
+    gear: 'wuxiang_seal',
     x: 31, y: 13,
     line: '殿里没有风，也没有人。只有一句话悬在半空。',
     field: '无相之殿：五行克制效果减半，锁灵器嗡鸣不止。',

@@ -131,6 +131,7 @@ function beastCardHtml(mon, index, place) {
     actions += '<button type="button" class="nes-btn is-small ' + (check.ok ? 'is-success' : 'is-disabled') + '" data-evolve="' + uiEsc(mon.uid) + '"' +
       (check.ok ? '' : ' disabled title="' + uiEsc(check.msg) + '"') + '>进化</button>';
     actions += '<button type="button" class="nes-btn is-small" data-passive="' + uiEsc(mon.uid) + '">灵诀</button>';
+    actions += '<button type="button" class="nes-btn is-small" data-gear="' + uiEsc(mon.uid) + '">灵器</button>';
   } else {
     actions += '<button type="button" class="nes-btn is-small is-success" data-take="' + uiEsc(mon.uid) + '">取出到队伍</button>';
     actions += '<button type="button" class="nes-btn is-small" data-view="' + uiEsc(mon.uid) + '">查看</button>';
@@ -150,6 +151,7 @@ function beastCardHtml(mon, index, place) {
     '<span>资质 ' + tal.label + '</span><span>亲密 ' + (mon.bond || 0) + '</span>' +
     '</div>' +
     '<div class="beast-skills">技能：' + (skills.length ? skills.map(function (id) { return uiEsc(SKILLS[id].name); }).join(' · ') : '尚未习得') + '</div>' +
+    '<div class="gear-line">灵器：' + uiGearSlotLineHtml(mon) + '</div>' +
     '<div class="trait-line">' + (passive ? '灵诀「' + uiEsc(passive.name) + '」· ' + uiEsc(passive.desc) : '灵诀：未佩') + '</div>' +
     '<div class="trait-line">' + uiEsc((sp.evolve && check.ok ? check.msg + '；' : '') + uiEvolveLine(mon)) + '</div>' +
     '<div class="beast-actions">' + actions + '</div>' +
@@ -262,6 +264,11 @@ function renderTeam(active, stable) {
     if (!found || !st) return;
     var nm = SPECIES[found.mon.sp] ? SPECIES[found.mon.sp].name : '灵兽';
     function doRelease() {
+      if (typeof GEAR_SLOTS !== 'undefined') {
+        Object.keys(GEAR_SLOTS).forEach(function (slot) {
+          if (found.mon.gear && found.mon.gear[slot]) LB.unequipGear(found.mon, slot);
+        });
+      }
       var i = st.storage.indexOf(found.mon);
       if (i >= 0) st.storage.splice(i, 1);
       LB.persist();
@@ -295,6 +302,12 @@ function renderTeam(active, stable) {
     var found = uiFindMon(node.getAttribute('data-passive'));
     if (!found) return;
     openPassivePicker(found.mon, function () { renderTeam(tab, stable); });
+  });
+
+  uiBind('[data-gear]', 'click', function (node) {
+    var found = uiFindMon(node.getAttribute('data-gear'));
+    if (!found) return;
+    openGearPicker(found.mon, function () { renderTeam(tab, stable); });
   });
 
   uiBind('[data-cage-upgrade]', 'click', function () {

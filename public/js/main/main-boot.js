@@ -43,7 +43,7 @@ function adoptCloud(entry, quiet) {
   let legacy = false;
   try {
     const raw = JSON.parse(entry.payload);
-    legacy = !!(raw && raw.v !== 3);
+    legacy = !!(raw && raw.v !== 4);
     obj = migrate(raw);
   } catch (e) { obj = null; }
   if (!obj) {
@@ -207,6 +207,12 @@ function bindUi() {
       if (e.target === dialogBox) advanceDialog();
     });
   }
+  // 所有 HTML 界面上的触摸都打上短时屏蔽，防止同一次手势穿透到画布触发寻路
+  document.querySelectorAll('.world-hud, .world-foot, .minimap-wrap, .touch-layer, .dialog, .modal').forEach(function (el) {
+    const mark = function () { window.__uiTapGuardUntil = Date.now() + 400; };
+    el.addEventListener('pointerdown', mark, true);
+    el.addEventListener('touchstart', mark, { capture: true, passive: true });
+  });
   const modal = byId('modal');
   if (modal) {
     modal.addEventListener('click', function (e) {
@@ -215,6 +221,14 @@ function bindUi() {
   }
 
   document.addEventListener('keydown', function (e) {
+    if (activeChoice) {
+      const n = parseInt(e.key, 10);
+      if (n >= 1 && n <= activeChoice.options.length) {
+        e.preventDefault();
+        pickChoice(n - 1);
+      }
+      return;
+    }
     if (activeDialog) {
       if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); advanceDialog(); }
       return;
@@ -285,6 +299,15 @@ LB.hasRecipe = hasRecipe;
 LB.giveRecipe = giveRecipe;
 LB.hasPassive = hasPassive;
 LB.givePassive = givePassive;
+LB.shopPrice = shopPrice;
+
+LB.giveGear = giveGear;
+LB.gearBagList = gearBagList;
+LB.gearPrice = gearPrice;
+LB.gearOwned = gearOwned;
+LB.equipGear = equipGear;
+LB.unequipGear = unequipGear;
+LB.sellGear = sellGear;
 
 LB.giveMon = giveMon;
 LB.canEvolve = canEvolve;

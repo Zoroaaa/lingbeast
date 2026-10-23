@@ -361,7 +361,8 @@ async function attemptCatch() {
   if (useCharm) s.items.charm -= 1;
   const me = currentMon();
   const pe = passiveEffect(me);
-  const qixin = pe && pe.catchPct ? pe.catchPct : 0;
+  const ge = typeof gearEffect === 'function' ? gearEffect(me) : {};
+  const qixin = (pe && pe.catchPct ? pe.catchPct : 0) + (ge.catchPct || 0);
   const ratio = 1 - foe.hp / foe.maxHp;
   let p = 0.12 + ratio * 0.6 + (useCharm ? 0.18 : 0) + qixin - (foe.lv - me.lv) * 0.02;
   p = clamp(p, 0.04, 0.9);

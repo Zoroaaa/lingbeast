@@ -116,7 +116,7 @@ Object.assign(WorldScene.prototype, {
     const baseZoom = vw < 720 ? 1.25 : 0.95;
     cam.setZoom(Math.max(baseZoom, fitZoom));
     this.layoutWeather();
-    if (!this.reduceMotion) cam.fadeIn(420, 13, 19, 34);
+    if (!this.reduceMotion) cam.fadeIn(420, 233, 223, 197);
 
     this.updateDepth();
     this.syncRegionWeather();

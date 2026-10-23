@@ -139,14 +139,15 @@ function battleBackdrop(regionId) {
 }
 
 const BACKDROPS = {
-  shanmen: { sky: ['#24315a', '#31416c', '#4a5b89', '#7a7198', '#c08a70', '#e7b36c'], cloud: '#d9e2f5', far: '#3f4f7c', mid: '#2c3a5e', near: '#1a2340', sun: '#ffe6a0', accent: '#ffe08a', ink: '#0b1020', waterCol: '#5cc8e6' },
-  qingxi: { sky: ['#1b3550', '#234763', '#2f6473', '#4b8a7e', '#8fbd8a', '#cfe0a2'], cloud: '#d7f0e8', far: '#376c68', mid: '#285550', near: '#183a38', sun: '#f6f0b8', accent: '#cdffb0', ink: '#071a18', waterCol: '#5cc8e6', mist: true },
-  wuyin: { sky: ['#252f46', '#303c55', '#445267', '#6c7486', '#9aa0ab', '#c3c7c9'], cloud: '#e2e6e8', far: '#4e596b', mid: '#3a4557', near: '#252e40', sun: '#e6e8dd', accent: '#c9f2ff', ink: '#101722', waterCol: '#78a8b8', mist: true },
-  luoxing: { sky: ['#1b2340', '#2c3158', '#4b3f6d', '#7c5273', '#bd6f68', '#e8a361'], cloud: '#f0cfa8', far: '#5a4266', mid: '#42304e', near: '#281c36', sun: '#ffe08a', accent: '#fff3b8', ink: '#0d0a18', stars: true, waterCol: '#5cc8e6' },
-  guixu: { sky: ['#102b40', '#164158', '#216078', '#3d8ba0', '#8dc9cf', '#d8f2ee'], cloud: '#e2fbf7', far: '#2c6d78', mid: '#215460', near: '#123440', sun: '#fff6c8', accent: '#c9f2ff', ink: '#06161c', waterCol: '#63d6e8', water: true },
-  yunmeng: { sky: ['#20263f', '#2d3653', '#4b4e6f', '#7a6f8f', '#b39bb0', '#e0cbbd'], cloud: '#f4e8e2', far: '#5c5874', mid: '#443f58', near: '#2a273c', sun: '#ffe6d0', accent: '#ffd8ef', ink: '#100d18', waterCol: '#79c8d8', water: true, mist: true },
-  gutan: { sky: ['#2b1320', '#471b24', '#76282a', '#b3442e', '#e07a3c', '#f6be64'], cloud: '#f0b088', far: '#6c2c2e', mid: '#4e1f26', near: '#2c121a', sun: '#ffcf6a', accent: '#ff9c4a', ink: '#140609', waterCol: '#ff7a3c' },
-  shenyuan: { sky: ['#10131f', '#181e30', '#242c45', '#39435f', '#5a6680', '#8b96a8'], cloud: '#b8c2cf', far: '#333c54', mid: '#262e42', near: '#151b2a', sun: '#dfe8f0', accent: '#b9e6ff', ink: '#05070d', waterCol: '#4fa8c8', water: true },
+  // 八境战斗天幕统一为明亮日间，只保留地貌色相差异
+  shanmen: { sky: ['#a8c9dd', '#bcd6e3', '#d6e2df', '#ecdcc0', '#f2d49a', '#f7e0ae'], cloud: '#fbf7ec', far: '#a3b4c4', mid: '#93a7b8', near: '#7c9284', sun: '#fff2c0', accent: '#ffe08a', ink: '#3a3226', waterCol: '#5cc8e6' },
+  qingxi: { sky: ['#a9d0e0', '#b9d9e3', '#cfe4dc', '#e6e7c9', '#cfe0a2', '#eef2cf'], cloud: '#f4fbf6', far: '#8fb7ab', mid: '#7aa596', near: '#5f8974', sun: '#fff8cc', accent: '#cdffb0', ink: '#2c4a36', waterCol: '#5cc8e6', mist: true },
+  wuyin: { sky: ['#b6c6cc', '#c2d0d2', '#d2dcd8', '#e2e6dd', '#eef0e6', '#f6f7f0'], cloud: '#ffffff', far: '#a7b5b2', mid: '#95a5a2', near: '#7d9089', sun: '#f4f6e8', accent: '#c9f2ff', ink: '#35443f', waterCol: '#78a8b8', mist: true },
+  luoxing: { sky: ['#b9c1d8', '#cbc9dd', '#e2ccd0', '#f0d0a8', '#f5c07c', '#f8d79a'], cloud: '#fbf1dc', far: '#b99fb0', mid: '#a88f9c', near: '#8c7466', sun: '#ffe6a0', accent: '#fff3b8', ink: '#3f3428', waterCol: '#5cc8e6' },
+  guixu: { sky: ['#9fd4e4', '#b3deea', '#cbe9ee', '#dff2ef', '#e9f6ee', '#f5fbf4'], cloud: '#ffffff', far: '#8dbcc4', mid: '#7cabb4', near: '#5f8f96', sun: '#fffbe0', accent: '#c9f2ff', ink: '#284850', waterCol: '#63d6e8', water: true },
+  yunmeng: { sky: ['#bcc7e0', '#cbd2e6', '#ddd9e6', '#efe0dc', '#f5e2cc', '#f9ecd6'], cloud: '#fdf6f0', far: '#b0a8bc', mid: '#9f94a8', near: '#877c8c', sun: '#ffe6d0', accent: '#ffd8ef', ink: '#3c3242', waterCol: '#79c8d8', water: true, mist: true },
+  gutan: { sky: ['#d3b7a2', '#dcb69c', '#e5b28e', '#efb07d', '#f2b06a', '#f8cd8e'], cloud: '#f7dcc4', far: '#c98e78', mid: '#b87b66', near: '#96604c', sun: '#ffd98c', accent: '#ff9c4a', ink: '#4c2c20', waterCol: '#ff7a3c' },
+  shenyuan: { sky: ['#b9c7d6', '#c3cfdc', '#d2dbe4', '#e0e6ec', '#eceff3', '#f6f7f8'], cloud: '#ffffff', far: '#aab6c2', mid: '#9aa8b6', near: '#8392a2', sun: '#fdfbe8', accent: '#b9e6ff', ink: '#39424e', waterCol: '#4fa8c8', water: true },
 };
 
 // ---------- 属性与伤害 ----------
@@ -197,24 +198,27 @@ function calcDamage(attacker, defender, skill, opts) {
   const atkStats = effStats(attacker, aIsFoe);
   const defStats = effStats(defender, dIsFoe);
   const pe = aIsFoe ? null : passiveEffect(attacker);
+  const ge = aIsFoe || typeof gearEffect !== 'function' ? {} : gearEffect(attacker);
 
   let def = defStats.def;
-  if (pe && pe.defPierce) def = def * (1 - pe.defPierce);
+  const pierce = (pe && pe.defPierce ? pe.defPierce : 0) + (ge.defPierce || 0);
+  if (pierce) def = def * (1 - pierce);
 
   let mult = 1;
   const defEl = elOf(defender, dIsFoe);
   if (BEATS[skill.el] === defEl) mult = 1.6;
   else if (BEATS[defEl] === skill.el) mult = 0.65;
 
-  const critChance = 0.12 + (pe && pe.critPct ? pe.critPct : 0);
+  const critChance = 0.12 + (pe && pe.critPct ? pe.critPct : 0) + (ge.critPct || 0);
   const crit = Math.random() < critChance;
 
   let total = atkStats.atk * (skill.power / 10) * (1 - def / (def + 34));
   total *= mult;
   total *= battle.elMod[skill.el] || 1;
   if (crit) total *= 1.5;
-  if (pe && skill.el === 'fire') total *= 1 + (pe.firePct || 0);
-  if (pe && skill.el === 'water') total *= 1 + (pe.waterPct || 0);
+  const elKey = skill.el + 'Pct';
+  const elBoost = (pe && pe[elKey] ? pe[elKey] : 0) + (ge[elKey] || 0);
+  if (elBoost) total *= 1 + elBoost;
   if ((defender.guard || 0) > 0) total *= 0.6;
   if (defender.statuses && defender.statuses.shield) total *= 0.65;
   total *= rand(0.92, 1.08);
@@ -225,6 +229,13 @@ function calcDamage(attacker, defender, skill, opts) {
 function applyStatus(target, id, turns) {
   const def = STATUSES[id];
   if (!target || !def) return;
+  if (def.kind !== 'buff' && typeof gearEffect === 'function') {
+    const ge = gearEffect(target);
+    if (ge.statusResistPct && Math.random() < ge.statusResistPct) {
+      logLine('灵器一挡，灵息未侵。', 'accent');
+      return;
+    }
+  }
   if (!target.statuses) target.statuses = {};
   const t = Math.max(1, Math.round(turns || def.duration || 1));
   const old = target.statuses[id];
@@ -238,7 +249,13 @@ function applyStatus(target, id, turns) {
 
 function gainBond(n) {
   if (battle.bondUsed) return;
-  battle.bond = clamp(battle.bond + n, 0, 100);
+  let add = n;
+  const mon = currentMon();
+  if (mon && typeof gearEffect === 'function') {
+    const ge = gearEffect(mon);
+    if (ge.bondGainPct) add = n * (1 + ge.bondGainPct);
+  }
+  battle.bond = clamp(battle.bond + add, 0, 100);
   updateBondUI();
 }
 
@@ -271,8 +288,10 @@ function tickStatuses(combatant, isFoe) {
 
   if (!isFoe && combatant.hp > 0) {
     const pe = passiveEffect(combatant);
-    if (pe && pe.regenPct) {
-      const heal = Math.max(1, Math.round(max * pe.regenPct));
+    const ge = typeof gearEffect === 'function' ? gearEffect(combatant) : {};
+    const regen = (pe && pe.regenPct ? pe.regenPct : 0) + (ge.regenPct || 0);
+    if (regen > 0) {
+      const heal = Math.max(1, Math.round(max * regen));
       const before = combatant.hp;
       combatant.hp = Math.min(max, combatant.hp + heal);
       const real = combatant.hp - before;

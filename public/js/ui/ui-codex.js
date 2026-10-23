@@ -281,10 +281,11 @@ function craftRecipe(id, rerender) {
 function renderBag(active) {
   var s = LB.saveState();
   if (!s) return;
-  var tab = active === 'materials' || active === 'recipes' ? active : 'items';
+  var tab = active === 'materials' || active === 'recipes' || active === 'gear' ? active : 'items';
   var tabs = '<div class="sheet-tabs">' +
     '<button type="button" class="sheet-tab' + (tab === 'items' ? ' active' : '') + '" data-sheet-tab="items">道具</button>' +
     '<button type="button" class="sheet-tab' + (tab === 'materials' ? ' active' : '') + '" data-sheet-tab="materials">材料</button>' +
+    '<button type="button" class="sheet-tab' + (tab === 'gear' ? ' active' : '') + '" data-sheet-tab="gear">灵器</button>' +
     '<button type="button" class="sheet-tab' + (tab === 'recipes' ? ' active' : '') + '" data-sheet-tab="recipes">配方</button>' +
     '</div>';
   var bar = '<div class="sheet-bar">灵玉 <b>' + (s.jade || 0) + '</b> · 灵兽栏 <b>' + s.storage.length + '/' + LB.storageCap() + '</b></div>';
@@ -305,6 +306,8 @@ function renderBag(active) {
     page += '</div>';
   } else if (tab === 'materials') {
     page = materialsHtml() + '<p class="sheet-note">材料可在山门货铺与归墟行商出售，丹房也需用它们。</p>';
+  } else if (tab === 'gear') {
+    page = gearBagHtml() + '<p class="sheet-note">灵器在队伍或灵兽栏中装备；出售只影响未装备的灵器。</p>';
   } else {
     var ids = Object.keys(RECIPES).sort(function (a, b) {
       return (LB.hasRecipe(b) ? 1 : 0) - (LB.hasRecipe(a) ? 1 : 0);
@@ -320,6 +323,9 @@ function renderBag(active) {
   uiBind('[data-craft]', 'click', function (node) {
     craftRecipe(node.getAttribute('data-craft'), function () { renderBag('recipes'); });
   });
+  if (tab === 'gear' && typeof bindGearBagActions === 'function') {
+    bindGearBagActions(function () { renderBag('gear'); });
+  }
   uiBindClose();
 }
 

@@ -8,7 +8,10 @@ function renderShop(shop, active) {
     '<button type="button" class="sheet-tab' + (tab === 'buy' ? ' active' : '') + '" data-sheet-tab="buy">购买</button>' +
     '<button type="button" class="sheet-tab' + (tab === 'sell' ? ' active' : '') + '" data-sheet-tab="sell">出售</button>' +
     '</div>';
-  var bar = '<div class="sheet-bar">灵玉 <b>' + (s.jade || 0) + '</b></div>';
+  var repKey = shop.region === 'shanmen' ? 'shanmen' : (shop.region === 'guixu' ? 'guixu' : null);
+  var repVal = repKey && LB.repOf ? LB.repOf(repKey) : 0;
+  var bar = '<div class="sheet-bar">灵玉 <b>' + (s.jade || 0) + '</b>' +
+    (repKey ? ' · 声望 <b>' + repVal + '</b>' + (repVal >= 2 ? ' · 九折' : '') : '') + '</div>';
   var page = '';
 
   if (tab === 'buy') {
@@ -17,12 +20,15 @@ function renderShop(shop, active) {
       var isItem = !!ITEMS[st.item];
       var def = isItem ? ITEMS[st.item] : MATERIALS[st.item];
       if (!def) return;
-      var price = Number(st.price) || def.price || 0;
+      var basePrice = Number(st.price) || def.price || 0;
+      var price = LB.shopPrice ? LB.shopPrice(shop.id, basePrice) : basePrice;
+      var discounted = price < basePrice;
       var need = st.needChapter || 1;
       var locked = s.chapter < need;
       var owned = isItem ? LB.itemCount(st.item) : LB.matCount(st.item);
       page += '<div class="sheet-row shop-row">' +
         '<div class="sheet-main"><b>' + uiEsc(def.name) + '</b> <span class="seal-chip">已有 ' + owned + '</span>' +
+        (discounted ? ' <span class="seal-chip">声望折价</span>' : '') +
         '<p>' + uiEsc(def.desc || '') + '</p></div>' +
         '<span class="price">' + price + '</span>' +
         (locked

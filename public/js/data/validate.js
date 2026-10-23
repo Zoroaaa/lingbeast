@@ -231,5 +231,88 @@ function validateContent() {
   });
   if (TRIALS.length !== 5) errs.push('试炼层数应为 5');
 
+  // 灵器与套装
+  Object.keys(GEAR).forEach(function (gid) {
+    var g = GEAR[gid];
+    if (!g.name) errs.push('灵器 ' + gid + ' 缺少名称');
+    if (!GEAR_SLOTS[g.slot]) errs.push('灵器 ' + gid + ' 的槽位无效：' + g.slot);
+    if (!GEAR_RARITY[g.rarity]) errs.push('灵器 ' + gid + ' 的稀有度无效：' + g.rarity);
+    if (g.set && !GEAR_SETS[g.set]) errs.push('灵器 ' + gid + ' 引用了不存在的套装：' + g.set);
+    Object.keys(g.mods || {}).forEach(function (key) {
+      if (GEAR_MOD_KEYS.indexOf(key) < 0) errs.push('灵器 ' + gid + ' 的词条无效：' + key);
+    });
+  });
+  Object.keys(GEAR_SETS).forEach(function (sid) {
+    var set = GEAR_SETS[sid];
+    if (!set.name) errs.push('套装 ' + sid + ' 缺少名称');
+    Object.keys(set.bonus || {}).forEach(function (key) {
+      if (GEAR_MOD_KEYS.indexOf(key) < 0) errs.push('套装 ' + sid + ' 的词条无效：' + key);
+    });
+    if (!set.members || set.members.length < 2) errs.push('套装 ' + sid + ' 至少需要 2 件');
+    (set.members || []).forEach(function (gid) {
+      if (!GEAR[gid]) errs.push('套装 ' + sid + ' 的成员不存在：' + gid);
+      else if (GEAR[gid].set !== sid) errs.push('灵器 ' + gid + ' 的 set 字段与套装 ' + sid + ' 不一致');
+    });
+  });
+  REGION_ORDER.forEach(function (rid) {
+    var r = REGIONS[rid];
+    if (!r) return;
+    (r.chests || []).forEach(function (chest) {
+      if (chest.gear && !GEAR[chest.gear]) errs.push('区域 ' + rid + ' 的宝箱 ' + chest.id + ' 引用了不存在的灵器：' + chest.gear);
+    });
+  });
+  Object.keys(BOSSES).forEach(function (bid) {
+    if (BOSSES[bid].gear && !GEAR[BOSSES[bid].gear]) {
+      errs.push('Boss ' + bid + ' 的首杀灵器不存在：' + BOSSES[bid].gear);
+    }
+  });
+
+  // 剧情抉择
+  var choiceIds = {};
+  var choiceRegions = {};
+  var validRep = ['shanmen', 'yaolu', 'tiangongsi', 'guixu', 'chiyuan', 'shenyuan'];
+  STORY_CHOICES.forEach(function (q) {
+    if (choiceIds[q.id]) errs.push('抉择 id 重复：' + q.id);
+    choiceIds[q.id] = 1;
+    var r = REGIONS[q.region];
+    if (!r) { errs.push('抉择 ' + q.id + ' 的区域不存在：' + q.region); return; }
+    choiceRegions[q.region] = 1;
+    var npc = null;
+    (r.npcs || []).forEach(function (n) { if (n.id === q.npc) npc = n; });
+    if (!npc) errs.push('抉择 ' + q.id + ' 的 NPC 不存在：' + q.npc);
+    else if (npc.service && npc.service !== 'main') errs.push('抉择 ' + q.id + ' 挂在服务 NPC 上：' + q.npc);
+    if (!(q.chapter >= 1 && q.chapter <= 8)) errs.push('抉择 ' + q.id + ' 的章节无效：' + q.chapter);
+    if (!q.prompt) errs.push('抉择 ' + q.id + ' 缺少 prompt');
+    if (!q.options || q.options.length < 2 || q.options.length > 3) {
+      errs.push('抉择 ' + q.id + ' 的选项应为 2-3 个');
+    }
+    (q.options || []).forEach(function (opt, oi) {
+      if (!opt.label) errs.push('抉择 ' + q.id + ' 选项 ' + oi + ' 缺少 label');
+      if (!opt.response) errs.push('抉择 ' + q.id + ' 选项 ' + oi + ' 缺少 response');
+      if (opt.stance !== undefined && (typeof opt.stance !== 'number' || opt.stance < -2 || opt.stance > 2)) {
+        errs.push('抉择 ' + q.id + ' 选项 ' + oi + ' 的倾向值无效');
+      }
+      if (opt.gear && !GEAR[opt.gear]) errs.push('抉择 ' + q.id + ' 选项 ' + oi + ' 的灵器不存在：' + opt.gear);
+      (opt.items || []).forEach(function (it) {
+        if (!ITEMS[it.id]) errs.push('抉择 ' + q.id + ' 选项 ' + oi + ' 的道具不存在：' + it.id);
+      });
+      (opt.mats || []).forEach(function (m) {
+        if (!MATERIALS[m.id]) errs.push('抉择 ' + q.id + ' 选项 ' + oi + ' 的材料不存在：' + m.id);
+      });
+      if (opt.passive && !PASSIVES[opt.passive]) errs.push('抉择 ' + q.id + ' 选项 ' + oi + ' 的灵诀不存在：' + opt.passive);
+      if (opt.recipe && !RECIPES[opt.recipe]) errs.push('抉择 ' + q.id + ' 选项 ' + oi + ' 的配方不存在：' + opt.recipe);
+      if (opt.codex && !CODEX[opt.codex]) errs.push('抉择 ' + q.id + ' 选项 ' + oi + ' 的山海志不存在：' + opt.codex);
+      if (opt.rep) {
+        Object.keys(opt.rep).forEach(function (key) {
+          if (validRep.indexOf(key) < 0) errs.push('抉择 ' + q.id + ' 选项 ' + oi + ' 的声望键无效：' + key);
+        });
+      }
+    });
+  });
+  if (STORY_CHOICES.length < 8) errs.push('抉择数量不足 8');
+  REGION_ORDER.forEach(function (rid) {
+    if (!choiceRegions[rid]) errs.push('区域 ' + rid + ' 缺少剧情抉择');
+  });
+
   return errs;
 }

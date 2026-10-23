@@ -1,4 +1,6 @@
 // 灵兽录 · 主控层 · 视图、对话、模态与阻塞
+let activeChoice = null;
+
 // ---------- 视图 / 提示 / 阻塞 ----------
 function showView(id) {
   ['view-title', 'view-world', 'view-battle', 'view-end'].forEach(function (v) {
@@ -41,6 +43,7 @@ function modalOpen() {
 
 function isBlocked() {
   if (activeDialog) return true;
+  if (activeChoice) return true;
   if (modalOpen()) return true;
   if (battleActive()) return true;
   const wv = byId('view-world');
@@ -55,7 +58,15 @@ function dialogDelay() {
   return d === undefined ? 26 : d;
 }
 
+function clearChoiceBox() {
+  const box = byId('dialog-choices');
+  if (box) { box.hidden = true; box.innerHTML = ''; }
+  const dlg = byId('dialog');
+  if (dlg) dlg.classList.remove('choice-mode');
+}
+
 function showDialog(name, lines, done) {
+  clearChoiceBox();
   const list = Array.isArray(lines) ? lines.slice() : [String(lines || '')];
   activeDialog = {
     name: name || '旁白',
@@ -107,6 +118,62 @@ function showLine() {
   }, delay);
 }
 
+function showChoice(name, prompt, options, done, onPick) {
+  const box = byId('dialog-choices');
+  const dlg = byId('dialog');
+  if (!box || !dlg) return;
+  activeChoice = { options: options || [], done: done || null, onPick: onPick || null, picked: false };
+  activeDialog = null;
+  dlg.classList.add('choice-mode');
+  dlg.hidden = false;
+  const nm = byId('dialog-name');
+  if (nm) nm.textContent = name || '旁白';
+  const seal = byId('dialog-seal');
+  if (seal) seal.innerHTML = sealSvg(name || '旁白');
+  const text = byId('dialog-text');
+  if (text) text.textContent = prompt || '';
+  box.hidden = false;
+  box.innerHTML = (options || []).map(function (opt, i) {
+    return '<button type="button" class="dialog-choice" data-choice-index="' + i + '">' +
+      '<b>' + (i + 1) + ' · ' + uiEsc(opt.label) + '</b>' +
+      (opt.hint ? '<span>' + uiEsc(opt.hint) + '</span>' : '') +
+      '</button>';
+  }).join('');
+  Array.prototype.forEach.call(box.querySelectorAll('[data-choice-index]'), function (btn) {
+    btn.addEventListener('click', function () {
+      pickChoice(Number(btn.getAttribute('data-choice-index')));
+    });
+  });
+}
+
+function pickChoice(index) {
+  if (!activeChoice || activeChoice.picked) return;
+  const choice = activeChoice;
+  const opt = choice.options[index];
+  if (!opt) return;
+  choice.picked = true;
+  activeChoice = null;
+  let response = '';
+  if (typeof choice.onPick === 'function') {
+    try { response = choice.onPick(index) || ''; } catch (e) { console.error('[灵兽录] 抉择结算失败', e); }
+  }
+  clearChoiceBox();
+  if (!response) {
+    const dlg = byId('dialog');
+    if (dlg) dlg.hidden = true;
+    window.__uiTapGuardUntil = Date.now() + 400;
+    if (typeof choice.done === 'function') {
+      try { choice.done(index); } catch (e) { console.error('[灵兽录] 抉择回调失败', e); }
+    }
+    return;
+  }
+  showDialog('旁白', [response], function () {
+    if (typeof choice.done === 'function') {
+      try { choice.done(index); } catch (e) { console.error('[灵兽录] 抉择回调失败', e); }
+    }
+  });
+}
+
 function advanceDialog() {
   if (!activeDialog) return;
   if (activeDialog.typing) {
@@ -120,6 +187,8 @@ function advanceDialog() {
   if (activeDialog.i >= activeDialog.lines.length) {
     const box = byId('dialog');
     if (box) box.hidden = true;
+    // 关闭对话的同一次触摸可能继续落到画布上，短暂屏蔽地图点击
+    window.__uiTapGuardUntil = Date.now() + 400;
     const cb = activeDialog.done;
     activeDialog = null;
     if (cb) {
@@ -147,6 +216,7 @@ function openModal(title, bodyHtml, footHtml) {
 function closeModal() {
   const m = byId('modal');
   if (m) m.hidden = true;
+  window.__uiTapGuardUntil = Date.now() + 400;
 }
 
 function confirmModal(title, text, okLabel, onOk, danger) {

@@ -6,12 +6,15 @@ window.LB = window.LB || {};
 
 function byId(id) { return document.getElementById(id); }
 
-const SAVE_KEY = 'lingbeast.save.v3';
+const SAVE_KEY = 'lingbeast.save.v4';
+const V3_KEY = 'lingbeast.save.v3';
 const V2_KEY = 'lingbeast.save.v2';
 const V1_KEY = 'lingbeast.save.v1';
-const BACKUP_KEY = 'lingbeast.save.v2.backup';
+const BACKUP_KEY = 'lingbeast.save.v3.backup';
 const MAX_TEAM = 3;
 const MAX_LV = 40;
+
+const REP_KEYS = ['shanmen', 'yaolu', 'tiangongsi', 'guixu', 'chiyuan', 'shenyuan'];
 
 const TEXT_DELAYS = { slow: 42, normal: 26, fast: 12, instant: 0 };
 
@@ -53,6 +56,23 @@ function mkUid() {
   return 'm' + Date.now().toString(36) + uidSeq.toString(36);
 }
 
+function normalizeGearRef(ref, slot) {
+  if (!ref || typeof ref !== 'object' || !ref.uid) return null;
+  const def = typeof GEAR !== 'undefined' ? GEAR[ref.id] : null;
+  if (!def || def.slot !== slot) return null;
+  return { uid: String(ref.uid), id: ref.id };
+}
+
+function normalizeGearSlots(raw) {
+  const src = raw && typeof raw === 'object' ? raw : {};
+  const out = {};
+  if (typeof GEAR_SLOTS === 'undefined') return out;
+  Object.keys(GEAR_SLOTS).forEach(function (slot) {
+    out[slot] = normalizeGearRef(src[slot], slot);
+  });
+  return out;
+}
+
 function newMon(sp, lv, opts) {
   const o = opts || {};
   const sid = SPECIES[sp] ? sp : 'moyu';
@@ -70,6 +90,7 @@ function newMon(sp, lv, opts) {
     passive: o.passive || null,
     statuses: {},
     cd: {},
+    gear: normalizeGearSlots(o.gear),
   };
   mon.hp = statsOf(sid, level, mon).hp;
   return mon;
@@ -82,11 +103,16 @@ function statsOf(sp, lv, mon) {
   const l = Math.max(1, Number(lv) || 1);
   const b = d.base;
   const g = d.grow;
+  const ge = typeof gearEffect === 'function' ? gearEffect(mon) : {};
+  const hpPct = 1 + (ge.hpPct || 0);
+  const atkPct = 1 + (ge.atkPct || 0);
+  const defPct = 1 + (ge.defPct || 0);
+  const spdPct = 1 + (ge.spdPct || 0);
   return {
-    hp: Math.round((b.hp + g.hp * (l - 1)) * t),
-    atk: Math.round((b.atk + g.atk * (l - 1)) * t),
-    def: Math.round((b.def + g.def * (l - 1)) * t),
-    spd: Math.round((b.spd + g.spd * (l - 1)) * t),
+    hp: Math.round((b.hp + g.hp * (l - 1)) * t * hpPct),
+    atk: Math.round((b.atk + g.atk * (l - 1)) * t * atkPct),
+    def: Math.round((b.def + g.def * (l - 1)) * t * defPct),
+    spd: Math.round((b.spd + g.spd * (l - 1)) * t * spdPct),
     el: d.el,
     name: d.name,
   };
@@ -124,6 +150,7 @@ function normalizeMon(m) {
     passive: PASSIVES[m.passive] ? m.passive : null,
     statuses: m.statuses && typeof m.statuses === 'object' ? m.statuses : {},
     cd: m.cd && typeof m.cd === 'object' ? m.cd : {},
+    gear: normalizeGearSlots(m.gear),
   };
   const max = statsOf(sid, lv, mon).hp;
   mon.hp = typeof m.hp === 'number' ? clampInt(m.hp, 0, max) : max;
@@ -133,7 +160,7 @@ function normalizeMon(m) {
 function normalizeState(obj) {
   if (!obj || typeof obj !== 'object') return null;
   const s = obj;
-  s.v = 3;
+  s.v = 4;
   s.region = REGIONS[s.region] ? s.region : 'shanmen';
   s.chapter = clampInt(Number(s.chapter) || 1, 1, 8);
   const region = REGIONS[s.region] || REGIONS.shanmen;
@@ -170,6 +197,32 @@ function normalizeState(obj) {
   s.recipes = s.recipes && typeof s.recipes === 'object' ? s.recipes : {};
   s.trials = s.trials && typeof s.trials === 'object' ? s.trials : {};
   s.gathered = s.gathered && typeof s.gathered === 'object' ? s.gathered : {};
+  s.stance = clampInt(Number(s.stance) || 0, -20, 20);
+  const repSrc = s.rep && typeof s.rep === 'object' ? s.rep : {};
+  s.rep = {};
+  REP_KEYS.forEach(function (key) {
+    s.rep[key] = clampInt(Number(repSrc[key]) || 0, -3, 3);
+  });
+  const choiceSrc = s.choices && typeof s.choices === 'object' ? s.choices : {};
+  s.choices = {};
+  Object.keys(choiceSrc).forEach(function (cid) {
+    const entry = choiceSrc[cid];
+    if (!entry || typeof entry !== 'object') return;
+    const option = Number(entry.option);
+    if (option !== 0 && option !== 1) return;
+    s.choices[cid] = { option: option, at: Number(entry.at) || Date.now() };
+  });
+  const bagSrc = Array.isArray(s.gearBag) ? s.gearBag : [];
+  s.gearBag = [];
+  const gearSeen = {};
+  bagSrc.forEach(function (entry) {
+    if (!entry || typeof entry !== 'object' || !entry.uid) return;
+    const def = typeof GEAR !== 'undefined' ? GEAR[entry.id] : null;
+    if (!def || gearSeen[entry.uid]) return;
+    gearSeen[entry.uid] = true;
+    s.gearBag.push({ uid: String(entry.uid), id: entry.id });
+  });
+  s.gearSeq = Number(s.gearSeq) || 0;
   s.cageLevel = clampInt(Number(s.cageLevel) || 1, 1, 5);
   s.ending = s.ending === 'new' || s.ending === 'cut' ? s.ending : null;
   s.postgame = !!s.postgame;
@@ -198,7 +251,7 @@ function freshState() {
   const best = {};
   best[starter.sp] = { seen: true, defeated: false, caught: true, evolved: false };
   return normalizeState({
-    v: 3,
+    v: 4,
     region: 'shanmen',
     pos: { x: REGIONS.shanmen.spawn.x, y: REGIONS.shanmen.spawn.y },
     chapter: 1,
@@ -216,6 +269,11 @@ function freshState() {
     recipes: {},
     trials: {},
     gathered: {},
+    stance: 0,
+    rep: {},
+    choices: {},
+    gearBag: [],
+    gearSeq: 0,
     cageLevel: 1,
     ending: null,
     postgame: false,
@@ -240,7 +298,14 @@ function readSave(key) {
 
 function migrate(obj) {
   if (!obj || typeof obj !== 'object') return null;
-  if (obj.v === 3) return normalizeState(obj);
+  if (obj.v === 4) return normalizeState(obj);
+  if (obj.v === 3) {
+    try {
+      if (!localStorage.getItem(BACKUP_KEY)) localStorage.setItem(BACKUP_KEY, JSON.stringify(obj));
+    } catch (e) {}
+    migratedNote = true;
+    return normalizeState(Object.assign({}, obj, { v: 4 }));
+  }
 
   // 保留原始 v2/v1 payload，已有备份则不覆盖
   try {
@@ -298,7 +363,7 @@ function migrate(obj) {
 
   const stats = obj.stats || {};
   return normalizeState({
-    v: 3,
+    v: 4,
     region: region,
     pos: { x: REGIONS[region].spawn.x, y: REGIONS[region].spawn.y },
     chapter: chapter,
@@ -334,8 +399,10 @@ function migrate(obj) {
 
 function loadLocal() {
   try {
-    const v3 = readSave(SAVE_KEY);
-    if (v3) return normalizeState(v3);
+    const v4 = readSave(SAVE_KEY);
+    if (v4) return normalizeState(v4);
+    const v3 = readSave(V3_KEY);
+    if (v3) return migrate(v3);
     const v2 = readSave(V2_KEY);
     if (v2) return migrate(v2);
     const v1 = readSave(V1_KEY);
@@ -346,7 +413,8 @@ function loadLocal() {
 
 function hasStoredSave() {
   try {
-    return !!(localStorage.getItem(SAVE_KEY) || localStorage.getItem(V2_KEY) || localStorage.getItem(V1_KEY));
+    return !!(localStorage.getItem(SAVE_KEY) || localStorage.getItem(V3_KEY) ||
+      localStorage.getItem(V2_KEY) || localStorage.getItem(V1_KEY));
   } catch (e) { return false; }
 }
 

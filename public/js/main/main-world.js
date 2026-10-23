@@ -80,6 +80,7 @@ function openChest(chest) {
     if (MATERIALS[it.id]) giveMaterial(it.id, n); else giveItem(it.id, n);
   });
   (chest.mats || []).forEach(function (m) { giveMaterial(m.id, m.count || 1); });
+  if (chest.gear && typeof giveGear === 'function') giveGear(chest.gear);
   if (chest.flag) flagSet(chest.flag, true);
   if (chest.id === 'medicine_basket') flagSet('basket', true);
   if (chest.id === 'luoxing_chest1') flagSet('oldHammer', true);
@@ -141,6 +142,7 @@ function afterTalk(npc) {
   updateHud();
   persist();
   checkSideQuests();
+  if (typeof LB.maybeOpenChoice === 'function') LB.maybeOpenChoice(npc);
 }
 
 function talkTo(npcId) {

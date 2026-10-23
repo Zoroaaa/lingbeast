@@ -126,16 +126,7 @@ const SIDE_QUESTS = [
     ],
     reward: function () { LB.giveJade(12); LB.giveItem('pill', 2); return '灵玉 +12 · 丹药 +2'; },
   },
-  {
-    id: 'qingxi_aheng', title: '药庐问诊', giver: { region: 'qingxi', npc: 'qingxi_aheng' },
-    desc: '找到溪东药庐，替阿蘅采齐露生草', unlockChapter: 1,
-    stages: [
-      { text: '在溪东药庐找到阿蘅', flag: 'ahengMet' },
-      { text: '采集露生草 3 株', check: function () { return !!LB.flag('ahengHerbs') || LB.matCount('lucao') >= 3; } },
-      { text: '把药草交给阿蘅', flag: 'ahengHerbs' },
-    ],
-    reward: function () { LB.giveJade(8); LB.giveItem('cleanse', 2); return '灵玉 +8 · 清心散 +2'; },
-  },
+
   {
     id: 'qingxi_bridge', title: '断桥旧契', giver: { region: 'qingxi', npc: 'bridge_keeper' },
     desc: '替守桥人备料，修好通往溪东旧祠的木桥', unlockChapter: 1,
@@ -146,20 +137,7 @@ const SIDE_QUESTS = [
     ],
     reward: function () { LB.giveJade(10); LB.giveMaterial('lingmu', 2); return '灵玉 +10 · 灵木 +2'; },
   },
-  {
-    id: 'qingxi_shrine', title: '旧祠灯火', giver: { region: 'qingxi', npc: 'shrine_keeper' },
-    desc: '读全青溪谷碑文，替守碑人点亮旧祠长灯', unlockChapter: 1,
-    stages: [
-      { text: '找到旧祠守碑人', flag: 'shrineMet' },
-      { text: '读全青溪谷 3 处碑文', check: function () {
-        var s = LB.saveState();
-        var n = s && s.steles ? Object.keys(s.steles).filter(function (id) { return id.indexOf('qingxi') === 0; }).length : 0;
-        return n >= 3;
-      } },
-      { text: '点亮旧祠长灯', flag: 'shrineLit' },
-    ],
-    reward: function () { LB.giveJade(12); LB.giveItem('charm', 2); return '灵玉 +12 · 灵符 +2'; },
-  },
+
   {
     id: 'wuyin_hunter', title: '雾猎三迹', giver: { region: 'wuyin', npc: 'wuyin_hunter' },
     desc: '替猎户石叔找回三道被雾抹掉的猎迹', unlockChapter: 2,
@@ -215,6 +193,16 @@ const SIDE_QUESTS = [
     reward: function () { LB.giveJade(12); LB.giveMaterial('lingmu', 3); return '灵玉 +12 · 灵木 +3'; },
   },
   {
+    id: 'wuyin_aheng', title: '雾泉三煎', giver: { region: 'wuyin', npc: 'aheng' },
+    desc: '替阿蘅守着雾泉煎完三味药，等雾散透', unlockChapter: 2,
+    stages: [
+      { text: '在雾泉药庐与阿蘅交谈', flag: 'herbalistMet' },
+      { text: '击败雾隐魈，让雾泉重新见光', check: function () { return !!LB.flag('boss_wuyinxiao'); } },
+      { text: '回药庐，看阿蘅收下第三煎', flag: 'wuyinAhengDone' },
+    ],
+    reward: function () { LB.giveJade(14); LB.giveItem('great_pill', 1); return '灵玉 +14 · 大还丹 +1'; },
+  },
+  {
     id: 'luoxing_chart', title: '星图三漏', giver: { region: 'luoxing', npc: 'luoxing_stargazer' },
     desc: '替观星台的裴照找回三片被星陨震碎的旧星图', unlockChapter: 3,
     stages: [
@@ -238,38 +226,9 @@ const SIDE_QUESTS = [
     ],
     reward: function () { LB.giveJade(12); LB.giveMaterial('xuantie', 2); return '灵玉 +12 · 玄铁 +2'; },
   },
-  {
-    id: 'luoxing_furnace', title: '炉火三熄', giver: { region: 'luoxing', npc: 'luoxing_apprentice' },
-    desc: '替天工司学徒青芜引燃旧坊炉火', unlockChapter: 3,
-    stages: [
-      { text: '在天工司旧坊与青芜交谈', flag: 'apprenticeMet' },
-      { text: '备齐烬炭 3、星屑 2', check: function () {
-        return !!LB.flag('furnaceLit') || (LB.matCount('tanzha') >= 3 && LB.matCount('xingxie') >= 2);
-      } },
-      { text: '重新引燃旧坊炉火', flag: 'furnaceLit' },
-    ],
-    reward: function () { LB.giveJade(14); LB.giveItem('great_pill', 1); return '灵玉 +14 · 大还丹 +1'; },
-  },
-  {
-    id: 'luoxing_letter', title: '星原旧信', giver: { region: 'luoxing', npc: 'luoxing_courier' },
-    desc: '替驿马夫陆三找回风蚀谷里那封未寄出的旧信', unlockChapter: 3,
-    stages: [
-      { text: '在西驿路与陆三交谈', flag: 'courierMet' },
-      { text: '在风蚀谷寻回旧信匣', flag: 'starLetter' },
-      { text: '把旧信交给陆三', flag: 'letterDelivered' },
-    ],
-    reward: function () { LB.giveJade(10); LB.giveItem('charm', 2); return '灵玉 +10 · 灵符 +2'; },
-  },
-  {
-    id: 'luoxing_shard', title: '风蚀三拾', giver: { region: 'luoxing', npc: 'luoxing_scavenger' },
-    desc: '替风蚀谷的白婆拾够三份星屑，换一段旧事', unlockChapter: 3,
-    stages: [
-      { text: '在风蚀谷与白婆交谈', flag: 'scavengerMet' },
-      { text: '拾得星屑 3 份', check: function () { return !!LB.flag('shardsGiven') || LB.matCount('xingxie') >= 3; } },
-      { text: '把星屑交给白婆', flag: 'shardsGiven' },
-    ],
-    reward: function () { LB.giveJade(12); LB.giveItem('incense', 1); return '灵玉 +12 · 引灵香 +1'; },
-  },
+
+
+
   {
     id: 'guixu_ledger', title: '潮汐三账', giver: { region: 'guixu', npc: 'guixu_ledger' },
     desc: '替海市账房找回被潮水卷走的三页旧账', unlockChapter: 4,
@@ -387,6 +346,28 @@ const SIDE_QUESTS = [
     reward: function () { LB.giveJade(16); LB.giveItem('incense', 1); return '灵玉 +16 · 引灵香 +1'; },
   },
   {
+    id: 'yunmeng_warden', title: '泽界三桩', giver: { region: 'yunmeng', npc: 'yunmeng_warden' },
+    desc: '替巡泽人阿戗备料，在雾线重立三根界桩', unlockChapter: 5,
+    stages: [
+      { text: '在东岸与巡泽人阿戗交谈', flag: 'wardenMet' },
+      { text: '备齐灵木 3 根', check: function () { return !!LB.flag('yunmengStakesDone') || LB.matCount('lingmu') >= 3; } },
+      { text: '与阿戗一同把三桩立回雾线', flag: 'yunmengStakesDone' },
+    ],
+    reward: function () { LB.giveJade(14); LB.giveMaterial('lingmu', 2); return '灵玉 +14 · 灵木 +2'; },
+  },
+  {
+    id: 'yunmeng_mirage', title: '蜃影三问', giver: { region: 'yunmeng', npc: 'mirage' },
+    desc: '蜃影要你问过泽上渔人、镜叟、巡泽人，才肯答你一问', unlockChapter: 5,
+    stages: [
+      { text: '在蜃楼台下与蜃影照面', flag: 'talked_mirage' },
+      { text: '问过渔人、镜叟、巡泽人', check: function () {
+        return !!(LB.flag('talked_fisher') && LB.flag('talked_yunmeng_mirror') && LB.flag('talked_yunmeng_warden'));
+      } },
+      { text: '回蜃楼台下，听蜃影答你一问', flag: 'mirageDone' },
+    ],
+    reward: function () { LB.giveJade(18); LB.giveMaterial('shensha', 3); return '灵玉 +18 · 蜃砂 +3'; },
+  },
+  {
     id: 'gutan_ember', title: '火种三捧', giver: { region: 'gutan', npc: 'gutan_keeper' },
     desc: '替守坛人赤眉收齐散在东渊、南窑、北坛的三捧火种', unlockChapter: 6,
     stages: [
@@ -433,16 +414,7 @@ const SIDE_QUESTS = [
     ],
     reward: function () { LB.giveJade(14); LB.giveItem('pill', 3); return '灵玉 +14 · 丹药 +3'; },
   },
-  {
-    id: 'gutan_tablet', title: '灰名三牌', giver: { region: 'gutan', npc: 'gutan_widow' },
-    desc: '替遗孀阿烬备三块灵木，给聚落里没留下名字的人立牌位', unlockChapter: 6,
-    stages: [
-      { text: '在聚落与阿烬交谈', flag: 'gutanWidowMet' },
-      { text: '备齐灵木 3 块', check: function () { return !!LB.flag('widowDone') || LB.matCount('lingmu') >= 3; } },
-      { text: '把灵木交给阿烬刻名', flag: 'widowDone' },
-    ],
-    reward: function () { LB.giveJade(16); LB.giveItem('cleanse', 2); return '灵玉 +16 · 清心散 +2'; },
-  },
+
   {
     id: 'shenyuan_cage', title: '空笼三锁', giver: { region: 'shenyuan', npc: 'shenyuan_cager' },
     desc: '替笼匠编号打开南林、潭边、殿侧三把空笼锁', unlockChapter: 7,
@@ -455,19 +427,7 @@ const SIDE_QUESTS = [
     ],
     reward: function () { LB.giveJade(20); LB.giveItem('revive', 1); return '灵玉 +20 · 归元丹 +1'; },
   },
-  {
-    id: 'shenyuan_names', title: '残名三录', giver: { region: 'shenyuan', npc: 'shenyuan_archivist' },
-    desc: '替录名者残卷读全三块记着被抹之名的残碑', unlockChapter: 7,
-    stages: [
-      { text: '在东廊与残卷交谈', flag: 'shenyuanArchiveMet' },
-      { text: '读全无相残录、断锁台铭、新契终稿', check: function () {
-        var s = LB.saveState();
-        return !!(s && s.steles && s.steles.shenyuan_stele3 && s.steles.shenyuan_stele4 && s.steles.shenyuan_stele5);
-      } },
-      { text: '回东廊看残卷落笔', flag: 'shenyuanNamesDone' },
-    ],
-    reward: function () { LB.giveJade(20); LB.giveItem('charm', 3); return '灵玉 +20 · 灵符 +3'; },
-  },
+
   {
     id: 'shenyuan_echo', title: '回声三答', giver: { region: 'shenyuan', npc: 'shenyuan_shade' },
     desc: '替无名者向守门人、殿侍与拾骨人问他的旧名', unlockChapter: 7,
@@ -480,16 +440,7 @@ const SIDE_QUESTS = [
     ],
     reward: function () { LB.giveJade(18); LB.giveItem('great_pill', 1); return '灵玉 +18 · 大还丹 +1'; },
   },
-  {
-    id: 'shenyuan_blank', title: '空白三照', giver: { region: 'shenyuan', npc: 'shenyuan_keeper' },
-    desc: '替殿侍空白凑三捧蜃砂，照出殿里藏着的字', unlockChapter: 7,
-    stages: [
-      { text: '在东廊与殿侍交谈', flag: 'shenyuanKeeperMet' },
-      { text: '备齐蜃砂 3 捧', check: function () { return !!LB.flag('blankDone') || LB.matCount('shensha') >= 3; } },
-      { text: '把蜃砂撒进殿砖缝', flag: 'blankDone' },
-    ],
-    reward: function () { LB.giveJade(18); LB.giveMaterial('shensha', 2); return '灵玉 +18 · 蜃砂 +2'; },
-  },
+
   {
     id: 'shenyuan_lock', title: '断锁三料', giver: { region: 'shenyuan', npc: 'shenyuan_warden' },
     desc: '替守门人哑石备三块玄铁，让断锁台重新能动', unlockChapter: 7,
@@ -561,16 +512,7 @@ const SIDE_QUESTS = [
     },
     reward: function () { LB.giveJade(12); LB.giveItem('great_pill', 2); return '灵玉 +12 · 大还丹 +2'; },
   },
-  {
-    id: 'bestiary', title: '图鉴初成', giver: { region: 'shanmen', npc: 'keeper' },
-    desc: '灵兽录记满 8 条', unlockChapter: 3,
-    steps: ['击败、结契或进化不同灵兽', '图鉴达到 8 条'],
-    check: function () {
-      var s = LB.saveState();
-      return !!(s && s.bestiary && Object.keys(s.bestiary).length >= 8);
-    },
-    reward: function () { LB.giveJade(20); LB.givePassive('lingxi'); return '灵玉 +20 · 灵诀「灵犀」'; },
-  },
+
   {
     id: 'trial', title: '试炼前夜', giver: { region: 'shenyuan', npc: 'trial_guard' },
     desc: '击败无相后，与试炼守交谈，问清山海试炼的规矩', unlockChapter: 7,
@@ -581,16 +523,7 @@ const SIDE_QUESTS = [
     },
     reward: function () { LB.giveJade(20); LB.giveItem('revive', 1); return '灵玉 +20 · 归元丹 +1'; },
   },
-  {
-    id: 'stable_full', title: '灵兽栏满员', giver: { region: 'shanmen', npc: 'stable' },
-    desc: '队伍满 3 只后继续结契，让灵兽栏存满 6 只', unlockChapter: 3,
-    steps: ['在队伍已满时继续结契', '灵兽栏存满 6 只'],
-    check: function () {
-      var s = LB.saveState();
-      return !!(s && s.storage && s.storage.length >= 6);
-    },
-    reward: function () { LB.giveJade(25); LB.giveItem('cage', 1); return '灵玉 +25 · 灵笼 +1'; },
-  },
+
 ];
 
 // ---------- 山门悬赏 ----------

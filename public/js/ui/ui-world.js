@@ -307,21 +307,47 @@ function sideQuestHtml() {
   return html;
 }
 
+function choiceTabHtml() {
+  var list = LB.choiceList ? LB.choiceList() : [];
+  var html = '<div class="sheet-list">';
+  list.forEach(function (q) {
+    var status = q.done ? '已抉择' : (q.available ? '可抉择' : '未至');
+    html += '<div class="quest-block sheet-card">' +
+      '<h4>' + uiEsc(q.title) + ' <span class="quest-badge">' + status + '</span></h4>' +
+      '<p class="sheet-note">' + uiEsc(q.regionName) + ' · ' + uiEsc(q.npcName) + ' · 第 ' + q.chapter + ' 章</p>' +
+      '<p>' + uiEsc(q.prompt) + '</p>';
+    if (q.done) {
+      html += '<div class="quest-line done"><span>✓</span>' + uiEsc(q.optionLabel) + '</div>' +
+        '<p class="sheet-note">' + uiEsc(q.optionResponse) + '</p>';
+    } else if (q.available) {
+      html += '<p class="sheet-note">前往' + uiEsc(q.regionName) + '，与' + uiEsc(q.npcName) + '交谈即可抉择。</p>';
+    } else {
+      html += '<p class="sheet-note">' + uiEsc(q.hint) + '</p>';
+    }
+    html += '</div>';
+  });
+  html += '</div>';
+  return html;
+}
+
 function renderQuests(active) {
   var s = LB.saveState();
   if (!s) return;
-  var tab = active === 'side' || active === 'bounty' ? active : 'main';
+  var tab = active === 'side' || active === 'bounty' || active === 'choices' ? active : 'main';
   var tabs = '<div class="sheet-tabs">' +
     '<button type="button" class="sheet-tab' + (tab === 'main' ? ' active' : '') + '" data-sheet-tab="main">主线</button>' +
     '<button type="button" class="sheet-tab' + (tab === 'side' ? ' active' : '') + '" data-sheet-tab="side">支线 ' + LB.sideQuestDoneCount() + '/' + SIDE_QUESTS.length + '</button>' +
     '<button type="button" class="sheet-tab' + (tab === 'bounty' ? ' active' : '') + '" data-sheet-tab="bounty">悬赏</button>' +
+    '<button type="button" class="sheet-tab' + (tab === 'choices' ? ' active' : '') + '" data-sheet-tab="choices">抉择</button>' +
     '</div>';
   var page;
   if (tab === 'side') page = sideQuestHtml();
   else if (tab === 'bounty') page = bountyRowsHtml();
+  else if (tab === 'choices') page = choiceTabHtml();
   else page = mainQuestHtml();
+  var stanceBar = '<div class="sheet-bar">倾向 <b>' + uiEsc(LB.stanceSummary ? LB.stanceSummary() : '两难 0') + '</b></div>';
 
-  LB.openModal('任务 · 山海契录', tabs + '<section class="sheet-page">' + page + '</section>',
+  LB.openModal('任务 · 山海契录', tabs + stanceBar + '<section class="sheet-page">' + page + '</section>',
     '<button type="button" class="btn-sm solid" data-track-main="1">追踪主线</button>' +
     '<button type="button" class="btn-sm plain" data-close="1">合上</button>');
 

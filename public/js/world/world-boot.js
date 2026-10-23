@@ -7,7 +7,7 @@ window.World = {
     this.game = new Phaser.Game({
       type: Phaser.CANVAS,
       parent: 'game-canvas',
-      backgroundColor: '#0d1626',
+      backgroundColor: '#efe5cb',
       pixelArt: true,
       roundPixels: true,
       scale: { mode: Phaser.Scale.RESIZE, autoCenter: Phaser.Scale.NO_CENTER, width: '100%', height: '100%' },

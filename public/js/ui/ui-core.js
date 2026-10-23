@@ -41,6 +41,9 @@ function uiTalentOf(t) {
 }
 
 function uiStatsOf(mon) {
+  if (window.LB && typeof LB.statsOf === 'function' && mon) {
+    return LB.statsOf(mon.sp, mon.lv, mon);
+  }
   var d = SPECIES[mon && mon.sp];
   if (!d) return { hp: 1, atk: 1, def: 1, spd: 1, el: 'wood' };
   var t = typeof mon.talent === 'number' && mon.talent > 0 ? mon.talent : 1;
@@ -51,6 +54,43 @@ function uiStatsOf(mon) {
     def: Math.round((d.base.def + d.grow.def * (l - 1)) * t),
     spd: Math.round((d.base.spd + d.grow.spd * (l - 1)) * t),
   };
+}
+
+function uiRarityOf(rarity) {
+  return (typeof GEAR_RARITY !== 'undefined' && GEAR_RARITY[rarity]) || { label: '旧', color: '#8a7a5c', sell: 40 };
+}
+
+function uiGearModsText(mods) {
+  if (!mods || typeof GEAR_MOD_KEYS === 'undefined') return '';
+  return GEAR_MOD_KEYS.filter(function (key) {
+    return Math.abs(Number(mods[key]) || 0) > 0.0001;
+  }).map(function (key) {
+    return (GEAR_MOD_LABELS[key] || key) + ' +' + Math.round(Number(mods[key]) * 100) + '%';
+  }).join(' · ');
+}
+
+function uiGearSetText(def) {
+  if (!def || !def.set || typeof GEAR_SETS === 'undefined' || !GEAR_SETS[def.set]) return '';
+  var set = GEAR_SETS[def.set];
+  return '套装 · ' + set.name + '（2 件：' + uiGearModsText(set.bonus) + '）';
+}
+
+function uiGearChipHtml(def) {
+  if (!def) return '';
+  var r = uiRarityOf(def.rarity);
+  return '<span class="gear-chip" style="--rarity:' + r.color + '">' + uiEsc(r.label) + ' · ' + uiEsc(def.name) + '</span>';
+}
+
+function uiGearSlotLineHtml(mon) {
+  if (typeof GEAR_SLOTS === 'undefined') return '';
+  return Object.keys(GEAR_SLOTS).map(function (slot) {
+    var ref = typeof gearRefOf === 'function' ? gearRefOf(mon, slot) : null;
+    var def = ref ? GEAR[ref.id] : null;
+    return '<span class="gear-slot' + (def ? '' : ' empty') + '" title="' + uiEsc(GEAR_SLOTS[slot].name) + '"' +
+      (def ? ' style="--rarity:' + uiRarityOf(def.rarity).color + ';color:' + uiRarityOf(def.rarity).color + '"' : '') + '>' +
+      uiEsc(GEAR_SLOTS[slot].ch) + ' ' + uiEsc(def ? def.name : '未佩') +
+      '</span>';
+  }).join('');
 }
 
 function uiLearnedSkills(mon) {
