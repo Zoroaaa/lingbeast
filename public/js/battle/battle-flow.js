@@ -201,6 +201,29 @@ async function defeat() {
 }
 
 // ---------- 入口 ----------
+// 稀有度加权：天气 / 天时 / 引灵香提升下一场遭遇的 A、S 稀有灵兽出现率
+function pickWildTarget(s, pool) {
+  const regionWeather = (s && s.weather && WEATHERS[s.weather]) ? s.weather : 'clear';
+  const phase = (s && s.time && TIME_PHASES[s.time.phase]) ? s.time.phase : 'dawn';
+  let rare = (WEATHERS[regionWeather] || WEATHERS.clear).rare || 0;
+  rare += (TIME_PHASES[phase] || TIME_PHASES.dawn).rare || 0;
+  let incense = false;
+  if (s && s.flags && s.flags.incenseArmed) {
+    s.flags.incenseArmed = false;
+    rare += 0.35;
+    incense = true;
+    if (window.LB && typeof LB.persist === 'function') LB.persist();
+  }
+  const rarePool = pool.filter(function (p) {
+    const sp = SPECIES[p.sp];
+    return sp && (sp.rarity === 'A' || sp.rarity === 'S');
+  });
+  let pick = null;
+  if (rarePool.length && Math.random() < rare) pick = rarePool[randInt(0, rarePool.length - 1)];
+  else pick = pool[randInt(0, pool.length - 1)];
+  return { pick: pick, incense: incense && rarePool.length > 0 };
+}
+
 function battleStartWild(regionId) {
   const s = saveGame();
   if (!s) return;
@@ -211,9 +234,9 @@ function battleStartWild(regionId) {
     if (window.LB && typeof LB.toast === 'function') LB.toast('此处无灵迹可遇');
     return;
   }
-  const pick = pool[randInt(0, pool.length - 1)];
-  const lv = randInt(pick.lv[0], pick.lv[1]);
-  openBattle({ sp: pick.sp, lv: lv, isBoss: false, regionId: rid });
+  const target = pickWildTarget(s, pool);
+  const lv = randInt(target.pick.lv[0], target.pick.lv[1]);
+  openBattle({ sp: target.pick.sp, lv: lv, isBoss: false, regionId: rid, incense: target.incense });
 }
 
 function battleStartBoss(bossId, opts) {

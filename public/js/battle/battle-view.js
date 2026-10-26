@@ -81,6 +81,16 @@ function openBattle(cfg) {
 
   if (cfg.isBoss && boss && boss.line) logAccent(boss.line);
   else logLine('草丛一动，有灵息逼近。');
+  if (cfg.incense) logLine('引灵香余烟未散，灵息里裹着一缕异香。', 'accent');
+  // 首次野外遭遇：一句话教会削弱 + 结契
+  if (!cfg.isBoss && !cfg.trialFloor && typeof LB.saveState === 'function') {
+    const tut = LB.saveState();
+    if (tut && tut.flags && !tut.flags.wildTut) {
+      tut.flags.wildTut = true;
+      logLine('（野外灵兽可先削弱，再以「结契」收服；灵符可再提一成八成功率。）', 'accent');
+      if (typeof LB.persist === 'function') LB.persist();
+    }
+  }
 
   const envParts = [];
   Object.keys(merged).forEach((el) => {

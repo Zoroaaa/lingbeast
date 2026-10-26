@@ -57,6 +57,25 @@ function validateContent() {
     (r.pool || []).forEach(function (p) {
       if (!SPECIES[p.sp]) errs.push('区域 ' + rid + ' 的遭遇池含有不存在的灵兽：' + p.sp);
     });
+    // 遭遇区覆盖：有池必须有可遭遇的可行走瓦片；无池不得铺设遭遇瓦片
+    var encTiles = r.encounterTiles || ['g'];
+    var encWalk = 0;
+    var walkable = 0;
+    for (var ey = 0; ey < r.h; ey += 1) {
+      for (var ex = 0; ex < r.w; ex += 1) {
+        var et = r.tiles[ey][ex];
+        if (!WALKABLE[et]) continue;
+        walkable += 1;
+        if (encTiles.indexOf(et) >= 0) encWalk += 1;
+      }
+    }
+    if ((r.pool || []).length) {
+      if (encWalk < 60 || encWalk / (walkable || 1) < 0.05) {
+        errs.push('区域 ' + rid + ' 无有效遭遇区：可遭遇瓦片 ' + encWalk + ' / ' + walkable);
+      }
+    } else if (encWalk > 0) {
+      errs.push('区域 ' + rid + ' 无遭遇池却有遭遇瓦片 ' + encWalk + ' 格');
+    }
     (r.steles || []).forEach(function (st) {
       if (!CODEX[st.codex]) errs.push('区域 ' + rid + ' 的碑文 ' + st.id + ' 引用了不存在的山海志：' + st.codex);
       if (!inRegion(r, st.x, st.y)) errs.push('区域 ' + rid + ' 的碑文 ' + st.id + ' 越界');

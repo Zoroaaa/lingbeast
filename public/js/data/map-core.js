@@ -11,6 +11,35 @@ function hash2(x, y) {
   return ((h ^ (h >> 16)) >>> 0) / 4294967295;
 }
 
+// ---------- 遭遇草地 ----------
+// 野外区域按 3×3 区块确定性铺设 g 草地（遇敌瓦片），
+// 道路、桥、木板、出口、出生点与既有地貌一律不动：走大路安全，进草地遇敌。
+var GRASS_SAFE = { ',': 1, b: 1, M: 1, E: 1, S: 1 };
+function paintEncounterGrass(tiles, w, h, opts) {
+  var o = opts || {};
+  var density = typeof o.density === 'number' ? o.density : 0.08;
+  var cell = o.cell || 3;
+  for (var cy = 0; cy < Math.ceil(h / cell); cy += 1) {
+    for (var cx = 0; cx < Math.ceil(w / cell); cx += 1) {
+      if (hash2(cx * 7 + 13, cy * 7 + 29) >= density) continue;
+      for (var y = cy * cell; y < Math.min(h, cy * cell + cell); y += 1) {
+        for (var x = cx * cell; x < Math.min(w, cx * cell + cell); x += 1) {
+          if (tiles[y][x] !== '.') continue;
+          var nearSafe = false;
+          for (var i = 0; i < 8; i += 1) {
+            var dx = [1, -1, 0, 0, 1, -1, 1, -1][i];
+            var dy = [0, 0, 1, -1, 1, -1, -1, 1][i];
+            var nx = x + dx, ny = y + dy;
+            if (nx < 0 || ny < 0 || nx >= w || ny >= h) continue;
+            if (GRASS_SAFE[tiles[ny][nx]]) { nearSafe = true; break; }
+          }
+          if (!nearSafe) tiles[y][x] = 'g';
+        }
+      }
+    }
+  }
+}
+
 function makeRegion(cfg) {
   var w = cfg.w, h = cfg.h;
   var tiles = [];
@@ -46,6 +75,10 @@ function makeRegion(cfg) {
     },
   };
   cfg.paint(api);
+  // 有遭遇池的野外区域自动铺设遭遇草地；中枢或已关闭的区域跳过
+  if ((cfg.pool || []).length && cfg.grass !== false) {
+    paintEncounterGrass(tiles, w, h, cfg.grass === true ? null : cfg.grass);
+  }
   if (cfg.spawn) api.put(cfg.spawn.x, cfg.spawn.y, 'S');
   return {
     id: cfg.id, name: cfg.name, chapter: cfg.chapter, subtitle: cfg.subtitle,

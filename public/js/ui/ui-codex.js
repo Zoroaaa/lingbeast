@@ -104,6 +104,7 @@ function renderCodex(active) {
       '<span>图鉴 <b>' + prog.seen + '</b>/' + prog.total + ' · ' + prog.pct + '%</span>' +
       '<div class="progress-track"><i style="width:' + prog.pct + '%"></i></div>' +
       '<div class="rar-legend-row">' + legend + '</div>' +
+      '<span class="bestiary-hint">草地上行走会遭遇野生灵兽 · 打残后以「结契」收入图鉴</span>' +
       '<div class="milestone-row">' +
       milestoneText(25, LB.flag('bestiary_25'), '灵玉 +20 · 十二山门') +
       milestoneText(50, LB.flag('bestiary_50'), '灵玉 +30 · 灵符 +3') +

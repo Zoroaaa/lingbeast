@@ -1745,6 +1745,12 @@ img, svg, canvas { image-rendering: pixelated; }
   gap: 4px;
 }
 .bestiary-progress .seal-chip { justify-content: center; }
+.bestiary-progress .bestiary-hint {
+  grid-column: 1 / -1;
+  font-size: 11px;
+  line-height: 1.5;
+  color: #6a5f4a;
+}
 .cage-bar { justify-content: space-between; }
 
 /* ==================== 全局浮层 ==================== */
