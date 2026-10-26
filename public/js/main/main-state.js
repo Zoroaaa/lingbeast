@@ -30,7 +30,10 @@ const TALK_FLAGS = {
 };
 
 // Boss 胜利后的章节与附带标记
-const BOSS_CHAPTER = { shougu: 2, wuyinxiao: 3, xingyun: 4, suolingjiao: 5, shenmu: 6, chiyuan: 7, wuxiang: 8 };
+const BOSS_CHAPTER = {
+  shougu: 2, wuyinxiao: 3, xingyun: 4, suolingjiao: 5, shenmu: 6, chiyuan: 7, wuxiang: 8,
+  zhanling: 10, luxinkui: 11, chenchengshan: 12, tiangen: 12,
+};
 const BOSS_FLAGS = { xingyun: ['lockShard'], shenmu: ['mirageBroken'], chiyuan: ['wujiuAwake'] };
 
 const BESTIARY_MILESTONES = [
@@ -164,7 +167,9 @@ function normalizeState(obj) {
   const s = obj;
   s.v = 4;
   s.region = REGIONS[s.region] ? s.region : 'shanmen';
-  s.chapter = clampInt(Number(s.chapter) || 1, 1, 8);
+  s.chapter = clampInt(Number(s.chapter) || 1, 1, 12);
+  if (s.postgame && s.chapter < 9) s.chapter = 9;
+  s.visited = s.visited && typeof s.visited === 'object' ? s.visited : {};
   const region = REGIONS[s.region] || REGIONS.shanmen;
   if (!s.pos || typeof s.pos.x !== 'number' || typeof s.pos.y !== 'number') {
     s.pos = { x: region.spawn.x, y: region.spawn.y };
@@ -257,6 +262,7 @@ function freshState() {
     region: 'shanmen',
     pos: { x: REGIONS.shanmen.spawn.x, y: REGIONS.shanmen.spawn.y },
     chapter: 1,
+    visited: { shanmen: true },
     team: [starter],
     storage: [],
     items: { pill: 3, charm: 2 },
@@ -324,7 +330,7 @@ function migrate(obj) {
   const region = sceneMap[Number(obj.scene) || 0] || 'qingxi';
   const chapterMap = [1, 1, 2, 2, 2, 3, 6, 8];
   let chapter = chapterMap[story] === undefined ? 1 : chapterMap[story];
-  chapter = clampInt(chapter, 1, 8);
+  chapter = clampInt(chapter, 1, 12);
 
   const flags = Object.assign({}, obj.flags || {});
   const gateBoss = ['shougu', 'wuyinxiao', 'chiyuan'];

@@ -120,7 +120,10 @@ function uiRegionName(id) {
 function uiRegionChapterText(id) {
   var r = REGIONS[id];
   if (!r) return '';
-  return r.chapter ? '第 ' + r.chapter + ' 境' : '中枢';
+  if (r.kind === 'hub') return '中枢';
+  if (r.kind === 'side') return '支线境';
+  if (r.kind === 'secret') return '秘境';
+  return r.chapter ? '第 ' + r.chapter + ' 境' : '';
 }
 
 function uiGiverText(giver) {
@@ -161,12 +164,26 @@ function uiRewardText(reward) {
 
 function uiTravelAllowed() {
   var here = LB.region ? LB.region() : 'shanmen';
-  return here === 'shanmen' || here === 'guixu';
+  var r = REGIONS[here];
+  return !!(r && (r.travelHub || r.kind === 'hub')) || here === 'shanmen' || here === 'guixu';
 }
 
 function uiRegionLockText(id) {
   var r = REGIONS[id];
   if (!r) return '此地不在册';
+  var u = r.unlock;
+  if (u) {
+    if (u.quest) {
+      var q = typeof SIDE_QUESTS !== 'undefined' ? SIDE_QUESTS.filter(function (x) { return x.id === u.quest; })[0] : null;
+      return q ? '完成支线「' + q.title + '」后点亮' : '完成对应支线后点亮';
+    }
+    if (u.flag) return '循线追索，方可点亮';
+    if (u.codexPct) return '图鉴达 ' + u.codexPct + '% 后点亮';
+    if (u.postgame) return '通关第一卷后点亮';
+    if (u.chapter) return '第 ' + u.chapter + ' 章后点亮';
+  }
+  if (r.kind === 'secret') return '秘境 · 尚未寻得入口';
+  if (r.kind === 'side') return '支线境 · 尚未寻得入口';
   var parts = [];
   if (r.chapter) parts.push('第 ' + r.chapter + ' 章后点亮');
   Object.keys(BOSSES).forEach(function (bid) {

@@ -60,6 +60,7 @@ REGIONS.wuyin = makeRegion({
         },
         onTalk: function () {
           LB.flagSet('herbalistMet', true);
+          if (LB.flag('talked_aheng') && LB.flag('boss_wuyinxiao')) LB.flagSet('yaopuOpen', true);
           if (LB.flag('talked_aheng') && LB.flag('boss_wuyinxiao') && !LB.flag('wuyinAhengDone')) {
             LB.flagSet('wuyinAhengDone', true);
             LB.toast('雾泉三煎已成 · 阿蘅把药庐钥匙交给你');
@@ -172,6 +173,12 @@ REGIONS.wuyin = makeRegion({
           return ['我替山门拓碑，拓到雾隐林就不敢再往里。', '这林子的碑会换位置，今天在东，明天在南。', '你若见着碑，替我读一读。'];
         },
         onTalk: function () { LB.flagSet('wuyinRubbingMet', true); },
+      },
+      {
+        id: 'wuyin_widow', name: '守雾妇·阿雾', sprite: 'samurai_green', tint: 0xd8e8d8, scale: 2.1,
+        x: 28, y: 30, dir: 'down',
+        lines: ['雾里有脚步声，别回头应。', '我守这片雾三十年，只学会一件事：等。', '你要找古井，顺着水声往下走。'],
+        onTalk: function () { LB.flagSet('wuyinWidowMet', true); },
       },
     ],
     herbs: [

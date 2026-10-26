@@ -163,6 +163,18 @@ REGIONS.shenyuan = makeRegion({
         },
         onTalk: function () { LB.flagSet('shenyuanBonesMet', true); },
       },
+      {
+        id: 'shenyuan_librarian', name: '残卷守·空页', sprite: 'ninja_blue', tint: 0xd8d0c8, scale: 2.2,
+        x: 24, y: 18, dir: 'down', service: 'codex',
+        lines: ['殿里的卷宗大多只剩封皮，名字被人一页页撕走了。', '你若找到残页，别急着补；先看看缺的是谁。'],
+        onTalk: function () { LB.flagSet('shenyuanLibrarianMet', true); },
+      },
+      {
+        id: 'shenyuan_door', name: '门影·无匙', sprite: 'ninja_blue', tint: 0xe0e0e8, scale: 2.1,
+        x: 35, y: 30, dir: 'down',
+        lines: ['门没有锁，锁在门外面。', '你进来时带的名字，出去时还带着吗？', '断锁台在东北。别走错。'],
+        onTalk: function () { LB.flagSet('shenyuanDoorMet', true); },
+      },
     ],
     herbs: [],
     gathers: [

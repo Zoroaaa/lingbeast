@@ -6,6 +6,7 @@ const battle = {
   on: false, foe: null, idx: 0, busy: false, over: false, forced: false, lines: [],
   bond: 0, bondUsed: false, bossId: null, trialFloor: null, regionId: 'qingxi',
   field: null, phaseIndex: 0, elMod: {},
+  combo: { el: null, n: 0 },
 };
 
 const $b = (id) => document.getElementById(id);
@@ -13,6 +14,31 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const rand = (a, b) => a + Math.random() * (b - a);
 const randInt = (a, b) => Math.floor(rand(a, b + 1));
+
+// ---------- 术法成长 ----------
+function skillPowerAt(sk, lv) {
+  if (!sk) return 0;
+  const level = Math.max(1, Number(lv) || 1);
+  return Math.round((sk.power || 0) * (1 + Math.min(0.4, 0.01 * (level - 1))));
+}
+function skillHealAt(sk, lv) {
+  if (!sk || !sk.heal) return 0;
+  const level = Math.max(1, Number(lv) || 1);
+  return sk.heal * (1 + Math.min(0.3, 0.008 * (level - 1)));
+}
+function resetCombo() {
+  battle.combo = { el: null, n: 0 };
+  if (typeof renderComboMeter === 'function') renderComboMeter();
+}
+function advanceCombo(el) {
+  if (!battle.combo) battle.combo = { el: null, n: 0 };
+  const c = battle.combo;
+  if (!c.el) { c.el = el; c.n = 0; }
+  else if (typeof GENERATES !== 'undefined' && GENERATES[c.el] === el) c.n = Math.min(3, c.n + 1);
+  else c.n = 0;
+  c.el = el;
+  if (typeof renderComboMeter === 'function') renderComboMeter();
+}
 
 // ---------- 基础 ----------
 function saveGame() {

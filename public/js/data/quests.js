@@ -78,6 +78,44 @@ const MAIN_CHAPTERS = [
     ],
     onComplete: function () { LB.flagSet('endingDone', true); },
   },
+  {
+    id: 'ch9', chapter: 9, title: '云外有门', region: 'yunzhan',
+    summary: '山门之外仍有山。循着云栈旧驿的悬灯，找回风门遗契，问一句山外还有谁。',
+    objectives: [
+      { type: 'region', key: 'yunzhan', text: '登上云栈遗门' },
+      { type: 'talk', key: 'zhan_warden', text: '与旧驿守·风伯交谈' },
+      { type: 'boss', key: 'zhanling', text: '击败栈灵·悬灯' },
+    ],
+    onComplete: function () { LB.flagSet('volume2Open', true); },
+  },
+  {
+    id: 'ch10', chapter: 10, title: '地火重燃', region: 'xuangu',
+    summary: '入玄炉地宫，取三块炉心炭，唤醒炉心傀，看看旧匠人究竟铸了什么。',
+    objectives: [
+      { type: 'region', key: 'xuangu', text: '进入玄炉地宫' },
+      { type: 'item', key: 'luxin', count: 3, text: '取得炉心炭 3 块' },
+      { type: 'boss', key: 'luxinkui', text: '击败炉心傀' },
+    ],
+  },
+  {
+    id: 'ch11', chapter: 11, title: '沉城照影', region: 'chenyu',
+    summary: '潮下旧城浮出水面，街名仍在，人却未必。找到守潮人，问清这座城到底在等谁。',
+    objectives: [
+      { type: 'region', key: 'chenyu', text: '抵达沉蜃旧城' },
+      { type: 'talk', key: 'chen_warden', text: '与守潮人·汐交谈' },
+      { type: 'boss', key: 'chenchengshan', text: '击败沉城蜃' },
+    ],
+  },
+  {
+    id: 'ch12', chapter: 12, title: '天根之约', region: 'jiuzhang',
+    summary: '五色石林尽头是九嶂天根。山至此尽，契至此问：新契之后，人与灵兽往何处去。',
+    objectives: [
+      { type: 'region', key: 'jiuzhang', text: '抵达九嶂天根' },
+      { type: 'talk', key: 'tian_warden', text: '与守根人·无年交谈' },
+      { type: 'boss', key: 'tiangen', text: '击败天根兽' },
+    ],
+    onComplete: function () { LB.flagSet('jiuzhangDone', true); },
+  },
 ];
 
 // ---------- 支线 ----------
@@ -524,6 +562,265 @@ const SIDE_QUESTS = [
     reward: function () { LB.giveJade(20); LB.giveItem('revive', 1); return '灵玉 +20 · 归元丹 +1'; },
   },
 
+  // ---------- 第二卷支线 ----------
+  {
+    id: 'zhan_lamps', title: '三盏悬灯', giver: { region: 'yunzhan', npc: 'zhan_warden' },
+    desc: '替旧驿守点亮云栈东台的三盏悬灯', unlockChapter: 9,
+    stages: [
+      { text: '与旧驿守·风伯交谈', flag: 'zhanWardenMet' },
+      { text: '点亮东台三盏悬灯', check: function () { return !!(LB.flag('zhanLamp1') && LB.flag('zhanLamp2') && LB.flag('zhanLamp3')); } },
+      { text: '回旧驿向风伯复命', flag: 'zhanLanterns' },
+    ],
+    reward: function () { LB.giveJade(26); LB.giveMaterial('yunwen', 2); return '灵玉 +26 · 云纹石 +2'; },
+  },
+  {
+    id: 'zhan_bridge', title: '修一段云栈', giver: { region: 'yunzhan', npc: 'yunzhan_smith' },
+    desc: '替修栈匠备齐灵木与玄铁，补上被云海咬断的栈板', unlockChapter: 9,
+    stages: [
+      { text: '与修栈匠·老钉交谈', flag: 'zhanSmithMet' },
+      { text: '备齐灵木 3、玄铁 2', check: function () { return LB.matCount('lingmu') >= 3 && LB.matCount('xuantie') >= 2; } },
+      { text: '回云栈向老钉复命', flag: 'zhanBridgeFixed' },
+    ],
+    reward: function () { LB.giveJade(22); LB.giveMaterial('xuantie', 2); return '灵玉 +22 · 玄铁 +2'; },
+  },
+  {
+    id: 'zhan_kite', title: '挂在断墙上的纸鸢', giver: { region: 'yunzhan', npc: 'yunzhan_kid' },
+    desc: '替放鸢童找回挂在南台断墙上的纸鸢', unlockChapter: 9,
+    stages: [
+      { text: '听小满说纸鸢的来历', flag: 'zhanKidMet' },
+      { text: '读罢断墙上的风字', check: function () { var s = LB.saveState(); return !!(s && s.steles && s.steles.yunzhan_stele5); } },
+      { text: '把纸鸢还给小满', flag: 'zhanKiteBack' },
+    ],
+    reward: function () { LB.giveJade(18); LB.giveItem('charm', 2); return '灵玉 +18 · 灵符 +2'; },
+  },
+  {
+    id: 'lu_hammer', title: '爹的旧锤', giver: { region: 'xuangu', npc: 'xuangu_child' },
+    desc: '从南坊旧箱里找回炉边小童父亲的锤子', unlockChapter: 10,
+    stages: [
+      { text: '听小童说旧锤藏在哪', flag: 'luChildMet' },
+      { text: '在南坊寻回旧锤', flag: 'luHammer' },
+      { text: '把旧锤交给小童', flag: 'luHammerBack' },
+    ],
+    reward: function () { LB.giveJade(24); LB.giveMaterial('xuantie', 3); return '灵玉 +24 · 玄铁 +3'; },
+  },
+  {
+    id: 'lu_core', title: '炉心炭不够', giver: { region: 'xuangu', npc: 'xuangu_keeper' },
+    desc: '替守炉人再取三块炉心炭，压住北厅的炉火', unlockChapter: 10,
+    stages: [
+      { text: '与守炉人·灰交谈', flag: 'luKeeperMet' },
+      { text: '采得炉心炭 3 块', check: function () { return LB.matCount('luxin') >= 3; } },
+      { text: '把炉心炭交给守炉人', flag: 'luCore' },
+    ],
+    reward: function () { LB.giveJade(28); LB.giveItem('great_pill', 1); return '灵玉 +28 · 大还丹 +1'; },
+  },
+  {
+    id: 'lu_names', title: '炉里的名字', giver: { region: 'xuangu', npc: 'xuangu_scholar' },
+    desc: '读完玄炉地宫三块旧碑，替录火者补全炉册', unlockChapter: 10,
+    stages: [
+      { text: '与录火者·焦页交谈', flag: 'luScholarMet' },
+      { text: '读罢炉门、铸灵、炉心三碑', check: function () {
+        var s = LB.saveState();
+        return !!(s && s.steles && s.steles.xuangu_stele1 && s.steles.xuangu_stele2 && s.steles.xuangu_stele3);
+      } },
+      { text: '把补全的炉册交给焦页', flag: 'luNames' },
+    ],
+    reward: function () { LB.giveJade(26); LB.giveItem('cleanse', 2); return '灵玉 +26 · 清心散 +2'; },
+  },
+  {
+    id: 'lu_forge', title: '最后一炉', giver: { region: 'xuangu', npc: 'xuangu_smith' },
+    desc: '替铸灵师备齐云纹石与玄铁，开最后一炉', unlockChapter: 10,
+    stages: [
+      { text: '与铸灵师·残锤交谈', flag: 'luSmithMet' },
+      { text: '备齐云纹石 2、玄铁 3', check: function () { return LB.matCount('yunwen') >= 2 && LB.matCount('xuantie') >= 3; } },
+      { text: '回玄炉开炉', flag: 'luForge' },
+    ],
+    reward: function () { LB.giveJade(30); LB.giveMaterial('luxin', 2); return '灵玉 +30 · 炉心炭 +2'; },
+  },
+  {
+    id: 'chen_song', title: '半句贝歌', giver: { region: 'chenyu', npc: 'chenyu_child' },
+    desc: '替拾贝童找回南街水里那半句歌', unlockChapter: 11,
+    stages: [
+      { text: '听小汐唱半句贝歌', flag: 'chenChildMet' },
+      { text: '在南街水牌前听完下半句', check: function () { var s = LB.saveState(); return !!(s && s.steles && s.steles.chenyu_stele4); } },
+      { text: '把完整的歌还给小汐', flag: 'chenSong' },
+    ],
+    reward: function () { LB.giveJade(26); LB.giveMaterial('chenzhu', 2); return '灵玉 +26 · 沉珠 +2'; },
+  },
+  {
+    id: 'chen_lamp', title: '第七盏灯', giver: { region: 'chenyu', npc: 'chenyu_lamplighter' },
+    desc: '替点灯人确认旧城七盏灯的位置', unlockChapter: 11,
+    stages: [
+      { text: '与点灯人·夜渡交谈', flag: 'chenLampMet' },
+      { text: '读罢东街、潮渠、沉塔三碑', check: function () {
+        var s = LB.saveState();
+        return !!(s && s.steles && s.steles.chenyu_stele1 && s.steles.chenyu_stele2 && s.steles.chenyu_stele3);
+      } },
+      { text: '回点灯人处复命', flag: 'chenLampDone' },
+    ],
+    reward: function () { LB.giveJade(28); LB.giveItem('incense', 2); return '灵玉 +28 · 引灵香 +2'; },
+  },
+  {
+    id: 'chen_names', title: '半册名册', giver: { region: 'chenyu', npc: 'chenyu_historian' },
+    desc: '替旧城录事找回沉箱里的半册名册', unlockChapter: 11,
+    stages: [
+      { text: '与录事·沉简交谈', flag: 'chenHistorianMet' },
+      { text: '在城北打开名册沉箱', flag: 'chenSteles' },
+      { text: '把名册交给沉简', flag: 'chenNames' },
+    ],
+    reward: function () { LB.giveJade(32); LB.giveItem('charm', 3); return '灵玉 +32 · 灵符 +3'; },
+  },
+  {
+    id: 'chen_dive', title: '潮底三次', giver: { region: 'chenyu', npc: 'chenyu_diver' },
+    desc: '替潜水人摸回两颗沉珠，听他说完水下的半条街', unlockChapter: 11,
+    stages: [
+      { text: '与潜水人·螺交谈', flag: 'chenDiverMet' },
+      { text: '凑齐沉珠 2 颗', check: function () { return LB.matCount('chenzhu') >= 2; } },
+      { text: '回潮渠边交给阿螺', flag: 'chenDive' },
+    ],
+    reward: function () { LB.giveJade(30); LB.giveMaterial('chaoyanjing', 2); return '灵玉 +30 · 潮盐晶 +2'; },
+  },
+  {
+    id: 'tian_steles', title: '四块根碑', giver: { region: 'jiuzhang', npc: 'jiuzhang_scribe' },
+    desc: '读完九嶂天根的四块根碑，替刻根者留下最后一笔', unlockChapter: 12,
+    stages: [
+      { text: '与刻根者·石笔交谈', flag: 'tianScribeMet' },
+      { text: '读罢四块根碑', check: function () {
+        var s = LB.saveState();
+        return !!(s && s.steles && s.steles.jiuzhang_stele1 && s.steles.jiuzhang_stele2 && s.steles.jiuzhang_stele3 && s.steles.jiuzhang_stele4);
+      } },
+      { text: '回刻根者处落最后一笔', flag: 'tiangenSteles' },
+    ],
+    reward: function () { LB.giveJade(36); LB.giveMaterial('tiangenxu', 2); return '灵玉 +36 · 天根须 +2'; },
+  },
+  {
+    id: 'tian_child', title: '缺的那块石头', giver: { region: 'jiuzhang', npc: 'jiuzhang_child' },
+    desc: '替拾石童凑齐五色石里缺的那一块', unlockChapter: 12,
+    stages: [
+      { text: '听拾石童说五色石', flag: 'tianChildMet' },
+      { text: '备齐云纹石 3 块', check: function () { return LB.matCount('yunwen') >= 3; } },
+      { text: '把石头交给拾石童', flag: 'tianChildStone' },
+    ],
+    reward: function () { LB.giveJade(34); LB.giveItem('revive', 1); return '灵玉 +34 · 归元丹 +1'; },
+  },
+
+  // ---------- 支线境与秘境支线 ----------
+  {
+    id: 'yaopu_herbs', title: '一畦药花', giver: { region: 'yaopu', npc: 'yaopu_keeper' },
+    desc: '替药圃婆婆收一畦药圃花', unlockChapter: 2,
+    stages: [
+      { text: '与药圃婆婆交谈', flag: 'yaopuKeeperMet' },
+      { text: '采得药圃花 2 朵', check: function () { return LB.matCount('yaopuhua') >= 2; } },
+      { text: '把药花交给婆婆', flag: 'yaopuFlowers' },
+    ],
+    reward: function () { LB.giveJade(14); LB.giveItem('pill', 3); return '灵玉 +14 · 丹药 +3'; },
+  },
+  {
+    id: 'yaopu_well', title: '井边旧誓', giver: { region: 'yaopu', npc: 'yaopu_girl' },
+    desc: '替采药女读完水渠尽头的旧誓碑', unlockChapter: 2,
+    stages: [
+      { text: '与采药女·芩交谈', flag: 'yaopuGirlMet' },
+      { text: '读罢一畦一誓碑', check: function () { var s = LB.saveState(); return !!(s && s.steles && s.steles.yaopu_stele2); } },
+      { text: '回药圃告诉芩', flag: 'yaopuWell' },
+    ],
+    reward: function () { LB.giveJade(16); LB.giveMaterial('yaopuhua', 2); return '灵玉 +16 · 药圃花 +2'; },
+  },
+  {
+    id: 'anshi_debt', title: '断印', giver: { region: 'anshi', npc: 'anshi_broker' },
+    desc: '替暗市掌柜找回那枚断掉的契印', unlockChapter: 4,
+    stages: [
+      { text: '与暗市掌柜·秤交谈', flag: 'anshiBrokerMet' },
+      { text: '在暗巷寻得断契印', flag: 'anshiSeal' },
+      { text: '把断印交给掌柜', flag: 'anshiDebt' },
+    ],
+    reward: function () { LB.giveJade(26); LB.giveItem('charm', 2); return '灵玉 +26 · 灵符 +2'; },
+  },
+  {
+    id: 'anshi_mask', title: '面具下的价', giver: { region: 'anshi', npc: 'anshi_mask' },
+    desc: '替面具客弄清暗巷尽头那面墙的价钱', unlockChapter: 4,
+    stages: [
+      { text: '与面具客交谈', flag: 'anshiMaskMet' },
+      { text: '读罢暗巷刻字', check: function () { var s = LB.saveState(); return !!(s && s.steles && s.steles.anshi_stele3); } },
+      { text: '回面具客处复命', flag: 'anshiMaskDone' },
+    ],
+    reward: function () { LB.giveJade(24); LB.giveItem('escape', 1); return '灵玉 +24 · 遁地符 +1'; },
+  },
+  {
+    id: 'anshi_lamp', title: '不点灯', giver: { region: 'anshi', npc: 'anshi_guard' },
+    desc: '替守巷人确认暗市三条规矩', unlockChapter: 4,
+    stages: [
+      { text: '与守巷人·无声交谈', flag: 'anshiGuardMet' },
+      { text: '读罢暗市三块暗碑', check: function () {
+        var s = LB.saveState();
+        return !!(s && s.steles && s.steles.anshi_stele1 && s.steles.anshi_stele2 && s.steles.anshi_stele3);
+      } },
+      { text: '回守巷人处复命', flag: 'anshiLampDone' },
+    ],
+    reward: function () { LB.giveJade(28); LB.giveItem('incense', 1); return '灵玉 +28 · 引灵香 +1'; },
+  },
+  {
+    id: 'rongku_ember', title: '火里的半名', giver: { region: 'rongku', npc: 'rongku_keeper' },
+    desc: '替熔窟守找回被火烧掉的一半名字', unlockChapter: 6,
+    stages: [
+      { text: '与熔窟守·岩婆交谈', flag: 'rongkuKeeperMet' },
+      { text: '在熔窟寻得半枚旧名牌', flag: 'rongkuName' },
+      { text: '把名牌交给岩婆', flag: 'rongkuEmber' },
+    ],
+    reward: function () { LB.giveJade(30); LB.giveMaterial('tanzha', 3); return '灵玉 +30 · 烬炭 +3'; },
+  },
+  {
+    id: 'rongku_name', title: '另一半名字', giver: { region: 'rongku', npc: 'rongku_child' },
+    desc: '替窟边小童读完遗蜕记，找回父亲名字的另一半', unlockChapter: 6,
+    stages: [
+      { text: '听小童说父亲的名字', flag: 'rongkuChildMet' },
+      { text: '读罢遗蜕记', check: function () { var s = LB.saveState(); return !!(s && s.steles && s.steles.rongku_stele2); } },
+      { text: '把另一半名字告诉小童', flag: 'rongkuNameDone' },
+    ],
+    reward: function () { LB.giveJade(28); LB.giveItem('great_pill', 1); return '灵玉 +28 · 大还丹 +1'; },
+  },
+  {
+    id: 'jingdi_echo', title: '井底回声', giver: { region: 'jingdi', npc: 'jingdi_guard' },
+    desc: '替井守确认井底那枚回音铃还在不在', unlockChapter: 2,
+    stages: [
+      { text: '与井守·苔交谈', flag: 'jingdiGuardMet' },
+      { text: '在井底寻得回音铃', flag: 'jingdiEcho' },
+      { text: '把回音铃交给井守', flag: 'jingdiEchoDone' },
+    ],
+    reward: function () { LB.giveJade(22); LB.giveMaterial('shensha', 2); return '灵玉 +22 · 蜃砂 +2'; },
+  },
+  {
+    id: 'xingkeng_shard', title: '发热的陨块', giver: { region: 'xingkeng', npc: 'xingkeng_miner' },
+    desc: '替拾星人找回那块会发热的陨块', unlockChapter: 10,
+    stages: [
+      { text: '与拾星人·矿交谈', flag: 'xingkengMinerMet' },
+      { text: '在星陨坑寻得发热的陨块', flag: 'xingkengWarm' },
+      { text: '把陨块交给矿', flag: 'xingkengShardDone' },
+    ],
+    reward: function () { LB.giveJade(32); LB.giveMaterial('xingxie', 3); return '灵玉 +32 · 星屑 +3'; },
+  },
+  {
+    id: 'xingkeng_map', title: '坑底星图', giver: { region: 'xingkeng', npc: 'xingkeng_stargazer' },
+    desc: '替观星人拓全坑底三块星图', unlockChapter: 10,
+    stages: [
+      { text: '与观星人·夜图交谈', flag: 'xingkengStarMet' },
+      { text: '读罢星陨坑、陨铁、星骸三碑', check: function () {
+        var s = LB.saveState();
+        return !!(s && s.steles && s.steles.xingkeng_stele1 && s.steles.xingkeng_stele2 && s.steles.xingkeng_stele3);
+      } },
+      { text: '回观星人处复命', flag: 'xingkengMapDone' },
+    ],
+    reward: function () { LB.giveJade(36); LB.giveMaterial('leisui', 2); return '灵玉 +36 · 雷髓 +2'; },
+  },
+  {
+    id: 'shihai_trial', title: '替他走完', giver: { region: 'shihai', npc: 'shihai_ghost' },
+    desc: '替旧试者残影确认石海第五层的刻痕', unlockChapter: 7,
+    stages: [
+      { text: '与旧试者·残影交谈', flag: 'shihaiGhostMet' },
+      { text: '在石海寻得旧战残念', flag: 'shihaiEcho' },
+      { text: '回残影处复命', flag: 'shihaiTrialDone' },
+    ],
+    reward: function () { LB.giveJade(34); LB.giveItem('revive', 1); return '灵玉 +34 · 归元丹 +1'; },
+  },
+
 ];
 
 // ---------- 山门悬赏 ----------
@@ -543,5 +840,45 @@ const BOUNTIES = [
     id: 'bounty_yunmeng', title: '巡山 · 云梦', desc: '云梦泽雾重，巡两趟看看有没有走失的灵兽。',
     type: 'patrol', target: 'yunmeng', count: 2, cooldown: 5,
     reward: { jade: 18, mats: [{ id: 'shensha', count: 1 }] },
+  },
+  {
+    id: 'bounty_yunzhan', title: '除妖 · 云栈', desc: '云栈栈道近日风声不对，清三场。',
+    type: 'hunt', target: 'yunzhan', count: 3, cooldown: 4,
+    reward: { jade: 30, mats: [{ id: 'yunwen', count: 2 }] },
+  },
+  {
+    id: 'bounty_xuangu', title: '除妖 · 玄炉', desc: '地宫矿道里的火兽又躁了，清三场。',
+    type: 'hunt', target: 'xuangu', count: 3, cooldown: 4,
+    reward: { jade: 32, mats: [{ id: 'luxin', count: 2 }] },
+  },
+  {
+    id: 'bounty_chenyu', title: '巡城 · 沉城', desc: '旧城潮退，巡两趟确认街名还在。',
+    type: 'patrol', target: 'chenyu', count: 2, cooldown: 5,
+    reward: { jade: 36, items: [{ id: 'guixu_san', count: 1 }] },
+  },
+  {
+    id: 'bounty_jiuzhang', title: '守根 · 天根', desc: '石林最近挪步，清三场稳住山路。',
+    type: 'hunt', target: 'jiuzhang', count: 3, cooldown: 6,
+    reward: { jade: 44, mats: [{ id: 'tiangenxu', count: 1 }] },
+  },
+  {
+    id: 'bounty_luxin', title: '采办 · 炉心炭', desc: '炉门要补火，收三块炉心炭。',
+    type: 'gather', target: 'luxin', count: 3, cooldown: 4,
+    reward: { jade: 28, items: [{ id: 'xuanyuan', count: 1 }] },
+  },
+  {
+    id: 'bounty_chenzhu', title: '采办 · 沉珠', desc: '沉市要沉珠压秤，收两颗。',
+    type: 'gather', target: 'chenzhu', count: 2, cooldown: 4,
+    reward: { jade: 30, mats: [{ id: 'chaoyanjing', count: 2 }] },
+  },
+  {
+    id: 'bounty_tiangen', title: '采办 · 天根须', desc: '刻根者要一缕天根须补碑，收一缕。',
+    type: 'gather', target: 'tiangenxu', count: 1, cooldown: 6,
+    reward: { jade: 42, items: [{ id: 'tiangen_lu', count: 1 }] },
+  },
+  {
+    id: 'bounty_xingkeng', title: '巡坑 · 星陨', desc: '星陨坑夜里有光，巡两趟看看星骸鸟。',
+    type: 'patrol', target: 'xingkeng', count: 2, cooldown: 5,
+    reward: { jade: 34, mats: [{ id: 'xingxie', count: 2 }] },
   },
 ];

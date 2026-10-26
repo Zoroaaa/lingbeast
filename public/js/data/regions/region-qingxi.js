@@ -177,6 +177,7 @@ REGIONS.qingxi = makeRegion({
       { id: 'boat2', name: '溪上纸船', x: 22, y: 30, jade: 2, items: [{ id: 'pill', count: 1 }], flag: 'boat2', label: '拾得纸船 · 船腹画着一枚小契印' },
       { id: 'boat3', name: '溪上纸船', x: 36, y: 25, jade: 2, items: [{ id: 'pill', count: 1 }], flag: 'boat3', label: '拾得纸船 · 船头被水泡软了' },
       { id: 'qingxi_cache', name: '旧祠暗匣', x: 56, y: 9, jade: 18, items: [{ id: 'charm', count: 2 }], needFlag: 'bridgeFixed', lockedText: '断桥未修 · 溪东旧事还过不去', label: '拾得旧契拓片 · 灵符 2 张 · 灵玉 18' },
+      { id: 'qingxi_chest7', name: '旧祠后匣', x: 38, y: 38, jade: 20, items: [{ id: 'great_pill', count: 1 }], label: '拾得大还丹 1 枚 · 灵玉 20' },
     ],
     props: [
       { type: 'house', x: 7, y: 12, frame: 'house1' },
@@ -205,5 +206,6 @@ REGIONS.qingxi = makeRegion({
       { id: 'qingxi_stele2', x: 40, y: 12, title: '盛世残记', text: '「是岁，五脉安流，山门与灵兽共守，无锁无争。」后半句被人凿去了。', codex: 'shengshi' },
       { id: 'qingxi_stele3', x: 47, y: 18, title: '木桥旧契', text: '「桥成于契，断于争。后人若修此桥，先问溪水愿不愿。」桥桩上还缠着半截契绳。', codex: 'qingxi_qiao' },
       { id: 'qingxi_stele4', x: 31, y: 38, title: '旧祠残碑', text: '「此处不供神，只供名字。名字在，契就在；名字没了，山也就不在了。」', codex: 'qingxi_ci' },
+      { id: 'qingxi_stele5', x: 34, y: 37, title: '旧祠新碑', text: '碑上刻着后来人的名字，每个名字后面都留着一小段空白，像是等人回来补。', codex: 'qingxi_xin' },
     ],
   });

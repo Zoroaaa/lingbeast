@@ -124,6 +124,51 @@ const GEAR = {
     mods: { atkPct: 0.1, critPct: 0.06, defPierce: 0.08 },
     desc: '旧契绳割断后铸成的铃。铃响时，灵息会自己让开一条路。',
   },
+  yunwen_seal: {
+    id: 'yunwen_seal', name: '云纹契印', slot: 'seal', rarity: 'rare', set: 'yun', unique: true,
+    mods: { metalPct: 0.08, spdPct: 0.05 },
+    desc: '云纹石上拓出的契印，纹路像一层层退去的云。',
+  },
+  yunzhan_talisman: {
+    id: 'yunzhan_talisman', name: '悬灯护符', slot: 'talisman', rarity: 'rare', set: 'yun', unique: true,
+    mods: { critPct: 0.05, statusResistPct: 0.1 },
+    desc: '灯芯纸叠成的护符，风再大也不灭。',
+  },
+  yunzhan_bell: {
+    id: 'yunzhan_bell', name: '风门铃', slot: 'bell', rarity: 'epic', set: 'yun', unique: true,
+    mods: { spdPct: 0.08, metalPct: 0.1 },
+    desc: '旧驿门楣上取下的风铃，铃声一响，云栈就让出一条路。',
+  },
+  lu_seal: {
+    id: 'lu_seal', name: '炉心印', slot: 'seal', rarity: 'rare', set: 'lu', unique: true,
+    mods: { firePct: 0.09, defPct: 0.05 },
+    desc: '炉心炭压成的契印，摸上去仍有余温。',
+  },
+  lu_talisman: {
+    id: 'lu_talisman', name: '熔壳护符', slot: 'talisman', rarity: 'rare', set: 'lu', unique: true,
+    mods: { defPct: 0.07, statusResistPct: 0.1 },
+    desc: '熔甲兽脱下的甲片磨成的护符，边缘还带着炉渣。',
+  },
+  lu_bell: {
+    id: 'lu_bell', name: '断锤铃', slot: 'bell', rarity: 'epic', set: 'lu', unique: true,
+    mods: { atkPct: 0.08, firePct: 0.1 },
+    desc: '旧匠人断锤改铸的铃，声音短促，像一锤落在铁上。',
+  },
+  chen_seal: {
+    id: 'chen_seal', name: '沉珠印', slot: 'seal', rarity: 'rare', set: 'chen', unique: true,
+    mods: { waterPct: 0.09, critPct: 0.04 },
+    desc: '沉珠磨成的契印，印面总像蒙着一层水。',
+  },
+  chen_talisman: {
+    id: 'chen_talisman', name: '潮灯护符', slot: 'talisman', rarity: 'rare', set: 'chen', unique: true,
+    mods: { waterPct: 0.08, regenPct: 0.03 },
+    desc: '旧城点灯人叠的护符，潮气越重，灯越亮。',
+  },
+  tiangen_seal: {
+    id: 'tiangen_seal', name: '天根印', slot: 'seal', rarity: 'epic', unique: true,
+    mods: { hpPct: 0.1, earthPct: 0.1, defPct: 0.06 },
+    desc: '五色石与天根须压成的契印，印面是一道向下生长的根。',
+  },
 };
 
 const GEAR_SETS = {
@@ -136,6 +181,21 @@ const GEAR_SETS = {
     id: 'tide', name: '潮声', need: 2,
     bonus: { catchPct: 0.05 },
     members: ['guixu_talisman', 'yunmeng_talisman', 'suolingjiao_talisman', 'tide_song_bell', 'mengyin_talisman'],
+  },
+  yun: {
+    id: 'yun', name: '云栈', need: 2,
+    bonus: { spdPct: 0.04, metalPct: 0.06 },
+    members: ['yunwen_seal', 'yunzhan_talisman', 'yunzhan_bell'],
+  },
+  lu: {
+    id: 'lu', name: '炉火', need: 2,
+    bonus: { firePct: 0.08, defPct: 0.05 },
+    members: ['lu_seal', 'lu_talisman', 'lu_bell'],
+  },
+  chen: {
+    id: 'chen', name: '沉潮', need: 2,
+    bonus: { waterPct: 0.08, regenPct: 0.03 },
+    members: ['chen_seal', 'chen_talisman'],
   },
   abyss: {
     id: 'abyss', name: '渊火', need: 2,

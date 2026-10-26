@@ -68,6 +68,7 @@ async function returnToWorld(result) {
     if (firstClear && BOSSES[bid] && BOSSES[bid].gear) giveGear(BOSSES[bid].gear);
     if (BOSS_CHAPTER[bid]) setStory(BOSS_CHAPTER[bid]);
     if (bid === 'wuxiang') setTimeout(openEndingChoice, 1200);
+    if (bid === 'tiangen') setTimeout(showFinalEnding, 1200);
   }
 
   if (r.trialFloor) {
@@ -193,10 +194,57 @@ function showEnding(kind) {
   updateHud();
 }
 
+function showFinalEnding() {
+  if (!state) return;
+  const k = state.ending === 'cut' ? 'cut' : 'new';
+  state.chapter = 12;
+  state.postgame = true;
+  flagSet('ending2', true);
+  flagSet('ending2Done', true);
+  pauseWorld();
+  showView('view-end');
+
+  const prog = bestiaryProgress();
+  const eyebrow = byId('end-eyebrow');
+  const title = byId('end-title');
+  const text = byId('end-text');
+  const stats = byId('end-stats');
+  const extra = byId('end-extra');
+  if (eyebrow) eyebrow.textContent = '第二卷终 · 天根';
+  if (title) title.textContent = k === 'new' ? '山海同流' : '万灵自去';
+  if (text) {
+    text.textContent = k === 'new'
+      ? '天根兽伏在祭坛前，五色石一块块归位。你没有再问山愿不愿意——山先开了口，风从石林间穿过，像一声很长很长的应。云栈、玄炉、沉城、天根，四座遗门重新点灯。此后九嶂不只守着旧契，也守着新契：人呼其名，灵应其声；一方欲去，契便自解。'
+      : '天根兽散作五色石屑，灵脉归于沉静。你带着断契的心走完九嶂，四座遗门没有点灯，只把门开着。人不欠灵，灵不欠人；山外还有山，但不再有人替它取名。';
+  }
+  if (stats) {
+    stats.innerHTML =
+      '<li>第二卷<b>四门皆过</b></li>' +
+      '<li>图鉴<b>' + prog.seen + ' / ' + prog.total + '（' + prog.pct + '%）</b></li>' +
+      '<li>支线<b>' + sideQuestDoneCount() + ' / ' + SIDE_QUESTS.length + '</b></li>' +
+      '<li>碑文<b>' + stelesCount() + '</b></li>' +
+      '<li>战斗<b>' + (state.stats.battles || 0) + '</b></li>' +
+      '<li>终局<b>' + (k === 'new' ? '山海同流' : '万灵自去') + '</b></li>';
+  }
+  if (extra) extra.textContent = '天根已定 · 存档保留，可继续补完支线、图鉴与山海试炼。';
+  persist();
+  updateHud();
+}
+
 function postgameEnter() {
   if (!state) return;
   state.postgame = true;
   closeModal();
+  if (state.chapter < 9) {
+    state.chapter = 9;
+    flagSet('volume2Open', true);
+    persist();
+    fadeTo(function () {
+      enterRegion('shanmen', REGIONS.shanmen.spawn, { title: true });
+      toast('山外有山 · 云栈遗门已现 · 山河图可前往');
+    });
+    return;
+  }
   fadeTo(function () {
     enterRegion('shanmen', REGIONS.shanmen.spawn, { title: true });
     toast('山门重开 · 可往碑林、告示板与试炼');

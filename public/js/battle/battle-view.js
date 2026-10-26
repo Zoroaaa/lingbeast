@@ -28,6 +28,7 @@ function openBattle(cfg) {
   battle.regionId = region;
   battle.field = null;
   battle.phaseIndex = 0;
+  battle.combo = { el: null, n: 0 };
 
   const weather = s.weather && WEATHERS[s.weather] ? s.weather : ((REGIONS[region] && REGIONS[region].weather) || 'clear');
   const phase = s.time && TIME_PHASES[s.time.phase] ? s.time.phase : 'dawn';
@@ -217,9 +218,10 @@ function calcDamage(attacker, defender, skill, opts) {
   const critChance = 0.12 + (pe && pe.critPct ? pe.critPct : 0) + (ge.critPct || 0);
   const crit = Math.random() < critChance;
 
-  let total = atkStats.atk * (skill.power / 10) * (1 - def / (def + 34));
+  let total = atkStats.atk * (skillPowerAt(skill, attacker.lv || 1) / 10) * (1 - def / (def + 34));
   total *= mult;
   total *= battle.elMod[skill.el] || 1;
+  if (!aIsFoe && battle.combo && battle.combo.n > 0) total *= 1 + 0.08 * battle.combo.n;
   if (crit) total *= 1.5;
   const elKey = skill.el + 'Pct';
   const elBoost = (pe && pe[elKey] ? pe[elKey] : 0) + (ge[elKey] || 0);
@@ -348,6 +350,22 @@ function updateBondUI() {
   if (bond) bond.classList.toggle('ready', battle.bond >= 100 && !battle.bondUsed);
 }
 
+function renderComboMeter() {
+  const box = $b('combo-meter');
+  if (!box) return;
+  const c = battle.combo || { el: null, n: 0 };
+  if (!battle.on || !c.n) { box.hidden = true; return; }
+  box.hidden = false;
+  const chain = $b('combo-chain');
+  if (chain) chain.textContent = '灵连 ×' + c.n + (c.el && ELEMENTS[c.el] ? ' · ' + ELEMENTS[c.el].ch : '');
+  const pips = $b('combo-pips');
+  if (pips) {
+    Array.prototype.forEach.call(pips.children, function (pip, i) {
+      pip.className = i < c.n ? 'on' : '';
+    });
+  }
+}
+
 function renderBattleUI() {
   const s = saveGame();
   const foe = battle.foe;
@@ -372,6 +390,7 @@ function renderBattleUI() {
   renderStatusChips($b('foe-status'), foe.statuses);
   renderStatusChips($b('self-status'), mon.statuses);
   updateBondUI();
+  renderComboMeter();
 
   renderPartyStrip();
   renderTurnOrder();
@@ -437,7 +456,7 @@ function addCmd(label, sub, handler, disabled, cls) {
 function battleItemIds() {
   const s = saveGame();
   if (!s) return [];
-  return ['pill', 'great_pill', 'cleanse', 'revive', 'escape'].filter((id) => ITEMS[id] && (s.items[id] || 0) > 0);
+  return Object.keys(ITEMS).filter((id) => ITEMS[id].battle && (s.items[id] || 0) > 0);
 }
 
 function renderCommands() {
@@ -482,7 +501,8 @@ function showSkills() {
     if (!s) return;
     const left = cd[id] || 0;
     const el = ELEMENTS[s.el];
-    const sub = left > 0 ? '冷却 ' + left : el.ch + (s.power ? ' · 威力 ' + s.power : ' · 辅助');
+    const linkHint = battle.combo && battle.combo.el && GENERATES[battle.combo.el] === s.el ? ' · 可生' : '';
+    const sub = left > 0 ? '冷却 ' + left : el.ch + (s.power ? ' · 威力 ' + skillPowerAt(s, mon.lv) + linkHint : ' · 辅助');
     addCmd(s.name, sub, () => playerSkill(id), left > 0, 'skill el-' + s.el);
   });
   addCmd('返回', '收起', renderCommands, false, 'back');
@@ -504,19 +524,25 @@ function showSwitch() {
 }
 
 function itemBlockReason(id, mon) {
-  if (id === 'pill' || id === 'great_pill') return mon.hp >= monMax(mon) ? '气血已满' : '';
-  if (id === 'cleanse') return hasNegative(mon) ? '' : '无负面状态';
-  if (id === 'revive') return faintCount() > 0 ? '' : '无力竭后备';
-  if (id === 'escape') return battle.foe && battle.foe.isBoss ? 'Boss 不可遁' : '';
+  const it = ITEMS[id];
+  if (!it) return '不可用';
+  if (it.use === 'heal') return mon.hp >= monMax(mon) ? '气血已满' : '';
+  if (it.use === 'cleanse') return hasNegative(mon) ? '' : '无负面状态';
+  if (it.use === 'revive') return faintCount() > 0 ? '' : '无力竭后备';
+  if (it.use === 'escape') return battle.foe && battle.foe.isBoss ? 'Boss 不可遁' : '';
+  if (it.use === 'focus') return mon.statuses && mon.statuses.charge ? '已蓄势' : '';
   return '';
 }
 
 function itemEffect(id) {
-  if (id === 'pill' || id === 'great_pill') return '回气 ' + ITEMS[id].value;
-  if (id === 'cleanse') return '解灼蚀滞破';
-  if (id === 'revive') return '救力竭';
-  if (id === 'escape') return '脱身';
-  return '引契';
+  const it = ITEMS[id];
+  if (!it) return '';
+  if (it.use === 'heal') return '回气 ' + it.value;
+  if (it.use === 'cleanse') return '解灼蚀滞破';
+  if (it.use === 'revive') return '救力竭';
+  if (it.use === 'escape') return '脱身';
+  if (it.use === 'focus') return '蓄势 ' + (it.value || 2);
+  return '';
 }
 
 function showBattleItems() {

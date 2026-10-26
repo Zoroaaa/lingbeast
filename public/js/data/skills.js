@@ -38,6 +38,17 @@ const SKILLS = {
   shanyong: { name: '山涌', el: 'earth', power: 24, cd: 2, desc: '地脉涌动，甲片崩裂', status: 'break', statusTurns: 2 },
   xiliu: { name: '细流', el: 'water', power: 14, cd: 0, desc: '水线切隙' },
   chaohu: { name: '潮护', el: 'water', power: 0, guard: 2, cd: 3, desc: '潮水成幕，减伤四成', status: 'shield', statusTurns: 2 },
+  // 第二卷新增十式
+  yunpo: { name: '云破', el: 'metal', power: 28, cd: 2, desc: '云层裂开一线，风刃随光落下', status: 'slow', statusTurns: 2 },
+  fengren: { name: '风刃', el: 'wood', power: 24, cd: 1, desc: '风里藏刃，割其甲片', status: 'break', statusTurns: 2 },
+  leiyin: { name: '雷引', el: 'fire', power: 30, cd: 3, desc: '引雷入焰，声震四野', status: 'burn', statusTurns: 2, selfCharge: true },
+  rongke: { name: '熔壳', el: 'earth', power: 0, guard: 2, cd: 3, desc: '熔岩凝壳，护身两回合', status: 'shield', statusTurns: 2 },
+  luyan: { name: '炉焰', el: 'fire', power: 29, cd: 2, desc: '炉心之火喷薄，灼烧不止', status: 'burn', statusTurns: 3 },
+  chenxi: { name: '沉息', el: 'water', power: 0, heal: 0.3, cd: 3, desc: '沉入潮息，回复三成气血' },
+  shanhuizhang: { name: '珊瑚障', el: 'wood', power: 0, guard: 2, cd: 3, desc: '珊瑚成障，减伤四成', status: 'shield', statusTurns: 2 },
+  xingyun: { name: '星陨', el: 'metal', power: 32, cd: 4, desc: '星屑坠地，贯甲而下', status: 'break', statusTurns: 3 },
+  genfu: { name: '根缚', el: 'wood', power: 18, cd: 2, desc: '天根缠足，滞其行止', status: 'slow', statusTurns: 3 },
+  jiuzhang: { name: '九嶂', el: 'earth', power: 34, cd: 4, desc: '九嶂压顶，破甲震魂', status: 'break', statusTurns: 3 },
 };
 
 // ---------- 灵诀（被动） ----------
@@ -50,4 +61,16 @@ const PASSIVES = {
   runze: { name: '润泽', desc: '水属术法威力提升一成五。', effect: { waterPct: 0.15 } },
   pojia: { name: '破甲', desc: '攻击无视两成防御。', effect: { defPierce: 0.2 } },
   qixin: { name: '契心', desc: '结契成功率提升一成二。', effect: { catchPct: 0.12 } },
+  yunxing: { name: '云行', desc: '云栈风势相助，速度提升一成。', effect: { spdPct: 0.1 } },
+  luxin: { name: '炉心', desc: '炉火淬体，火属术法威力提升两成。', effect: { firePct: 0.2 } },
+  chenxi: { name: '沉息', desc: '潮息护脉，每回合回复少量气血。', effect: { regenPct: 0.05 } },
+  genshou: { name: '根守', desc: '天根护体，防御提升两成。', effect: { defPct: 0.2 } },
+};
+
+// ---------- 合契技 ----------
+// 同源 / 相生 / 相克三种关系，由合契双方五行决定
+const BOND_ARTS = {
+  same: { name: '合契·同源', mult: 1.5, heal: 0.12, shield: true },
+  gen: { name: '合契·相生', mult: 1.9, heal: 0.18 },
+  beat: { name: '合契·相克', mult: 2.4, status: 'break', turns: 2 },
 };

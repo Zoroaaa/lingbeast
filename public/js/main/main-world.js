@@ -55,6 +55,7 @@ function readStele(stele) {
   if (!state || !stele || activeDialog || battleActive()) return;
   if (!state.steles) state.steles = {};
   state.steles[stele.id] = true;
+  if (stele.id === 'wuyin_stele4') flagSet('jingdiOpen', true);
   revealCodex(stele.codex);
   Object.keys(RECIPES).forEach(function (rid) {
     const rec = RECIPES[rid];

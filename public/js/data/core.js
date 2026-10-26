@@ -15,6 +15,8 @@ const ELEMENTS = {
 
 // 克：木→土→水→火→金→木
 const BEATS = { wood: 'earth', earth: 'water', water: 'fire', fire: 'metal', metal: 'wood' };
+// 生：木→火→土→金→水→木
+const GENERATES = { wood: 'fire', fire: 'earth', earth: 'metal', metal: 'water', water: 'wood' };
 
 // ---------- 灵兽资质 ----------
 // 稀有度直接决定强度：S > A > B > C > D。

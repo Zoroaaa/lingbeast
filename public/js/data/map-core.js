@@ -49,6 +49,7 @@ function makeRegion(cfg) {
   if (cfg.spawn) api.put(cfg.spawn.x, cfg.spawn.y, 'S');
   return {
     id: cfg.id, name: cfg.name, chapter: cfg.chapter, subtitle: cfg.subtitle,
+    kind: cfg.kind || 'main', unlock: cfg.unlock || null, travelHub: !!cfg.travelHub,
     w: w, h: h, tiles: tiles, spawn: cfg.spawn, base: cfg.base || '.',
     exits: cfg.exits || [], pool: cfg.pool || [], boss: cfg.boss || null,
     npcs: cfg.npcs || [], herbs: cfg.herbs || [], chests: cfg.chests || [],

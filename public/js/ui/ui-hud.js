@@ -120,6 +120,12 @@ function beastCardHtml(mon, index, place) {
   var st = uiStatsOf(mon);
   var tal = uiTalentOf(mon.talent);
   var skills = uiLearnedSkills(mon);
+  var skillLine = skills.length ? skills.map(function (id) {
+    var sk = SKILLS[id];
+    if (!sk) return '';
+    var pw = sk.power && typeof skillPowerAt === 'function' ? '·威' + skillPowerAt(sk, mon.lv) : '';
+    return uiEsc(sk.name + pw);
+  }).join(' · ') : '尚未习得';
   var check = LB.canEvolve ? LB.canEvolve(mon) : { ok: false, msg: '' };
   var isLead = place === 'team' && index === 0;
   var passive = mon.passive && PASSIVES[mon.passive] ? PASSIVES[mon.passive] : null;
@@ -150,7 +156,7 @@ function beastCardHtml(mon, index, place) {
     '<span>攻 ' + st.atk + '</span><span>防 ' + st.def + '</span><span>速 ' + st.spd + '</span>' +
     '<span>资质 ' + tal.label + '</span><span>亲密 ' + (mon.bond || 0) + '</span>' +
     '</div>' +
-    '<div class="beast-skills">技能：' + (skills.length ? skills.map(function (id) { return uiEsc(SKILLS[id].name); }).join(' · ') : '尚未习得') + '</div>' +
+    '<div class="beast-skills">技能：' + skillLine + '</div>' +
     '<div class="gear-line">灵器：' + uiGearSlotLineHtml(mon) + '</div>' +
     '<div class="trait-line">' + (passive ? '灵诀「' + uiEsc(passive.name) + '」· ' + uiEsc(passive.desc) : '灵诀：未佩') + '</div>' +
     '<div class="trait-line">' + uiEsc((sp.evolve && check.ok ? check.msg + '；' : '') + uiEvolveLine(mon)) + '</div>' +

@@ -42,8 +42,15 @@ async function playerBond(benchIdx) {
   updateBondUI();
   renderCommands();
 
-  showBossBanner('合契', '合契 · ' + monName(lead) + ' × ' + monName(bench), 1800);
-  logAccent('契势已满，' + monName(lead) + ' 与 ' + monName(bench) + ' 同声应契。');
+  const leadEl = monEl(lead);
+  const benchEl = monEl(bench);
+  let rel = 'beat';
+  if (leadEl === benchEl) rel = 'same';
+  else if ((GENERATES[leadEl] === benchEl) || (GENERATES[benchEl] === leadEl)) rel = 'gen';
+  const art = BOND_ARTS[rel] || BOND_ARTS.beat;
+
+  showBossBanner('合契', art.name + ' · ' + monName(lead) + ' × ' + monName(bench), 1800);
+  logAccent('契势已满，' + monName(lead) + ' 与 ' + monName(bench) + ' 同声应契 · ' + art.name);
   await wait(700);
 
   const strikes = [lead, bench];
@@ -51,14 +58,21 @@ async function playerBond(benchIdx) {
     if (battle.foe.hp <= 0) break;
     const mon = strikes[i];
     const el = monEl(mon);
-    const sk = { name: '合契 · 击', el: el, power: randInt(18, 22) };
+    const sk = { name: art.name + ' · 击', el: el, power: Math.round(randInt(18, 22) * art.mult) };
     await cast(mon, battle.foe, sk, mon, null, false);
     await wait(180);
   }
 
+  if (art.status) applyStatus(battle.foe, art.status, art.turns || 2);
+  if (art.shield) {
+    applyStatus(lead, 'shield', 2);
+    applyStatus(bench, 'shield', 2);
+  }
+  if (rel === 'gen') advanceCombo(benchEl);
+
   [lead, bench].forEach((m) => {
     const max = monMax(m);
-    const heal = Math.max(1, Math.round(max * 0.1));
+    const heal = Math.max(1, Math.round(max * art.heal));
     const before = m.hp;
     m.hp = Math.min(max, m.hp + heal);
     const real = m.hp - before;
@@ -128,12 +142,22 @@ async function cast(actor, target, id, actorMon, targetMon, fromFoe) {
       applyStatus(actor, 'charge', randInt(1, 2));
       logLine(label + ' 蓄势待发。', 'accent');
     }
+    if (!actorIsFoe && s.power > 0) {
+      advanceCombo(s.el);
+      if (battle.combo.n > 0) {
+        logLine('灵连 · ' + ELEMENTS[battle.combo.el].ch + ' 生 ' + ELEMENTS[s.el].ch + ' ×' + battle.combo.n, 'accent');
+      }
+    }
     renderBattleUI();
     checkBossPhase();
     await wait(520);
-    if (s.heal && actor.hp > 0) await healActor(s.heal, label + ' 借「' + s.name + '」回气 +{n}');
+    if (!actorIsFoe && battle.combo && battle.combo.n >= 3 && s.power > 0) {
+      await healActor(0.06, label + ' 灵连圆满 · 回气 +{n}');
+      if (s.status && target.hp > 0) applyStatus(target, s.status, (s.statusTurns || 2) + 1);
+    }
+    if (s.heal && actor.hp > 0) await healActor(skillHealAt(s, actor.lv || 1), label + ' 借「' + s.name + '」回气 +{n}');
   } else if (s.heal) {
-    await healActor(s.heal, label + ' 施「' + s.name + '」· 气血回复 +{n}');
+    await healActor(skillHealAt(s, actor.lv || 1), label + ' 施「' + s.name + '」· 气血回复 +{n}');
   } else if (s.guard) {
     if (s.status) applyStatus(actor, s.status, s.statusTurns || 2);
     else actor.guard = s.guard;
@@ -274,6 +298,7 @@ async function playerSwitch(i) {
   if (!s.team[i] || s.team[i].hp <= 0) return;
   battle.busy = true;
   battle.idx = i;
+  resetCombo();
   renderBattleUI();
   logLine(monName(s.team[i]) + ' 入场。', 'accent');
   await wait(460);
@@ -289,7 +314,7 @@ async function useBattleItem(id) {
   const item = ITEMS[id];
   const have = s.items[id] || 0;
   if (!item || have <= 0) return;
-  if (id === 'escape' && battle.foe && battle.foe.isBoss) {
+  if (item.use === 'escape' && battle.foe && battle.foe.isBoss) {
     logWarn('坛上之灵锁住四方，遁符无效。');
     return;
   }
@@ -300,7 +325,7 @@ async function useBattleItem(id) {
   renderCommands();
   s.items[id] = have - 1;
 
-  if (id === 'pill' || id === 'great_pill') {
+  if (item.use === 'heal') {
     const max = monMax(mon);
     const value = item.value || 40;
     const before = mon.hp;
@@ -308,12 +333,15 @@ async function useBattleItem(id) {
     const real = mon.hp - before;
     logLine('服下' + item.name + '，气血回复 ' + real + '。', 'accent');
     floatOver($b('self-art'), '+' + real, 'heal');
-  } else if (id === 'cleanse') {
+  } else if (item.use === 'cleanse') {
     if (mon.statuses) {
       ['burn', 'corrode', 'slow', 'break'].forEach((k) => { delete mon.statuses[k]; });
     }
-    logLine('清心散化开，灼、蚀、滞、破尽去。', 'accent');
-  } else if (id === 'revive') {
+    logLine(item.name + '化开，灼、蚀、滞、破尽去。', 'accent');
+  } else if (item.use === 'focus') {
+    applyStatus(mon, 'charge', item.value || 2);
+    logLine(item.name + '引雷入体，' + monName(mon) + ' 蓄势待发。', 'accent');
+  } else if (item.use === 'revive') {
     let target = null;
     s.team.forEach((m) => { if (!target && m.hp <= 0) target = m; });
     if (!target) { s.items[id] = have; logWarn('没有力竭的灵兽。'); battle.busy = false; renderCommands(); return; }
@@ -323,11 +351,11 @@ async function useBattleItem(id) {
     target.guard = 0;
     logLine(item.name + ' 唤回 ' + monName(target) + '，气血回复半数。', 'accent');
     floatOver($b('party-strip'), '+' + target.hp, 'heal');
-  } else if (id === 'escape') {
-    logLine('遁地符一燃，身形随墨色退去。', 'accent');
+  } else if (item.use === 'escape') {
+    logLine(item.name + '一燃，身形随墨色退去。', 'accent');
     await wait(420);
     if (window.LB && typeof LB.returnToWorld === 'function') {
-      await LB.returnToWorld({ win: false, fled: true, message: '遁走 · 遁地符' });
+      await LB.returnToWorld({ win: false, fled: true, message: '遁走 · ' + item.name });
     }
     return;
   }
@@ -400,6 +428,7 @@ async function attemptCatch() {
 async function flee() {
   if (battle.busy || battle.over || !battle.foe || battle.foe.isBoss) return;
   battle.busy = true;
+  resetCombo();
   renderCommands();
   if (Math.random() < 0.6) {
     logLine('循雾而去，退出了战斗。');

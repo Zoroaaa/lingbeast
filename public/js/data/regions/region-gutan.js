@@ -51,7 +51,10 @@ REGIONS.gutan = makeRegion({
           if (LB.flag('boss_chiyuan')) return ['坛裂了，火却没灭。赤渊兽终于把名字还回去了。', '无咎的残魂若还肯说话，你该去坛下听。', '往东是归墟深处。那地方，我们守了一辈子也没敢进。'];
           return ['我们守这座坛，守的是一只被锁住的守脉灵。', '赤渊兽不是天生的渊兽。它曾经有名字。', '火种还在坛底。你若能唤醒它，山主无咎也许还肯说话。'];
         },
-        onTalk: function () { LB.flagSet('yiminMet', true); },
+        onTalk: function () {
+          LB.flagSet('yiminMet', true);
+          if (chapterNow() >= 6) LB.flagSet('rongkuOpen', true);
+        },
       },
       {
         id: 'gutan_keeper', name: '守坛人·赤眉', sprite: 'samurai_green', tint: 0xd8b898, scale: 2.4,
@@ -167,6 +170,12 @@ REGIONS.gutan = makeRegion({
         },
         onTalk: function () { LB.flagSet('gutanHunterMet', true); },
       },
+      {
+        id: 'gutan_ash', name: '拾灰人·半筐', sprite: 'ninja_blue', tint: 0xc8b8a8, scale: 2.0,
+        x: 20, y: 26, dir: 'down',
+        lines: ['灰里能捡到没烧完的名字。', '我捡了半筐，一个也不敢念。', '你要去熔窟？那儿的火比这儿还凶。'],
+        onTalk: function () { LB.flagSet('gutanAshMet', true); },
+      },
     ],
     herbs: [],
     gathers: [
@@ -181,6 +190,7 @@ REGIONS.gutan = makeRegion({
       { id: 'gutan_chest2', name: '焦木箱', x: 42, y: 24, jade: 20, items: [{ id: 'tanzha', count: 2 }], label: '拾得烬炭 2 块 · 灵玉 20' },
       { id: 'gutan_chest3', name: '崖边石匣', x: 13, y: 12, jade: 18, items: [{ id: 'cleanse', count: 2 }], label: '拾得清心散 2 包 · 灵玉 18' },
       { id: 'gutan_chest4', name: '灰窑暗箱', x: 52, y: 32, jade: 24, items: [{ id: 'charm', count: 2 }], gear: 'gutan_bell', label: '拾得灵符 2 张 · 烬尾铃 · 灵玉 24' },
+      { id: 'gutan_chest8', name: '灰里旧匣', x: 20, y: 30, jade: 22, items: [{ id: 'cleanse', count: 2 }], label: '拾得清心散 2 包 · 灵玉 22' },
       { id: 'gutan_ember1', name: '东渊火种', x: 38, y: 20, jade: 6, items: [{ id: 'pill', count: 1 }], flag: 'ember1', label: '收得东渊火种 · 灵玉 6' },
       { id: 'gutan_ember2', name: '南窑火种', x: 28, y: 30, jade: 6, items: [{ id: 'pill', count: 1 }], flag: 'ember2', label: '收得南窑火种 · 灵玉 6' },
       { id: 'gutan_ember3', name: '北坛火种', x: 34, y: 19, jade: 6, items: [{ id: 'pill', count: 1 }], flag: 'ember3', label: '收得北坛火种 · 灵玉 6' },

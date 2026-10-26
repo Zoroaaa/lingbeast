@@ -2,6 +2,7 @@
 // 本境独立地貌、独立内容；尺寸与地标以此为唯一来源。
 REGIONS.guixu = makeRegion({
     id: 'guixu', name: '归墟海市', chapter: 4, subtitle: '潮退市开，价由人定',
+    travelHub: true,
     w: 76, h: 56, base: '.', spawn: { x: 5, y: 16 },
     fog: true, weather: 'rain', tint: '#e9e6dc', timeTint: '#eae7dd',
     encounterTiles: ['D', 'g'],
@@ -50,7 +51,10 @@ REGIONS.guixu = makeRegion({
           if (LB.flag('ledgerDone')) return ['账页补全了。三十年前十二山门在这里买过同一样东西。', '锁灵器不是从天上掉下来的，是人一笔一笔订的。', '你若要问价，先想清楚自己拿什么换。'];
           return ['账清了。三十年前十二山门在这里买过同一样东西。', '账房的账页被潮水卷走了几页，他嘴上不说，心里急。', '你若要问价，先想清楚自己拿什么换。'];
         },
-        onTalk: function () { LB.flagSet('haishiMet', true); },
+        onTalk: function () {
+          LB.flagSet('haishiMet', true);
+          if (chapterNow() >= 4) LB.flagSet('anshiOpen', true);
+        },
       },
       {
         id: 'trader', name: '行商', sprite: 'samurai_green', tint: 0xf0d8b8, scale: 2.2,
@@ -162,6 +166,18 @@ REGIONS.guixu = makeRegion({
         },
         onTalk: function () { LB.flagSet('guixuShellMet', true); },
       },
+      {
+        id: 'guixu_diver', name: '潜水人·深', sprite: 'ninja_blue', tint: 0xcfe0e8, scale: 2.2,
+        x: 20, y: 20, dir: 'down',
+        lines: ['海市下面还有一层，退大潮才看得见。', '我替人捞过锁灵器的零件，也捞过没名字的契。', '你要往下走，先学会在水里闭嘴。'],
+        onTalk: function () { LB.flagSet('guixuDiverMet', true); },
+      },
+      {
+        id: 'guixu_ledger', name: '账房先生·算', sprite: 'samurai_green', tint: 0xd8c8a8, scale: 2.2,
+        x: 52, y: 20, dir: 'down',
+        lines: ['海市的账不怕乱，怕的是没人认。', '三十年前那笔账，我还留着半页。', '你若要查，先替我把这页补全。'],
+        onTalk: function () { LB.flagSet('guixuLedgerMet', true); },
+      },
     ],
     herbs: [],
     gathers: [
@@ -174,6 +190,7 @@ REGIONS.guixu = makeRegion({
     chests: [
       { id: 'guixu_chest1', name: '栈桥暗格', x: 18, y: 18, jade: 18, items: [{ id: 'charm', count: 2 }], label: '拾得灵符 2 张 · 灵玉 18' },
       { id: 'guixu_chest2', name: '码头货箱', x: 40, y: 18, jade: 20, items: [{ id: 'incense', count: 1 }], gear: 'guixu_talisman', label: '拾得引灵香 1 支 · 潮生护符 · 灵玉 20' },
+      { id: 'guixu_chest8', name: '暗巷货匣', x: 24, y: 20, jade: 22, items: [{ id: 'cleanse', count: 1 }], label: '拾得清心散 1 包 · 灵玉 22' },
       { id: 'guixu_ledger1', name: '盐田账页', x: 18, y: 6, jade: 4, items: [{ id: 'pill', count: 1 }], flag: 'ledger1', label: '拾得盐课旧账 · 灵玉 4' },
       { id: 'guixu_ledger2', name: '沉船账页', x: 49, y: 24, jade: 4, items: [{ id: 'charm', count: 1 }], flag: 'ledger2', label: '拾得沉船账页 · 灵玉 4' },
       { id: 'guixu_ledger3', name: '暗仓账页', x: 56, y: 24, jade: 4, items: [{ id: 'pill', count: 1 }], flag: 'ledger3', label: '拾得海市暗账 · 灵玉 4' },

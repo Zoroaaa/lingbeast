@@ -1,5 +1,6 @@
 // 灵兽录 · 数据层 · 区域顺序、天时与天气
-const REGION_ORDER = ['shanmen', 'qingxi', 'wuyin', 'luoxing', 'guixu', 'yunmeng', 'gutan', 'shenyuan'];
+// 区域顺序由大陆图册的注册顺序决定，新增地图只需在 world-atlas.js 里登记。
+const REGION_ORDER = Object.keys(WORLD_ATLAS.regions).filter(function (id) { return !!REGIONS[id]; });
 
 // ---------- 天时与天气 ----------
 const WEATHERS = {

@@ -10,7 +10,7 @@ function chapterDef() {
 
 function setStory(n) {
   if (!state) return;
-  const next = clampInt(Number(n) || 1, 1, 8);
+  const next = clampInt(Number(n) || 1, 1, MAIN_CHAPTERS.length);
   if (next <= state.chapter) { updateHud(); persist(); return; }
   const prev = state.chapter || 1;
   state.chapter = next;
@@ -66,7 +66,18 @@ function regionUnlocked(id) {
   const r = REGIONS[id];
   if (!r) return false;
   if (id === 'shanmen') return true;
-  return (r.chapter || 0) <= (state ? state.chapter : 1);
+  const ch = state ? state.chapter : 1;
+  const u = r.unlock;
+  if (!u) return (r.chapter || 0) <= ch;
+  if (u.postgame) return !!(state && state.postgame);
+  if (u.chapter) return ch >= u.chapter;
+  if (u.flag) return !!(state && state.flags && state.flags[u.flag]);
+  if (u.quest) {
+    const e = state && state.quests && state.quests.side ? state.quests.side[u.quest] : null;
+    return !!(e && e.rewarded);
+  }
+  if (u.codexPct) return bestiaryProgress().pct >= u.codexPct;
+  return true;
 }
 
 function refreshWeatherGathers(regionId) {
@@ -104,6 +115,8 @@ function enterRegion(id, spawn, opts) {
   const p = spawn || r.spawn;
   showView('view-world');
   state.region = id;
+  if (!state.visited || typeof state.visited !== 'object') state.visited = {};
+  state.visited[id] = true;
   state.pos = { x: p.x, y: p.y };
   refreshWeatherGathers(id);
   if (window.World) {

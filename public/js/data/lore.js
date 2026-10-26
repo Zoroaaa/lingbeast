@@ -244,6 +244,226 @@ const CODEX = {
     body: '没人知道她的名字，只知道海市每次开张，她都站在最高那根桩上。她收落水之物，也收没说完的话。',
     unlock: { type: 'npc', id: 'haishi' },
   },
+
+  // ---------- 第二卷 · 云栈 ----------
+  yunzhanmen: {
+    id: 'yunzhanmen', category: '地理', title: '风门',
+    body: '十二山门里，风门最高，也最先断。门不挡人，只记人：过门留名，回头留灯。如今门框还在，风却换了方向。',
+    unlock: { type: 'stele', id: 'yunzhan_stele1' },
+  },
+  yunzhandeng: {
+    id: 'yunzhandeng', category: '山门', title: '悬灯台',
+    body: '东台三盏悬灯，灯芯以雷髓浸过，风再大也不灭。旧时说三灯不灭则风门不闭；后来灯还在，门已经没人守了。',
+    unlock: { type: 'stele', id: 'yunzhan_stele2' },
+  },
+  yunzhanzhan: {
+    id: 'yunzhanzhan', category: '地理', title: '云栈',
+    body: '云海之上的木栈，下无底，上无路。修栈人只换坏板，不换整段——他们说路要一段段记住，人才不会走丢。',
+    unlock: { type: 'stele', id: 'yunzhan_stele3' },
+  },
+  yunzhanji: {
+    id: 'yunzhanji', category: '人物', title: '旧驿簿',
+    body: '簿上记着过路人的名字，最后一页只有一句「风伯，等你回来」。字是风伯自己写的，写给三十年前那个没回来的人。',
+    unlock: { type: 'stele', id: 'yunzhan_stele4' },
+  },
+  yunzhanfeng: {
+    id: 'yunzhanfeng', category: '术语', title: '风字',
+    body: '风蚀过的字只剩半边，补全它的人未必识字。九嶂人说，断墙上的字不是给人读的，是给风认路的。',
+    unlock: { type: 'stele', id: 'yunzhan_stele5' },
+  },
+
+  // ---------- 第二卷 · 玄炉 ----------
+  xuanguumen: {
+    id: 'xuanguumen', category: '山门', title: '炉门',
+    body: '炉门旧铭只有一句：火不是用来锁的。锁住火的人，最后都成了炉里的炭。玄炉烧了三百年，铭文没被烧掉。',
+    unlock: { type: 'stele', id: 'xuangu_stele1' },
+  },
+  xuanguupu: {
+    id: 'xuanguupu', category: '术语', title: '铸灵残谱',
+    body: '谱上画着锁灵器的骨，旁边有人用炭写了「不铸」二字。后来这页被撕下，塞进炉门缝里，才留到今天。',
+    unlock: { type: 'stele', id: 'xuangu_stele2' },
+  },
+  xuanggulu: {
+    id: 'xuanggulu', category: '人物', title: '炉心傀',
+    body: '第十七次开炉，傀仍未醒。老铸人说它记得的名字太多，不肯只认一个；也有人说，它是在等一个叫得全的人。',
+    unlock: { type: 'stele', id: 'xuangu_stele3' },
+  },
+  xuangugong: {
+    id: 'xuangugong', category: '人物', title: '无名匠',
+    body: '南坊墙上挂着的工牌，名字都被火燎过，只剩姓。最后一个姓「烛」，牌背面刻着一行小字：炉在，人在。',
+    unlock: { type: 'stele', id: 'xuangu_stele4' },
+  },
+  xuanguanchui: {
+    id: 'xuanguanchui', category: '术语', title: '断锤',
+    body: '锤断之日，炉门自开。断锤不是凶兆，是旧匠人留的后手：锁灵器不该有下一件，锤也不该有下一把。',
+    unlock: { type: 'stele', id: 'xuangu_stele5' },
+  },
+
+  // ---------- 第二卷 · 沉城 ----------
+  chenyu_cheng: {
+    id: 'chenyu_cheng', category: '地理', title: '沉蜃旧城',
+    body: '城浮上来三次，每次都少一条街。守潮人不记城名，只记街名：东街、潮渠、北塔、南街。名字在，城就还没全沉。',
+    unlock: { type: 'stele', id: 'chenyu_stele1' },
+  },
+  chenyu_chao: {
+    id: 'chenyu_chao', category: '术语', title: '守潮',
+    body: '守潮不观潮，只数上岸的人。潮退时最后一个上来的人，要在名册上留名；不留名的人，会被城当成自己的影子。',
+    unlock: { type: 'stele', id: 'chenyu_stele2' },
+  },
+  chenyu_ying: {
+    id: 'chenyu_ying', category: '术语', title: '蜃影',
+    body: '沉城的蜃不造幻境，只借脸。它借一张脸，就替那个人把没说完的话说完。听久了，你会忘了哪句是自己的。',
+    unlock: { type: 'stele', id: 'chenyu_stele3' },
+  },
+  chenyu_jie: {
+    id: 'chenyu_jie', category: '地理', title: '南街',
+    body: '南街水最浅，也最容易走错。旧城人说，心中有旧事的人下南街，会看见自己最想回去的那一天。',
+    unlock: { type: 'stele', id: 'chenyu_stele4' },
+  },
+  chenyu_ming: {
+    id: 'chenyu_ming', category: '术语', title: '留名',
+    body: '入城留名，出城还名。东门守门人从不问来处，只问一句：你叫什么。答不上来的人，门不开，城也不赶。',
+    unlock: { type: 'stele', id: 'chenyu_stele5' },
+  },
+
+  // ---------- 第二卷 · 天根 ----------
+  jiuzhang_gen: {
+    id: 'jiuzhang_gen', category: '地理', title: '九嶂天根',
+    body: '九嶂的山都从一根生。根断则山散，根在则灵归。天根不在最高处，在最静处；石林会让路，水会记得旧路。',
+    unlock: { type: 'stele', id: 'jiuzhang_stele1' },
+  },
+  jiuzhang_wuse: {
+    id: 'jiuzhang_wuse', category: '五灵', title: '五色石',
+    body: '青赤黄白黑，五石各守一脉。缺一则灵脉不圆，补之者须以自己的名字为引。天根兽守的，就是那块缺石。',
+    unlock: { type: 'stele', id: 'jiuzhang_stele2' },
+  },
+  jiuzhang_yue: {
+    id: 'jiuzhang_yue', category: '年表', title: '祖兽旧约',
+    body: '五灵祖兽以身为山，以息为河。旧约说，后人若立新契，须先听山愿不愿。新契不是人的独角戏，山也有份。',
+    unlock: { type: 'stele', id: 'jiuzhang_stele3' },
+  },
+  jiuzhang_zhong: {
+    id: 'jiuzhang_zhong', category: '山门', title: '天根钟',
+    body: '钟身无字，只有一道深深的指痕。指尖朝向山门。守根人说，钟不是用来敲的，是用来记方向的。',
+    unlock: { type: 'stele', id: 'jiuzhang_stele4' },
+  },
+
+  // ---------- 支线境与秘境 ----------
+  yaopu_yao: {
+    id: 'yaopu_yao', category: '地理', title: '青溪药圃',
+    body: '药圃不大，一畦露草、一畦药花、一条引水渠。阿蘅说，药圃的门不锁，因为药不认门。',
+    unlock: { type: 'stele', id: 'yaopu_stele1' },
+  },
+  yaopu_shi: {
+    id: 'yaopu_shi', category: '术语', title: '一畦一誓',
+    body: '种药人立誓：一畦药养一境人。药不够时，先给最不会开口的那个。这句誓没有刻在碑上，是刻在取药人的手上。',
+    unlock: { type: 'stele', id: 'yaopu_stele2' },
+  },
+  anshi_shi: {
+    id: 'anshi_shi', category: '势力', title: '归墟暗市',
+    body: '暗市随潮水开合，只做三种生意：旧物、旧事、旧名字。规矩三条：不点灯，不喊名，不回头。',
+    unlock: { type: 'stele', id: 'anshi_stele1' },
+  },
+  anshi_jia: {
+    id: 'anshi_jia', category: '术语', title: '断契价目',
+    body: '一页旧价目，最上面一行被刀刮掉，只剩「契」字和一枚指印。暗市的人说，断契不是买卖，是有人替你把话说完。',
+    unlock: { type: 'stele', id: 'anshi_stele2' },
+  },
+  anshi_an: {
+    id: 'anshi_an', category: '地理', title: '暗巷',
+    body: '明处无路时，暗处未必有；但暗处至少没人替你选。暗巷尽头没有门，只有一面不反光的墙。',
+    unlock: { type: 'stele', id: 'anshi_stele3' },
+  },
+  rongku_ku: {
+    id: 'rongku_ku', category: '地理', title: '赤渊熔窟',
+    body: '熔窟在古坛之下，火从岩缝里流。窟里的火不烧活人，只烧名字；被烧掉一半名字的人，会忘了自己为什么来。',
+    unlock: { type: 'stele', id: 'rongku_stele1' },
+  },
+  rongku_yi: {
+    id: 'rongku_yi', category: '术语', title: '遗蜕',
+    body: '它不是渊兽，是被锁灵术抽走名字的守脉灵。火替它记着名字，所以它守着熔窟，不肯让火熄灭。',
+    unlock: { type: 'stele', id: 'rongku_stele2' },
+  },
+  rongku_hui: {
+    id: 'rongku_hui', category: '山门', title: '断炉',
+    body: '炉断之后，火不必再为谁烧。后来人若来，添一把柴便走。这是旧匠人留给赤渊的最后一句规矩。',
+    unlock: { type: 'stele', id: 'rongku_stele3' },
+  },
+  jingdi_jing: {
+    id: 'jingdi_jing', category: '地理', title: '雾隐古井',
+    body: '井不深，深的是人往下看的那一眼。井水不照脸，只照人忘掉的事。雾隐林的人用它藏话，不用它藏人。',
+    unlock: { type: 'stele', id: 'jingdi_stele1' },
+  },
+  jingdi_ying: {
+    id: 'jingdi_ying', category: '术语', title: '井影',
+    body: '影不认人，只认旧事。你若怕它，它便一直跟着；你若叫得出它的名字，它就把你的那一部分还给你。',
+    unlock: { type: 'stele', id: 'jingdi_stele2' },
+  },
+  xingkeng_keng: {
+    id: 'xingkeng_keng', category: '地理', title: '星陨坑',
+    body: '星落成坑，坑底有光。光不属于九嶂，也不肯走。坑守说，星屑夜里会亮，白天只是灰。',
+    unlock: { type: 'stele', id: 'xingkeng_stele1' },
+  },
+  xingkeng_xing: {
+    id: 'xingkeng_xing', category: '五灵', title: '陨铁',
+    body: '陨铁不锈，因它记得自己从哪颗星来。天工司曾用它铸锁灵器的骨，后来发现它不肯认第二把火。',
+    unlock: { type: 'stele', id: 'xingkeng_stele2' },
+  },
+  xingkeng_hai: {
+    id: 'xingkeng_hai', category: '人物', title: '星骸鸟',
+    body: '星骸鸟落一次，坑底的雾便淡一分。它不鸣，只在星屑最亮时低头啄石。猎户说，它的骨头里也有星屑。',
+    unlock: { type: 'stele', id: 'xingkeng_stele3' },
+  },
+  shihai_shi: {
+    id: 'shihai_shi', category: '山门', title: '试炼石海',
+    body: '石海不设门，来者自设。过五层者，可问一句。问什么都可以，只是石海未必答。',
+    unlock: { type: 'stele', id: 'shihai_stele1' },
+  },
+  shihai_tai: {
+    id: 'shihai_tai', category: '术语', title: '试炼台',
+    body: '胜者刻名，败者刻痕。名字会被风磨掉，痕不会。石海的守人说，痕比名更诚实。',
+    unlock: { type: 'stele', id: 'shihai_stele2' },
+  },
+  shihai_ling: {
+    id: 'shihai_ling', category: '人物', title: '残影',
+    body: '旧试者的残影还留在石海，忘了为什么来，却记得不能停。你若还记得，他希望你替他走完下一层。',
+    unlock: { type: 'stele', id: 'shihai_stele3' },
+  },
+  beilin_1: {
+    id: 'beilin_1', category: '年表', title: '无名碑一',
+    body: '碑上只有一道横痕，像有人写了一半的「一」字。守碑人说，第一笔最难，因为不知道从哪开始。',
+    unlock: { type: 'stele', id: 'beilin_stele1' },
+  },
+  beilin_2: {
+    id: 'beilin_2', category: '山门', title: '无名碑二',
+    body: '十二个门名并排刻着，前十一处都已磨平，只剩青溪。碑末没有落款，只有一枚小小的契印。',
+    unlock: { type: 'stele', id: 'beilin_stele2' },
+  },
+  beilin_3: {
+    id: 'beilin_3', category: '术语', title: '无名碑三',
+    body: '一张残缺的契纹，线条断在「愿」字上。拓碑人说，这不是断，是留白：愿字本来就要双方自己写。',
+    unlock: { type: 'stele', id: 'beilin_stele3' },
+  },
+  beilin_4: {
+    id: 'beilin_4', category: '人物', title: '无名碑四',
+    body: '碑上刻着很多名字，每个名字后面都有一枚小小的兽爪印。名字有的深，有的浅，爪印却一样深。',
+    unlock: { type: 'stele', id: 'beilin_stele4' },
+  },
+  beilin_5: {
+    id: 'beilin_5', category: '年表', title: '无名碑五',
+    body: '最北的碑没有字，只有一道被反复摩挲的浅窝。守碑人说，这块碑是留给后来人的，写什么由你。',
+    unlock: { type: 'stele', id: 'beilin_stele5' },
+  },
+  shanmen_gui: {
+    id: 'shanmen_gui', category: '地理', title: '归山刻',
+    body: '山门南阶有一块矮碑，刻着「出山者不必回头，回山者不必解释」。老丈说，这不是规矩，是给回来的人留的一句话。',
+    unlock: { type: 'stele', id: 'shanmen_stele3' },
+  },
+  qingxi_xin: {
+    id: 'qingxi_xin', category: '地理', title: '旧祠新碑',
+    body: '旧祠石坪新立了一块矮碑，碑上刻着后来人的名字。名字不多，每一个后面都留着一小段空白，像是等人回来补。',
+    unlock: { type: 'stele', id: 'qingxi_stele5' },
+  },
 };
 
 // ---------- 隐藏暗格 ----------
@@ -324,6 +544,56 @@ const SECRETS = [
     text: '殿后的残库里只剩半架锁灵器的骨架，和一张没写完的清单。清单最末一行写着：「器成之日，勿忘问名。」',
     jade: 40, mat: 'shensha', count: 3,
   },
+  {
+    id: 'secret_yunzhan', region: 'yunzhan', x: 52, y: 26, name: '悬灯暗格',
+    text: '东台灯座下压着一只铁匣，里面是一枚旧风铃和三块没点过的灯芯。铃上没有字，只有一道被风磨亮的指痕。',
+    jade: 44, mat: 'yunwen', count: 2,
+  },
+  {
+    id: 'secret_xuangu', region: 'xuangu', x: 10, y: 38, name: '西矿暗龛',
+    text: '西矿道尽头有一处没烧透的暗龛，龛里摆着一把断锤和半张工牌。工牌背面写着：「炉在，人在。」',
+    jade: 46, mat: 'luxin', count: 2,
+  },
+  {
+    id: 'secret_xuangu2', region: 'xuangu', x: 56, y: 10, name: '东井暗柜',
+    text: '东井壁里嵌着一只窄柜，柜里整整齐齐码着十几枚没刻名的铁牌。最上面一枚是空的。',
+    jade: 48, mat: 'xuantie', count: 3,
+  },
+  {
+    id: 'secret_chenyu', region: 'chenyu', x: 34, y: 44, name: '南街暗匣',
+    text: '南街水退后的石缝里卡着一只暗匣，匣中是一卷泡软的名册。名字都糊了，只有最后一页还能认出两个字：回来。',
+    jade: 50, mat: 'chenzhu', count: 2,
+  },
+  {
+    id: 'secret_jiuzhang', region: 'jiuzhang', x: 30, y: 44, name: '石林暗龛',
+    text: '五色石林最矮的一块石头下，压着一小截天根须。它离开土还在轻轻抽动，像在找回去的路。',
+    jade: 56, mat: 'tiangenxu', count: 2,
+  },
+  {
+    id: 'secret_rongku', region: 'rongku', x: 46, y: 26, name: '熔窟暗龛',
+    text: '熔窟最深处有一处不烫手的石龛，龛里堆着十几枚烧掉一半的名牌。最上面一枚还剩一个「赤」字。',
+    jade: 42, mat: 'tanzha', count: 3,
+  },
+  {
+    id: 'secret_jingdi', region: 'jingdi', x: 34, y: 18, name: '井壁暗匣',
+    text: '井壁的裂缝里卡着一只小匣，匣中是一缕干掉的井水和半句刻在木片上的话：「别怕，是我。」',
+    jade: 30, mat: 'shensha', count: 2,
+  },
+  {
+    id: 'secret_xingkeng', region: 'xingkeng', x: 46, y: 20, name: '坑缘暗格',
+    text: '坑缘的碎石下压着一块温热的陨铁，铁面上有一道像翅骨的裂痕。',
+    jade: 44, mat: 'xingxie', count: 3,
+  },
+  {
+    id: 'secret_shihai', region: 'shihai', x: 40, y: 20, name: '石阵暗龛',
+    text: '石阵边角有一块被人反复坐过的石头，石下藏着一枚旧试者的木牌，牌上只刻着「再来」二字。',
+    jade: 38, mat: 'xuantie', count: 2,
+  },
+  {
+    id: 'secret_beilin', region: 'beilin', x: 38, y: 20, name: '碑林暗匣',
+    text: '碑林最外侧的松土里埋着一只木匣，匣中是一叠空白的拓纸和半截没用完的墨。',
+    jade: 26, mat: 'lingmu', count: 2,
+  },
 ];
 
 // ---------- 山海试炼 ----------
@@ -362,5 +632,26 @@ const TRIALS = [
     rule: '无相复制我方上一式，且不可结契；五行克制效果减半。',
     boss: { ref: 'wuxiang', lv: 30, hpMul: 3.0, atkMul: 1.6 },
     reward: { jade: 120, items: [{ id: 'revive', count: 2 }] },
+  },
+  {
+    floor: 6, name: '试炼 · 悬灯',
+    desc: '云栈三灯俱灭，风门只认最后站着的人。',
+    rule: '栈灵闪避上升，金、水属伤害增加；每回合有几率迟滞。',
+    boss: { ref: 'zhanling', lv: 34, hpMul: 3.1, atkMul: 1.65 },
+    reward: { jade: 140, mats: [{ id: 'yunwen', count: 3 }] },
+  },
+  {
+    floor: 7, name: '试炼 · 炉心',
+    desc: '炉火不熄，旧匠人的名字还在火里。',
+    rule: '炉心傀每回合灼烧，火、土属伤害增加；护盾更厚。',
+    boss: { ref: 'luxinkui', lv: 37, hpMul: 3.2, atkMul: 1.7 },
+    reward: { jade: 180, mats: [{ id: 'luxin', count: 3 }] },
+  },
+  {
+    floor: 8, name: '试炼 · 天根',
+    desc: '山至此尽，根由此生。最后一问，问的是你自己。',
+    rule: '天根兽每回合回气，五行克制减半；祖形阶段全属伤害上升。',
+    boss: { ref: 'tiangen', lv: 40, hpMul: 3.4, atkMul: 1.8 },
+    reward: { jade: 240, items: [{ id: 'jiuzhuan', count: 1 }] },
   },
 ];

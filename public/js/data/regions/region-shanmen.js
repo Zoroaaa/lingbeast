@@ -2,6 +2,7 @@
 // 本境独立地貌、独立内容；尺寸与地标以此为唯一来源。
 REGIONS.shanmen = makeRegion({
     id: 'shanmen', name: '青溪山门', chapter: 0, subtitle: '中枢 · 山门重开之地',
+    kind: 'hub', travelHub: true,
     w: 44, h: 34, base: '.', spawn: { x: 18, y: 24 },
     weather: 'clear', tint: '#f4efe4', timeTint: '#f7f2e6',
     paint: function (m) {
@@ -96,15 +97,29 @@ REGIONS.shanmen = makeRegion({
           return ['碑林的石头比人记性好。', '每解开一处碑文，山海志里便多一页。', '拓印要轻，重了就把字带走。'];
         },
       },
+      {
+        id: 'shanmen_sweeper', name: '扫阶人·帚', sprite: 'samurai_green', tint: 0xd8d0b8, scale: 2.2,
+        x: 15, y: 19, dir: 'down',
+        lines: ['石阶一天扫三遍，风一吹又满。', '老丈说，山门开不开，先看阶上有没有人走。', '你若从山外回来，鞋底的土别抖在碑前。'],
+        onTalk: function () { LB.flagSet('shanmenSweeperMet', true); },
+      },
+      {
+        id: 'shanmen_guest', name: '归山客·旧笠', sprite: 'ninja_blue', tint: 0xe8e0cc, scale: 2.2,
+        x: 26, y: 20, dir: 'down',
+        lines: ['我三十年前从这扇门出去，回来时门还在，人换了。', '山外也有山，只是没人替它们点灯。', '你要往东去，记得带一盏自己的灯。'],
+        onTalk: function () { LB.flagSet('shanmenGuestMet', true); },
+      },
     ],
     herbs: [],
     gathers: [
       { id: 'shanmen_g1', x: 12, y: 14, mat: 'lucao', amount: 1, label: '采得露生草', respawn: 'chapter' },
       { id: 'shanmen_g2', x: 28, y: 18, mat: 'lingmu', amount: 1, label: '拾得灵木', respawn: 'chapter' },
+      { id: 'shanmen_g3', x: 31, y: 12, mat: 'lingmu', amount: 1, label: '拾得灵木', respawn: 'chapter' },
     ],
     chests: [
       { id: 'shanmen_chest1', name: '旧库木箱', x: 30, y: 24, jade: 10, items: [{ id: 'pill', count: 3 }], gear: 'shanmen_bell', label: '拾得丹药 3 枚 · 山门旧铃 · 灵玉 10' },
       { id: 'shanmen_chest2', name: '廊下包袱', x: 8, y: 25, jade: 8, items: [{ id: 'charm', count: 1 }], label: '拾得灵符 1 张 · 灵玉 8' },
+      { id: 'shanmen_chest3', name: '东廊旧匣', x: 32, y: 19, jade: 12, items: [{ id: 'cleanse', count: 1 }], label: '拾得清心散 1 包 · 灵玉 12' },
     ],
     props: [
       { type: 'house', x: 7, y: 8, frame: 'house1' },
@@ -130,5 +145,6 @@ REGIONS.shanmen = makeRegion({
     steles: [
       { id: 'shanmen_stele1', x: 5, y: 22, title: '山门残碑', text: '碑面被人反复摩挲，只剩两行：「守契者不入渊，入渊者不守契。」', codex: 'qingxishanmen' },
       { id: 'shanmen_stele2', x: 9, y: 22, title: '十二门名录', text: '十二个门名并排刻着，前十一处都已磨平。最末一处是青溪，刻痕尚新。', codex: 'shiershanmen' },
+      { id: 'shanmen_stele3', x: 25, y: 22, title: '归山刻', text: '「出山者不必回头，回山者不必解释。门开着，灯亮着，够了。」', codex: 'shanmen_gui' },
     ],
   });

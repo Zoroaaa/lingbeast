@@ -72,7 +72,43 @@ function validateContent() {
     }
   });
   REGION_ORDER.forEach(function (rid) { if (!REGIONS[rid]) errs.push('区域缺失：' + rid); });
-  if (REGION_ORDER.length !== 8) errs.push('REGION_ORDER 数量应为 8');
+
+  // 大陆图册一致性
+  if (typeof WORLD_ATLAS !== 'undefined') {
+    var ag = WORLD_ATLAS.grid;
+    var occupied = {};
+    function markPlot(pid, at, size) {
+      for (var py = 0; py < size[1]; py += 1) {
+        for (var px = 0; px < size[0]; px += 1) {
+          var gx = at[0] + px, gy = at[1] + py;
+          if (gx < 0 || gy < 0 || gx >= ag.w || gy >= ag.h) errs.push('大陆图地块越界：' + pid);
+          var gk = gx + ',' + gy;
+          if (occupied[gk]) errs.push('大陆图地块重叠：' + pid + ' 与 ' + occupied[gk] + ' @ ' + gk);
+          occupied[gk] = pid;
+        }
+      }
+    }
+    Object.keys(WORLD_ATLAS.regions).forEach(function (rid2) {
+      var a = WORLD_ATLAS.regions[rid2];
+      var r2 = REGIONS[rid2];
+      if (a.built && !r2) errs.push('大陆图标记已建但区域缺失：' + rid2);
+      if (r2 && !a) errs.push('区域缺少大陆图条目：' + rid2);
+      if (r2 && a && !a.built) errs.push('区域已存在但图册未标记 built：' + rid2);
+      if (!a) return;
+      markPlot(rid2, a.at, a.size);
+      if (r2 && r2.kind !== a.kind) errs.push('区域 ' + rid2 + ' 的 kind 与图册不一致');
+      if (r2 && r2.unlock && r2.unlock.quest) {
+        var uq = SIDE_QUESTS.some(function (q) { return q.id === r2.unlock.quest; });
+        if (!uq) errs.push('区域 ' + rid2 + ' 解锁支线不存在：' + r2.unlock.quest);
+      }
+    });
+    (WORLD_ATLAS.reserved || []).forEach(function (b, bi) { markPlot('reserved-' + bi, b.at, b.size); });
+    (WORLD_ATLAS.routes || []).forEach(function (pair) {
+      if (!WORLD_ATLAS.regions[pair[0]] || !WORLD_ATLAS.regions[pair[1]]) {
+        errs.push('大陆图路线端点不存在：' + pair[0] + ' - ' + pair[1]);
+      }
+    });
+  }
 
   // Boss
   Object.keys(BOSSES).forEach(function (bid) {
@@ -173,7 +209,9 @@ function validateContent() {
       }
     });
   });
-  Object.keys(BOSSES).forEach(function (bid) { if (!usedBoss[bid]) errs.push('Boss ' + bid + ' 未进入任何主线章节'); });
+  Object.keys(BOSSES).forEach(function (bid) {
+    if (!usedBoss[bid] && !BOSSES[bid].side) errs.push('Boss ' + bid + ' 未进入任何主线章节');
+  });
 
   // 支线
   SIDE_QUESTS.forEach(function (q) {
@@ -229,7 +267,7 @@ function validateContent() {
   TRIALS.forEach(function (t) {
     if (!BOSSES[t.boss.ref]) errs.push('试炼 ' + t.floor + ' 引用的 Boss 不存在：' + t.boss.ref);
   });
-  if (TRIALS.length !== 5) errs.push('试炼层数应为 5');
+  if (TRIALS.length !== 8) errs.push('试炼层数应为 8');
 
   // 灵器与套装
   Object.keys(GEAR).forEach(function (gid) {
@@ -281,7 +319,7 @@ function validateContent() {
     (r.npcs || []).forEach(function (n) { if (n.id === q.npc) npc = n; });
     if (!npc) errs.push('抉择 ' + q.id + ' 的 NPC 不存在：' + q.npc);
     else if (npc.service && npc.service !== 'main') errs.push('抉择 ' + q.id + ' 挂在服务 NPC 上：' + q.npc);
-    if (!(q.chapter >= 1 && q.chapter <= 8)) errs.push('抉择 ' + q.id + ' 的章节无效：' + q.chapter);
+    if (!(q.chapter >= 1 && q.chapter <= 12)) errs.push('抉择 ' + q.id + ' 的章节无效：' + q.chapter);
     if (!q.prompt) errs.push('抉择 ' + q.id + ' 缺少 prompt');
     if (!q.options || q.options.length < 2 || q.options.length > 3) {
       errs.push('抉择 ' + q.id + ' 的选项应为 2-3 个');
@@ -311,7 +349,10 @@ function validateContent() {
   });
   if (STORY_CHOICES.length < 8) errs.push('抉择数量不足 8');
   REGION_ORDER.forEach(function (rid) {
-    if (!choiceRegions[rid]) errs.push('区域 ' + rid + ' 缺少剧情抉择');
+    var rr = REGIONS[rid];
+    if (rr && rr.kind === 'main' && rr.chapter >= 1 && rr.chapter <= 8 && !choiceRegions[rid]) {
+      errs.push('区域 ' + rid + ' 缺少剧情抉择');
+    }
   });
 
   return errs;

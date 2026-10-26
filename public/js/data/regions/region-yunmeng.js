@@ -180,6 +180,12 @@ REGIONS.yunmeng = makeRegion({
           }
         },
       },
+      {
+        id: 'yunmeng_dreamer', name: '梦游人·枕泽', sprite: 'ninja_blue', tint: 0xe0e0e8, scale: 2.0,
+        x: 26, y: 30, dir: 'down',
+        lines: ['我每晚梦见同一条船，船上没有我。', '泽里的雾不拦人，只把人心里的话翻出来。', '你若听见有人叫你的名字，先别应。'],
+        onTalk: function () { LB.flagSet('yunmengDreamerMet', true); },
+      },
     ],
     herbs: [],
     gathers: [
