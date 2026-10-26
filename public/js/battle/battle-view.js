@@ -329,10 +329,7 @@ function hasNegative(mon) {
 // ---------- 渲染 ----------
 function setArt(slot, sp, el, combatant) {
   if (!slot) return;
-  const d = SPECIES[sp];
-  const art = d ? d.art : 'spirit';
-  const evolved = !!(d && d.evolved);
-  slot.innerHTML = beastSvg(art, el, true, evolved);
+  slot.innerHTML = beastSvg(sp, true);
   ['wood', 'fire', 'earth', 'metal', 'water'].forEach((k) => slot.classList.remove('el-' + k));
   slot.classList.add('el-' + el);
   if (combatant) slot.classList.toggle('fainted', combatant.hp <= 0);

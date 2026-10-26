@@ -283,6 +283,77 @@ Object.assign(WorldScene.prototype, {
     });
   },
 
+  ensureHouseTextures() {
+    if (this.textures.exists('pixel-house-1')) return;
+    const mk = (key, roofA, roofB, wall, wallHi, beam, annex) => {
+      const cv = this.textures.createCanvas(key, 96, 64);
+      if (!cv) return;
+      const c = cv.getContext();
+      c.clearRect(0, 0, 96, 64);
+      pxRect(c, 4, 59, 88, 4, '#070a12', 0.18);
+      pxRect(c, 12, 22, 72, 30, wall);
+      pxRect(c, 14, 24, 68, 2, wallHi);
+      pxRect(c, 10, 20, 76, 3, beam);
+      pxRect(c, 12, 22, 3, 30, beam);
+      pxRect(c, 81, 22, 3, 30, beam);
+      pxRect(c, 36, 22, 2, 30, beam);
+      pxRect(c, 59, 22, 2, 30, beam);
+      [[36, 4, 24, 4], [28, 8, 40, 4], [20, 12, 56, 4], [12, 16, 72, 4], [8, 20, 80, 2]].forEach(function (r, i) {
+        pxRect(c, r[0], r[1], r[2], r[3], i % 2 ? roofB : roofA);
+      });
+      pxRect(c, 8, 22, 80, 3, beam);
+      pxRect(c, 2, 25, 92, 3, beam);
+      pxRect(c, 42, 36, 14, 16, beam);
+      pxRect(c, 44, 38, 10, 14, '#4a3424');
+      pxRect(c, 53, 45, 1, 2, '#f2d06a');
+      pxRect(c, 20, 30, 12, 10, beam);
+      pxRect(c, 22, 32, 8, 6, '#f6e0a8');
+      pxRect(c, 22, 32, 8, 1, wallHi);
+      pxRect(c, 63, 30, 12, 10, beam);
+      pxRect(c, 65, 32, 8, 6, '#f6e0a8');
+      pxRect(c, 8, 48, 80, 2, '#5a4a38', 0.25);
+      if (annex) {
+        pxRect(c, 64, 34, 28, 24, wall);
+        pxRect(c, 62, 28, 32, 6, roofB);
+        pxRect(c, 60, 33, 36, 2, beam);
+        pxRect(c, 72, 42, 10, 16, beam);
+        pxRect(c, 74, 44, 6, 12, '#4a3424');
+        pxRect(c, 68, 37, 8, 5, '#f6e0a8');
+      }
+      cv.refresh();
+    };
+    mk('pixel-house-1', '#4a5560', '#5f6a78', '#d8c8a8', '#f0e2c4', '#5b4128', false);
+    mk('pixel-house-2', '#6a4a32', '#8a6242', '#e0d0b0', '#f8e8c8', '#4a3424', true);
+  },
+
+  ensureFogTexture() {
+    if (this.textures.exists('fog')) return;
+    const cv = this.textures.createCanvas('fog', 96, 96);
+    if (!cv) return;
+    const c = cv.getContext();
+    c.clearRect(0, 0, 96, 96);
+    const blob = (x, y, r, alpha) => {
+      for (let dx = -96; dx <= 96; dx += 96) {
+        for (let dy = -96; dy <= 96; dy += 96) {
+          const g = c.createRadialGradient(x + dx, y + dy, 0, x + dx, y + dy, r);
+          g.addColorStop(0, 'rgba(255,255,255,' + alpha + ')');
+          g.addColorStop(1, 'rgba(255,255,255,0)');
+          c.fillStyle = g;
+          c.beginPath();
+          c.arc(x + dx, y + dy, r, 0, Math.PI * 2);
+          c.fill();
+        }
+      }
+    };
+    for (let i = 0; i < 18; i += 1) {
+      blob(hash01(i + 3, 11) * 96, hash01(i + 7, 19) * 96, 10 + hash01(i + 13, 23) * 18, 0.07);
+    }
+    for (let i = 0; i < 10; i += 1) {
+      blob(hash01(i + 31, 5) * 96, hash01(i + 37, 29) * 96, 6 + hash01(i + 41, 17) * 12, 0.05);
+    }
+    cv.refresh();
+  },
+
   addTree(x, y) {
     this.ensureTreeTextures();
     const h = hash01(x, y);
@@ -338,7 +409,9 @@ Object.assign(WorldScene.prototype, {
     const px = p.x * TILE + TILE / 2;
     const py = (p.y + 1) * TILE;
     if (p.type === 'house') {
-      const img = this.add.image(px, py, 'village', p.frame || 'house1');
+      this.ensureHouseTextures();
+      const key = p.frame === 'house2' ? 'pixel-house-2' : 'pixel-house-1';
+      const img = this.add.image(px, py, key);
       img.setOrigin(0.5, 1).setScale(1.6).setDepth(py + 10);
       const g = this.add.graphics().setDepth(py + 9);
       g.fillStyle(0x0a0d14, 0.18);

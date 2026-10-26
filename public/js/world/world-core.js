@@ -1,16 +1,6 @@
 // 灵兽录 · 探索层 · 核心场景与创建流程
 // 灵兽录 · 探索层（Phaser 3）：八境区域、点击寻路、小地图、昼夜天气、采集与碑文、移动端摇杆
 
-const WORLD_ASSETS = {
-  hero: 'assets/ninja/samurai_blue.png',
-  npc: 'assets/ninja/samurai_green.png',
-  ninja: 'assets/ninja/ninja_blue.png',
-  village: 'assets/ninja/tileset_village.png',
-  fog: 'assets/ninja/fog.png',
-};
-
-const TEX_FOR_SPRITE = { samurai_blue: 'hero', samurai_green: 'npc', ninja_blue: 'ninja' };
-
 const DIR = { down: 0, up: 1, left: 2, right: 3 };
 
 function worldHex(hex) {
@@ -79,23 +69,23 @@ Object.assign(WorldScene.prototype, {
 
   preload() {
     if (!this.textures.exists('hero')) {
-      this.load.spritesheet('hero', WORLD_ASSETS.hero, { frameWidth: 16, frameHeight: 16 });
+      this.load.spritesheet('hero', heroSheetDataURL(), { frameWidth: 16, frameHeight: 16 });
     }
-    if (!this.textures.exists('npc')) {
-      this.load.spritesheet('npc', WORLD_ASSETS.npc, { frameWidth: 16, frameHeight: 16 });
-    }
-    if (!this.textures.exists('ninja')) {
-      this.load.spritesheet('ninja', WORLD_ASSETS.ninja, { frameWidth: 16, frameHeight: 16 });
-    }
-    if (!this.textures.exists('village')) this.load.image('village', WORLD_ASSETS.village);
-    if (!this.textures.exists('fog')) this.load.image('fog', WORLD_ASSETS.fog);
+    const seen = new Set();
+    (this.region.npcs || []).forEach((npc, i) => {
+      const key = characterTextureKey(this.region.id, npc, i);
+      if (seen.has(key) || this.textures.exists(key)) return;
+      seen.add(key);
+      this.load.spritesheet(key, characterSheetDataURL(npc, this.region.id, i), { frameWidth: 16, frameHeight: 16 });
+    });
   },
 
   create() {
     const r = this.region;
 
     this.makeAnims();
-    this.registerFrames();
+    this.ensureFogTexture();
+    this.ensureHouseTextures();
     this.buildGround();
     this.buildProps();
     this.buildEntities();
@@ -152,18 +142,6 @@ Object.assign(WorldScene.prototype, {
     if (this.scale && this._resizeHandler) this.scale.off('resize', this._resizeHandler);
     this.resetJoystick();
     this._joyKnob = null;
-  },
-
-  registerFrames() {
-    const tex = this.textures.get('village');
-    if (!tex) return;
-    if (!tex.has('tree-big')) {
-      tex.add('tree-big', 0, 0, 96, 48, 80);
-      tex.add('tree-small', 0, 48, 96, 32, 32);
-      tex.add('house1', 0, 192, 96, 64, 64);
-      tex.add('house2', 0, 256, 96, 64, 64);
-      tex.add('ruin1', 0, 128, 0, 48, 32);
-    }
   },
 
   makeAnims() {

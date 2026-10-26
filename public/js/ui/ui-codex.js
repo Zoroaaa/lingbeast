@@ -17,7 +17,7 @@ function bestiaryCardHtml(spid) {
   if (known && b.defeated) marks += '<span class="seal-chip">已遇</span>';
   if (known && sp.evolved) marks += '<span class="seal-chip">进化</span>';
   // 未见过的灵兽不泄露立绘，只留一枚问号印
-  var art = known ? beastSvg(sp.art, sp.el) : '<span class="beast-unknown">?</span>';
+  var art = known ? beastSvg(spid) : '<span class="beast-unknown">?</span>';
   // 稀有度始终显示：未见的灵兽只封住立绘，不封住卡框，让收藏目标有层次
   var badge = '<span class="rarity-badge" title="稀有度 ' + sp.rarity + ' · ' + r.name + '">' + sp.rarity + '</span>';
   return '<article class="beast-card r-' + sp.rarity + (known ? '' : ' locked') + '" data-codex-beast="' + uiEsc(spid) + '" role="button" tabindex="0" style="--el:' + uiElOf(sp.el).color + ';--rar:' + r.color + ';--rar-soft:' + r.soft + '">' +
@@ -149,7 +149,7 @@ function openBeastDetail(spid, back, backLabel) {
   var body;
   if (!known) {
     body = '<section class="beast-detail locked">' +
-      '<div class="beast-detail-art">' + beastSvg(sp.art, sp.el, true) + '</div>' +
+      '<div class="beast-detail-art">' + beastSvg(spid, true) + '</div>' +
       '<h3 class="beast-detail-name">未识之灵</h3>' +
       '<p class="sheet-note">尚未在九嶂见过此灵。见过、击败或结契之后，条目才会显影。</p>' +
       '</section>';
@@ -167,7 +167,7 @@ function openBeastDetail(spid, back, backLabel) {
       return '<li><i>' + g[0] + '</i><b>+' + g[1] + '</b></li>';
     }).join('');
     body = '<section class="beast-detail r-' + sp.rarity + '" style="--el:' + uiElOf(sp.el).color + ';--rar:' + rar.color + ';--rar-soft:' + rar.soft + '">' +
-      '<div class="beast-detail-art">' + beastSvg(sp.art, sp.el, true) + '</div>' +
+      '<div class="beast-detail-art">' + beastSvg(spid, true) + '</div>' +
       '<div class="beast-detail-name">' + sealSvg(sp.name, sp.el) + '<b>' + uiEsc(sp.name) + '</b>' +
       '<span class="rarity-badge lg" title="稀有度 ' + sp.rarity + ' · ' + rar.name + '">' + sp.rarity + '</span></div>' +
       '<div class="rarity-line">稀有度 ' + sp.rarity + ' · ' + rar.name + ' · 属性 ×' + rar.mult.toFixed(2) + '</div>' +
@@ -387,3 +387,15 @@ function openBag() {
   if (!uiStateOrToast()) return;
   renderBag('items');
 }
+
+// 开发者预览：控制台执行 LB.beastGallery() 查看全部 62 张立绘
+LB.beastGallery = function () {
+  if (!LB.openModal) return;
+  var cells = Object.keys(SPECIES).map(function (id) {
+    var sp = SPECIES[id];
+    return '<figure class="beast-gallery-cell">' + beastSvg(id, true) +
+      '<figcaption>' + uiEsc(sp.name) + '<small>' + id + ' · ' + sp.art + '</small></figcaption></figure>';
+  }).join('');
+  LB.openModal('灵兽立绘总览 · 62', '<div class="beast-gallery">' + cells + '</div>', uiCloseFoot());
+  uiBindClose();
+};

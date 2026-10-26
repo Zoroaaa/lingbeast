@@ -116,7 +116,9 @@ public/
   index.html              页面骨架与脚本加载顺序
   style.css               像素 UI、场景、战斗与面板样式
   cloud.js                云存档客户端（令牌、2 秒防抖、失败重试）
-  js/art.js               程序化像素立绘、瓦片与特效
+  js/art.js               像素画布、契印与灵兽渲染入口
+  js/art-people.js        程序化角色 sprite sheet（5 身形 + 调色板）
+  js/art/beasts/          灵兽样式（kit / parts / signatures + 5 个家族文件）
   js/data/
     core.js               五行、状态、基础常量
     skills.js             技能与灵诀
@@ -135,7 +137,6 @@ public/
   js/battle/              战斗状态、演出、结算与流程
   js/ui/                  HUD、灵器、图鉴、商店、世界面板
   js/main/                状态与存档、视图、进度、抉择、经济、战斗桥接、启动
-  assets/ninja/           像素角色与瓦片素材
   vendor/                 Phaser 与 NES.css
 src/index.js              Worker 路由与 API
 schema.sql                D1 建表语句

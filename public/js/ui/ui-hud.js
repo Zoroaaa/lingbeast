@@ -146,7 +146,7 @@ function beastCardHtml(mon, index, place) {
 
   return '<article class="beast-card" style="--el:' + el.color + '">' +
     '<div class="beast-head">' +
-    beastSvg(sp.art, sp.el) +
+    beastSvg(mon.sp) +
     '<div class="beast-title"><b>' + uiEsc(sp.name) + '</b><span>Lv.' + mon.lv + ' · ' + uiEsc(el.ch) + '</span></div>' +
     (isLead ? '<span class="nes-badge"><span class="is-success">首发</span></span>' : '') +
     '</div>' +

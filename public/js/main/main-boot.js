@@ -383,8 +383,9 @@ LB.onWorldReady = function () { updateHud(); };
   bindUi();
   attachAccount();
   const titleBeast = byId('title-beast');
-  if (titleBeast && typeof beastSvg === 'function') titleBeast.innerHTML = beastSvg('fox', 'fire', true);
+  if (titleBeast && typeof beastSvg === 'function') titleBeast.innerHTML = beastSvg('yanwei', true);
   state = loadLocal();
+  if (typeof applyMotionPreference === 'function') applyMotionPreference();
   showView('view-title');
   updateHud();
   refreshTitle();
@@ -395,6 +396,7 @@ LB.onWorldReady = function () { updateHud(); };
         console.error('[灵兽录] 内容校验发现 ' + errs.length + ' 处问题：\n' + errs.join('\n'));
       }
     }
+    if (typeof validateBeastStyles === 'function') validateBeastStyles();
   } catch (e) {
     console.error('[灵兽录] 内容校验异常', e);
   }

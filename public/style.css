@@ -251,7 +251,7 @@ img, svg, canvas { image-rendering: pixelated; }
 .ts-hero {
   position: absolute; left: 54%; bottom: 17%;
   width: 16px; height: 16px;
-  background-image: url(assets/ninja/samurai_blue.png);
+  background-image: var(--hero-sheet, none);
   background-position: 0 0;
   background-repeat: no-repeat;
   transform: scale(5);
@@ -909,7 +909,7 @@ img, svg, canvas { image-rendering: pixelated; }
 .self-slot { left: 4%; bottom: 3%; width: clamp(185px, 29vw, 355px); }
 
 .beast-svg { width: 100%; display: grid; place-items: center; position: relative; }
-.beast-svg svg { width: 100%; height: auto; display: block; filter: drop-shadow(6px 8px 0 rgba(0, 0, 0, 0.3)); }
+.beast-svg svg { width: 100%; height: auto; display: block; overflow: visible; filter: drop-shadow(6px 8px 0 rgba(0, 0, 0, 0.3)); }
 .art-slot .beast-svg { width: 100%; }
 .foe-slot .beast-svg { transform: scaleX(-1); }
 .art-slot.fainted { opacity: 0.25; filter: grayscale(1); transform: translateY(10px); }
@@ -1355,6 +1355,48 @@ img, svg, canvas { image-rendering: pixelated; }
   animation: evo-drift 2.2s steps(4) infinite;
 }
 @keyframes evo-drift { 50% { transform: translateY(-4px); filter: brightness(1.4); } }
+
+/* 灵兽待机：四种 2 帧节奏，按 style.idle 分配 */
+@keyframes idle-hop   { 50% { transform: translateY(-2px); } }
+@keyframes idle-sway  { 50% { transform: rotate(-1deg) translateY(-1px); } }
+@keyframes idle-float { 50% { transform: translateY(-3px); } }
+@keyframes idle-crawl { 50% { transform: translateX(1px); } }
+
+.art-slot .beast-svg svg,
+.beast-detail-art .beast-svg svg {
+  animation-duration: 1.3s;
+  animation-timing-function: steps(2);
+  animation-iteration-count: infinite;
+  transform-origin: 50% 100%;
+}
+.art-slot .beast-svg.idle-hop svg,
+.beast-detail-art .beast-svg.idle-hop svg { animation-name: idle-hop; }
+.art-slot .beast-svg.idle-sway svg,
+.beast-detail-art .beast-svg.idle-sway svg { animation-name: idle-sway; }
+.art-slot .beast-svg.idle-float svg,
+.beast-detail-art .beast-svg.idle-float svg { animation-name: idle-float; }
+.art-slot .beast-svg.idle-crawl svg,
+.beast-detail-art .beast-svg.idle-crawl svg { animation-name: idle-crawl; }
+
+body.reduce-motion .beast-svg svg,
+body.reduce-motion .evo-aura { animation: none !important; }
+
+/* 灵兽立绘总览（控制台 LB.beastGallery） */
+.beast-gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(118px, 1fr));
+  gap: 8px;
+}
+.beast-gallery-cell {
+  margin: 0;
+  padding: 6px;
+  background: #f5ebd3;
+  border: 2px solid var(--line-2);
+  text-align: center;
+}
+.beast-gallery-cell .beast-svg { width: 100%; }
+.beast-gallery-cell figcaption { font-size: 11px; line-height: 1.4; }
+.beast-gallery-cell figcaption small { display: block; opacity: 0.62; font-size: 10px; }
 
 .beast-detail { display: flex; flex-direction: column; align-items: center; gap: 10px; text-align: center; }
 .beast-detail-art {

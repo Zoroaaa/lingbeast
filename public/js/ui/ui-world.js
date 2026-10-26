@@ -552,6 +552,7 @@ function renderSettings() {
     var key = node.getAttribute('data-toggle');
     st.settings[key] = !st.settings[key];
     LB.persist();
+    if (typeof applyMotionPreference === 'function') applyMotionPreference();
     LB.toast('设置已记下');
     renderSettings();
   });

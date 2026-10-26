@@ -32,6 +32,12 @@ async function fadeTo(fn) {
   f.classList.remove('on');
 }
 
+function applyMotionPreference() {
+  if (!document || !document.body) return;
+  const reduce = !!(state && state.settings && state.settings.reduceMotion);
+  document.body.classList.toggle('reduce-motion', reduce);
+}
+
 function battleActive() {
   return typeof battle !== 'undefined' && battle && !!battle.on;
 }

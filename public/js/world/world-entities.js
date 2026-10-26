@@ -11,7 +11,7 @@ Object.assign(WorldScene.prototype, {
   buildEntities() {
     const r = this.region;
 
-    (r.npcs || []).forEach((npc) => this.addNpc(npc));
+    (r.npcs || []).forEach((npc, i) => this.addNpc(npc, i));
     (r.herbs || []).forEach((herb) => this.addHerb(herb));
     (r.gathers || []).forEach((node) => this.addGather(node));
     (r.steles || []).forEach((stele, i) => this.addStele(stele, i));
@@ -32,11 +32,10 @@ Object.assign(WorldScene.prototype, {
     this.buildExitHints();
   },
 
-  addNpc(npc) {
-    const tex = TEX_FOR_SPRITE[npc.sprite] || 'npc';
+  addNpc(npc, index) {
+    const tex = characterTextureKey(this.region.id, npc, index);
     const sp = this.add.sprite(npc.x * TILE + TILE / 2, (npc.y + 1) * TILE - 2, tex);
     sp.setOrigin(0.5, 1).setScale(npc.scale || 2.6).setDepth((npc.y + 1) * TILE + 2);
-    if (npc.tint) sp.setTint(npc.tint);
     const f = DIR[npc.dir || 'down'];
     sp.setFrame(f === 0 ? 0 : f === 1 ? 4 : 8);
     if (f === 2) sp.setFlipX(true);

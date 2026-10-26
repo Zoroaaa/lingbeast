@@ -372,9 +372,62 @@ Object.assign(WorldScene.prototype, {
         this.encounterSteps = 0;
         this.encounterThreshold = 7 + Math.floor(Math.random() * 6);
         this.stopWalking();
-        if (LB.startWildBattle) LB.startWildBattle();
+        this.playEncounterCue(function () {
+          if (LB.startWildBattle) LB.startWildBattle();
+        });
       }
     }
+  },
+
+  playEncounterCue(done) {
+    if (this.encounterCueActive) { done(); return; }
+    this.encounterCueActive = true;
+    const px = this.player.x;
+    const py = this.player.y;
+    let fired = false;
+    const finish = () => {
+      if (fired) return;
+      fired = true;
+      this.encounterCueActive = false;
+      done();
+    };
+    if (this.reduceMotion) {
+      this.time.delayedCall(80, finish);
+      return;
+    }
+
+    const colors = [0x4c8a58, 0x6fae6a, 0x9ad08a];
+    for (let i = 0; i < 6; i += 1) {
+      const rx = px + (hash01(i, 1) - 0.5) * 30;
+      const ry = py - 2;
+      const dot = this.add.rectangle(rx, ry, 3, 3, colors[i % colors.length], 0.9)
+        .setDepth(py + 40);
+      this.tweens.add({
+        targets: dot,
+        x: px + (hash01(i, 5) - 0.5) * 64,
+        y: py - 8 - hash01(i, 9) * 18,
+        alpha: 0,
+        duration: 320,
+        ease: 'Quad.easeOut',
+        onComplete: () => dot.destroy(),
+      });
+    }
+
+    const mark = this.add.text(px, py - this.player.displayHeight - 10, '!', {
+      fontFamily: PIXEL_FONT, fontSize: '22px', color: '#ffe08a', fontStyle: 'bold',
+    }).setOrigin(0.5, 1).setDepth(py + 80);
+    mark.setStroke('#0b1020', 5);
+    this.tweens.add({
+      targets: mark,
+      scale: { from: 0.4, to: 1.1 },
+      y: mark.y - 6,
+      duration: 180,
+      yoyo: true,
+      hold: 80,
+      onComplete: () => mark.destroy(),
+    });
+    this.cameras.main.shake(90, 0.0015);
+    this.time.delayedCall(420, finish);
   },
 
   updateDepth() {
