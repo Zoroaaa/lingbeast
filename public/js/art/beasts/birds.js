@@ -3,13 +3,13 @@
 
 registerBeast('moyu', {
   family: 'bird', idle: 'hop',
-  palette: pal('#15171c', '#232832', '#3c4454', '#7c8aa0', '#e6edf4', '#fff3c0', '#e8e0cc'),
-  body: { x: 31, y: 41, w: 18, h: 15 }, head: { x: 42, y: 25, w: 14, h: 13 },
-  neck: { x: 39, y: 29, w: 5, h: 8 },
+  palette: pal('#15171c', '#262c3a', '#4b5872', '#a2b4cf', '#f2f6fb', '#fff3c0', '#e8e0cc'),
+  // 头压在身体前上方、不再用细颈相连，轮廓是一团圆润的墨色雀
+  body: { x: 31, y: 43, w: 22, h: 17 }, head: { x: 43, y: 32, w: 16, h: 15 },
   beak: { len: 6, curve: 0, width: 3, color: '#8a92a0' },
-  wing: { kind: 'feather', span: 21, rows: 3 }, tail: { kind: 'fan', len: 11, count: 3 },
-  crest: { kind: 'single', len: 6, color: '#15171c' }, legs: { len: 8, thick: 2, count: 2 },
-  scale: 0.98, signature: 'inkTips',
+  wing: { kind: 'folded', span: 22, rows: 3 }, tail: { kind: 'fan', len: 11, count: 3 },
+  crest: { kind: 'single', len: 4, color: '#262c3a' }, legs: { len: 7, thick: 2, count: 2 },
+  scale: 1.0, signature: 'inkTips',
 });
 
 registerBeast('moxun', {

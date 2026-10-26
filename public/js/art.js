@@ -15,6 +15,13 @@ function PixelCanvas(size) {
 }
 PixelCanvas.prototype.rect = function (x, y, w, h, fill, opacity) {
   if (w <= 0 || h <= 0) return this;
+  if (opacity == null || opacity >= 0.5) {
+    const bb = this.bb || (this.bb = { x0: 1e9, y0: 1e9, x1: -1e9, y1: -1e9 });
+    bb.x0 = Math.min(bb.x0, Math.round(x));
+    bb.y0 = Math.min(bb.y0, Math.round(y));
+    bb.x1 = Math.max(bb.x1, Math.round(x) + Math.round(w));
+    bb.y1 = Math.max(bb.y1, Math.round(y) + Math.round(h));
+  }
   this.parts.push('<rect x="' + Math.round(x) + '" y="' + Math.round(y) + '" width="' + Math.round(w) +
     '" height="' + Math.round(h) + '" fill="' + fill + '"' + (opacity != null ? ' opacity="' + opacity + '"' : '') + '/>');
   return this;
@@ -90,8 +97,13 @@ PixelCanvas.prototype.svg = function (label, scale) {
   const body = this.parts.join('');
   const inner = s === 1 ? body
     : '<g transform="translate(32 64) scale(' + s.toFixed(3) + ') translate(-32 -64)">' + body + '</g>';
-  return '<svg viewBox="0 0 64 64" overflow="visible" shape-rendering="crispEdges" role="img" aria-label="' +
-    label + '">' + inner + '</svg>';
+  let bbox = '';
+  if (this.bb && this.bb.x1 > this.bb.x0) {
+    const f = function (v, o) { return (o + (v - o) * s).toFixed(1); };
+    bbox = ' data-bbox="' + [f(this.bb.x0, 32), f(this.bb.y0, 64), f(this.bb.x1, 32), f(this.bb.y1, 64)].join(' ') + '"';
+  }
+  return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" overflow="visible" shape-rendering="crispEdges" role="img" aria-label="' +
+    label + '"' + bbox + '>' + inner + '</svg>';
 };
 
 function elementPalette(el) { return PIXEL_ELEMENT[el] || PIXEL_ELEMENT.wood; }
@@ -126,6 +138,36 @@ function mixHex(a, b, t) {
 }
 
 const BEAST_SVG_CACHE = {};
+const BEAST_URL_CACHE = {};
+
+// 把立绘视口收紧到真实包围盒并补成正方形（地面对齐底边），避免尾巴/角冲出容器。
+// big（战斗/详情）：只在溢出 64×64 时才放大视口，保持物种之间的相对体型。
+// small（卡片图标）：紧贴包围盒，让立绘占满图标框。
+function fitBeastViewBox(svg, big) {
+  const m = /data-bbox="(-?[\d.]+) (-?[\d.]+) (-?[\d.]+) (-?[\d.]+)"/.exec(svg);
+  if (!m) return svg;
+  let x0 = +m[1] - 1;
+  let y0 = +m[2] - 1;
+  let x1 = +m[3] + 1;
+  let y1 = +m[4] + 3; // 给地面投影留 3px
+  if (big) {
+    x0 = Math.min(x0, 0); y0 = Math.min(y0, 0);
+    x1 = Math.max(x1, 64); y1 = Math.max(y1, 64);
+  }
+  const side = Math.max(x1 - x0, y1 - y0);
+  const vx = (x0 + x1) / 2 - side / 2;
+  const vy = y1 - side;
+  return svg.replace('viewBox="0 0 64 64"',
+    'viewBox="' + vx.toFixed(1) + ' ' + vy.toFixed(1) + ' ' + side.toFixed(1) + ' ' + side.toFixed(1) + '"');
+}
+
+// 62 只灵兽共 1.3 万个 <rect>，内联会让图鉴 DOM 暴涨；转成 Blob URL 的 <img>，每只只占 1 个节点。
+function beastImgUrl(key, svg) {
+  if (BEAST_URL_CACHE[key]) return BEAST_URL_CACHE[key];
+  if (typeof Blob === 'undefined' || typeof URL === 'undefined' || !URL.createObjectURL) return null;
+  BEAST_URL_CACHE[key] = URL.createObjectURL(new Blob([svg], { type: 'image/svg+xml' }));
+  return BEAST_URL_CACHE[key];
+}
 
 function beastSvg(spId, bigger) {
   const sp = typeof SPECIES !== 'undefined' ? SPECIES[spId] : null;
@@ -138,13 +180,18 @@ function beastSvg(spId, bigger) {
   }
   const key = spId + '|' + (bigger ? 'big' : 'small');
   if (!BEAST_SVG_CACHE[key]) {
-    BEAST_SVG_CACHE[key] = style.draw(style, !!(sp && sp.evolved));
+    BEAST_SVG_CACHE[key] = fitBeastViewBox(style.draw(style, !!(sp && sp.evolved)), !!bigger);
   }
+  const svg = BEAST_SVG_CACHE[key];
+  const url = beastImgUrl(key, svg);
+  const body = url
+    ? '<img class="beast-img" alt="' + (sp ? sp.name : '灵兽') + '" draggable="false" src="' + url + '">'
+    : svg;
   return '<div class="beast-svg el-' + el + (bigger ? ' big' : '') +
     (sp && sp.evolved ? ' evolved' : '') + ' idle-' + (style.idle || 'sway') +
     '" data-beast="' + spId + '">' +
     (sp && sp.evolved ? '<span class="evo-aura" aria-hidden="true"></span>' : '') +
-    BEAST_SVG_CACHE[key] + '</div>';
+    body + '</div>';
 }
 
 function sealSvg(name, el) {

@@ -887,7 +887,7 @@ img, svg, canvas { image-rendering: pixelated; }
 .boss-banner-eyebrow { color: #ffb4a8; font-size: 9px; letter-spacing: 0.26em; }
 .boss-banner b { font-size: 18px; letter-spacing: 0.14em; }
 
-.arena { position: relative; z-index: 2; flex: 1; min-height: 0; }
+.arena { position: relative; z-index: 2; flex: 1; min-height: 0; container-type: size; }
 .art-slot {
   position: absolute;
   display: grid;
@@ -906,10 +906,13 @@ img, svg, canvas { image-rendering: pixelated; }
   clip-path: polygon(10% 34%, 90% 34%, 100% 68%, 78% 100%, 22% 100%, 0 68%);
 }
 .foe-slot { right: 3%; bottom: 16%; width: clamp(170px, 27vw, 330px); }
+@supports (width: 1cqw) { .foe-slot { bottom: 9%; width: clamp(72px, min(27cqw, 78cqh), 330px); } }
 .self-slot { left: 4%; bottom: 3%; width: clamp(185px, 29vw, 355px); }
+@supports (width: 1cqw) { .self-slot { width: clamp(72px, min(29cqw, 86cqh), 355px); } }
 
 .beast-svg { width: 100%; display: grid; place-items: center; position: relative; }
-.beast-svg svg { width: 100%; height: auto; display: block; overflow: visible; filter: drop-shadow(6px 8px 0 rgba(0, 0, 0, 0.3)); }
+.beast-svg svg,
+.beast-svg .beast-img { width: 100%; height: auto; display: block; overflow: visible; filter: drop-shadow(6px 8px 0 rgba(0, 0, 0, 0.3)); }
 .art-slot .beast-svg { width: 100%; }
 .foe-slot .beast-svg { transform: scaleX(-1); }
 .art-slot.fainted { opacity: 0.25; filter: grayscale(1); transform: translateY(10px); }
@@ -1363,22 +1366,33 @@ img, svg, canvas { image-rendering: pixelated; }
 @keyframes idle-crawl { 50% { transform: translateX(1px); } }
 
 .art-slot .beast-svg svg,
-.beast-detail-art .beast-svg svg {
+.art-slot .beast-svg .beast-img,
+.beast-detail-art .beast-svg svg,
+.beast-detail-art .beast-svg .beast-img {
   animation-duration: 1.3s;
   animation-timing-function: steps(2);
   animation-iteration-count: infinite;
   transform-origin: 50% 100%;
 }
 .art-slot .beast-svg.idle-hop svg,
-.beast-detail-art .beast-svg.idle-hop svg { animation-name: idle-hop; }
+.art-slot .beast-svg.idle-hop .beast-img,
+.beast-detail-art .beast-svg.idle-hop svg,
+.beast-detail-art .beast-svg.idle-hop .beast-img { animation-name: idle-hop; }
 .art-slot .beast-svg.idle-sway svg,
-.beast-detail-art .beast-svg.idle-sway svg { animation-name: idle-sway; }
+.art-slot .beast-svg.idle-sway .beast-img,
+.beast-detail-art .beast-svg.idle-sway svg,
+.beast-detail-art .beast-svg.idle-sway .beast-img { animation-name: idle-sway; }
 .art-slot .beast-svg.idle-float svg,
-.beast-detail-art .beast-svg.idle-float svg { animation-name: idle-float; }
+.art-slot .beast-svg.idle-float .beast-img,
+.beast-detail-art .beast-svg.idle-float svg,
+.beast-detail-art .beast-svg.idle-float .beast-img { animation-name: idle-float; }
 .art-slot .beast-svg.idle-crawl svg,
-.beast-detail-art .beast-svg.idle-crawl svg { animation-name: idle-crawl; }
+.art-slot .beast-svg.idle-crawl .beast-img,
+.beast-detail-art .beast-svg.idle-crawl svg,
+.beast-detail-art .beast-svg.idle-crawl .beast-img { animation-name: idle-crawl; }
 
 body.reduce-motion .beast-svg svg,
+body.reduce-motion .beast-svg .beast-img,
 body.reduce-motion .evo-aura { animation: none !important; }
 
 /* 灵兽立绘总览（控制台 LB.beastGallery） */
@@ -1889,8 +1903,8 @@ body.reduce-motion .evo-aura { animation: none !important; }
   .battle-head { gap: 8px; }
   .foe-info { width: 68%; }
   .turn-order { padding: 3px 6px; font-size: 9px; }
-  .foe-slot { right: 2%; bottom: 24%; width: 40vw; }
-  .self-slot { left: 2%; bottom: 2%; width: 44vw; }
+  .foe-slot { right: 2%; bottom: 24%; width: 40vw; width: min(40cqw, 50cqh); }
+  .self-slot { left: 2%; bottom: 2%; width: 44vw; width: min(44cqw, 56cqh); }
   .battle-log { min-height: 3.4em; padding: 5px 8px; }
   .log-line { font-size: 10px; line-height: 1.55; }
   .party-strip { gap: 3px; }
@@ -1936,8 +1950,8 @@ body.reduce-motion .evo-aura { animation: none !important; }
   .battle-head { flex-direction: column; align-items: stretch; }
   .foe-info { width: 100%; }
   .turn-order { align-self: flex-end; }
-  .foe-slot { bottom: 30%; width: 44vw; }
-  .self-slot { width: 48vw; }
+  .foe-slot { bottom: 30%; width: 44vw; width: min(44cqw, 46cqh); }
+  .self-slot { width: 48vw; width: min(48cqw, 56cqh); }
   .battle-log { width: 100%; }
   .cmds, .commands { grid-template-columns: repeat(2, 1fr); }
   .party-chip { min-width: 78px; }

@@ -224,6 +224,24 @@ function drawFeatherWing(p, style, c, far) {
   const mid = far ? c.base : c.base;
   const lite = far ? c.light : c.light;
 
+  if (w.kind === 'folded') {
+    // 收翼：贴着身侧的圆润翼面 + 向后下垂的羽尖，只画近侧
+    if (far) return;
+    const rx = Math.max(5, Math.round(span * 0.38));
+    const ry = Math.max(4, Math.round(b.h * 0.34));
+    const cx = b.x - 2;
+    const cy = b.y - 1;
+    for (let i = 0; i < rows; i += 1) {
+      p.rect(cx - rx - 4 + i, cy + 1 + i * 3, 7 - i, 2, c.dark);
+      p.rect(cx - rx - 3 + i, cy + 1 + i * 3, 5 - i, 1, i % 2 ? c.light : c.base);
+    }
+    p.outlineBlob(cx, cy, rx, ry, c.base, c.dark);
+    p.blob(cx - 1, cy - 2, rx - 3, Math.max(2, ry - 3), c.light);
+    p.rect(cx - 3, cy, 7, 1, c.pale);
+    p.rect(cx - 2, cy + 2, 5, 1, c.pale, 0.8);
+    return;
+  }
+
   if (w.kind === 'feather') {
     for (let i = 0; i < rows; i += 1) {
       const len = span - i * 4;
