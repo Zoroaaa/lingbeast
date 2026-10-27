@@ -1986,3 +1986,120 @@ body.reduce-motion .evo-aura { animation: none !important; }
 .view-title .subtitle { color: #ffe2a0; }
 .view-title .title-progress { color: #3d3220; }
 .dialog, .modal-sheet, .modal, .dialog-next { touch-action: manipulation; }
+
+/* ---------- 战斗工具条：自动 / 速度 ---------- */
+.battle-tools { position: relative; z-index: 4; display: flex; flex-direction: column; gap: 5px; align-items: flex-start; }
+.bt-auto {
+  padding: 5px 10px;
+  color: var(--muted);
+  background: rgba(248, 240, 220, 0.95);
+  border: 2px solid var(--line-2);
+  box-shadow: var(--shadow-sm);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+}
+.bt-auto.on { color: var(--line); background: var(--gold); border-color: var(--line); font-weight: 700; }
+.bt-speed { display: flex; gap: 2px; }
+.bt-speed-btn {
+  padding: 4px 8px;
+  color: var(--muted);
+  background: rgba(248, 240, 220, 0.9);
+  border: 2px solid var(--line-2);
+  font-size: 9px;
+}
+.bt-speed-btn.active { color: var(--line); background: var(--gold); border-color: var(--line); font-weight: 700; }
+
+/* 自动战斗面板 */
+.commands.auto-panel { display: block; }
+.auto-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 9px 12px;
+  background: #f8f0dc;
+  border: 2px solid var(--line-2);
+  box-shadow: var(--shadow-sm);
+}
+.auto-title { margin: 0; color: var(--gold); font-size: 12px; font-weight: 700; letter-spacing: 0.1em; }
+.auto-note { margin: 2px 0 0; color: var(--muted); font-size: 10px; line-height: 1.5; }
+.auto-card .btn-sm { flex: none; }
+
+/* 跳过/加速时压掉演出 */
+.battle-scene.speed-2 .art-slot.hurt,
+.battle-scene.speed-2 .art-slot.attack { animation-duration: 210ms; }
+.battle-scene.speed-2 .ink-burst { animation-duration: 0.5s; }
+.battle-scene.speed-skip .art-slot.hurt,
+.battle-scene.speed-skip .art-slot.attack,
+.battle-scene.speed-skip .ink-burst,
+.battle-scene.speed-skip .boss-phase { animation: none !important; transition: none !important; }
+.battle-scene.speed-skip .float-num,
+.battle-scene.speed-skip .ink-burst { display: none !important; }
+.battle-scene.speed-skip .hp i { transition: none !important; }
+
+/* ---------- 新手引导卡片 ---------- */
+.tutorial-card {
+  position: absolute;
+  left: 14px;
+  top: 94px;
+  z-index: 26;
+  width: min(242px, 44vw);
+  padding: 10px 12px 9px;
+  pointer-events: none;
+  background: rgba(248, 240, 220, 0.96);
+  border: 2px solid var(--line);
+  box-shadow: var(--shadow-sm);
+}
+.tc-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.tc-eyebrow { color: var(--gold); font-size: 9px; letter-spacing: 0.14em; }
+.tc-skip {
+  pointer-events: auto;
+  padding: 2px 4px;
+  color: var(--muted);
+  background: none;
+  border: none;
+  font-size: 9px;
+  text-decoration: underline;
+}
+.tc-title { display: block; margin: 5px 0 3px; color: var(--line); font-size: 13px; letter-spacing: 0.04em; }
+.tc-hint { margin: 0; color: var(--muted); font-size: 10px; line-height: 1.6; }
+.tc-foot { display: flex; align-items: center; gap: 8px; margin-top: 7px; }
+.tc-bar { flex: 1; height: 6px; background: #e6dabd; border: 1px solid #b9a883; overflow: hidden; }
+.tc-bar i { display: block; width: 0; height: 100%; background: var(--jade); transition: width 160ms steps(4); }
+.tc-count { color: var(--muted-2); font-size: 9px; font-variant-numeric: tabular-nums; }
+
+/* ---------- 设置：滑杆与分组 ---------- */
+.setting-range { align-items: flex-start; }
+.range-wrap { display: flex; flex: none; align-items: center; gap: 8px; padding-top: 2px; }
+.range-wrap input[type="range"] { width: 120px; accent-color: var(--jade); }
+.range-wrap output { min-width: 38px; color: var(--muted); font-size: 10px; text-align: right; font-variant-numeric: tabular-nums; }
+.sheet-subhead {
+  margin-top: 4px;
+  padding: 7px 4px 2px;
+  color: var(--gold);
+  border-top: 2px dashed #cbb995;
+  font-size: 10px;
+  letter-spacing: 0.14em;
+}
+
+/* ---------- 云存档冲突 ---------- */
+.conflict-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.conflict-col { padding: 10px; background: #f8f0dc; border: 2px solid #b9a883; }
+.conflict-col.cloud { border-color: var(--jade); }
+.conflict-col .eyebrow { margin-bottom: 6px; }
+.conflict-col .save-list li { font-size: 10px; }
+@media (max-width: 520px) {
+  .conflict-grid { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 820px) {
+  .battle-head { flex-wrap: wrap; gap: 4px; }
+  .battle-tools { flex-direction: row; width: 100%; justify-content: space-between; }
+  .bt-auto { padding: 3px 7px; font-size: 9px; }
+  .bt-speed-btn { padding: 3px 6px; font-size: 8px; }
+  .foe-info { order: 2; width: 100%; }
+  .turn-order { order: 3; margin-left: auto; }
+  .tutorial-card { top: 112px; left: 10px; width: min(220px, 60vw); }
+  .range-wrap input[type="range"] { width: 88px; }
+}
+

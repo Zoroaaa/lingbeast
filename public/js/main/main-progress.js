@@ -22,6 +22,7 @@ function setStory(n) {
   }
   updateHud();
   persist();
+  if (typeof tutorialEvent === 'function') tutorialEvent('chapter:' + state.chapter);
 }
 
 function flag(name) { return !!(state && state.flags && state.flags[name]); }
@@ -125,6 +126,7 @@ function enterRegion(id, spawn, opts) {
   }
   updateHud();
   if (!opts || opts.title !== false) showRegionTitle(r);
+  if (typeof tutorialEvent === 'function') tutorialEvent('region:' + id);
 }
 
 function setPosition(x, y) {

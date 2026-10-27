@@ -1,6 +1,10 @@
 // 灵兽录 · Cloudflare Worker：静态资源 + 账号/云存档 API
 
-const JSON_HEADERS = { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store' };
+const JSON_HEADERS = {
+  'content-type': 'application/json; charset=utf-8',
+  'cache-control': 'no-store',
+  'x-content-type-options': 'nosniff',
+};
 const SESSION_DAYS = 30;
 const MAX_PAYLOAD = 100 * 1024;
 
@@ -149,10 +153,17 @@ async function handlePutSave(req, env) {
   const body = await req.json().catch(() => null);
   if (!body || typeof body.payload !== 'string') return fail('存档格式不正确');
   if (body.payload.length > MAX_PAYLOAD) return fail('存档过大', 413);
-  const updatedAt = Number(body.updatedAt) || Date.now();
+  let parsed = null;
+  try { parsed = JSON.parse(body.payload); } catch (e) { parsed = null; }
+  if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) return fail('存档格式不正确');
+  // 客户端时间只作为版本线索，不能把服务器时间锁到未来
+  const now = Date.now();
+  const clientAt = Number(body.updatedAt) || 0;
+  const updatedAt = clientAt > 0 ? Math.min(clientAt, now) : now;
 
   const existing = await env.DB.prepare('SELECT updated_at FROM saves WHERE user_id = ?').bind(user.id).first();
-  if (existing && existing.updated_at > updatedAt) {
+  // 只把明显更新的存档视为冲突；2 秒内的时间抖动允许覆盖，避免时钟偏移导致死锁
+  if (existing && existing.updated_at > updatedAt + 2000) {
     const row = await env.DB.prepare('SELECT payload, updated_at FROM saves WHERE user_id = ?')
       .bind(user.id)
       .first();
@@ -196,6 +207,11 @@ export default {
         return fail('服务异常', 500);
       }
     }
-    return env.ASSETS.fetch(req);
+    const res = await env.ASSETS.fetch(req);
+    const headers = new Headers(res.headers);
+    headers.set('x-content-type-options', 'nosniff');
+    headers.set('referrer-policy', 'strict-origin-when-cross-origin');
+    if (url.pathname === '/sw.js') headers.set('cache-control', 'no-cache');
+    return new Response(res.body, { status: res.status, statusText: res.statusText, headers });
   },
 };

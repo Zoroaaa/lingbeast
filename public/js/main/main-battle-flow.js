@@ -39,7 +39,10 @@ function startTrial(floor) {
 async function returnToWorld(result) {
   if (!state) return;
   const r = result || {};
-  if (typeof battle !== 'undefined' && battle) battle.on = false;
+  if (typeof battle !== 'undefined' && battle) {
+    battle.on = false;
+    battle.autoPending = false;
+  }
   const overlay = byId('battle-overlay');
   if (overlay) overlay.hidden = true;
 
@@ -93,6 +96,9 @@ async function returnToWorld(result) {
   if (r.message) toast(r.message);
   persist();
   updateHud();
+  if (typeof processPendingCloudConflict === 'function') {
+    setTimeout(processPendingCloudConflict, 700);
+  }
 }
 
 function defeatRetreat() {

@@ -109,6 +109,7 @@ async function cast(actor, target, id, actorMon, targetMon, fromFoe) {
       logLine(text.replace('{n}', real), 'accent');
       floatOver(actorArt, '+' + real, 'heal');
       renderBattleUI();
+      battleSfx('heal');
       await wait(420);
     }
   };
@@ -124,6 +125,11 @@ async function cast(actor, target, id, actorMon, targetMon, fromFoe) {
     floatOver(targetArt, '-' + dmg.value, dmg.crit ? 'crit' : dmg.mult > 1 ? 'strong' : '');
     spawnInkBurst(targetArt, s.el, dmg.crit || dmg.mult > 1);
     if (dmg.crit || dmg.mult > 1) screenShake();
+    battleSfx(dmg.crit ? 'crit' : 'hit');
+    if (targetIsFoe && typeof tutorialEvent === 'function' && battle.foe &&
+      battle.foe.hp > 0 && battle.foe.hp / battle.foe.maxHp <= 0.5) {
+      tutorialEvent('battle:weaken');
+    }
 
     if (actorIsFoe) {
       if ((target.guard || 0) > 0 || (target.statuses && target.statuses.shield)) gainBond(8);
@@ -163,6 +169,7 @@ async function cast(actor, target, id, actorMon, targetMon, fromFoe) {
     else actor.guard = s.guard;
     logLine(label + ' 运起「' + s.name + '」，周身结甲。', 'accent');
     renderBattleUI();
+    battleSfx('guard');
     await wait(520);
   } else {
     if (s.status) {
@@ -265,13 +272,23 @@ async function handleSelfFaint() {
   await wait(700);
   if (aliveCount() === 0) { await defeat(); return; }
 
+  const s = saveGame();
+  if (!s) return;
+  if (typeof autoBattleOn === 'function' && autoBattleOn()) {
+    const next = pickAutoSwitch();
+    if (next >= 0) {
+      logAccent('自动 · ' + monName(s.team[next]) + '接替。');
+      await wait(420);
+      forceSwitch(next);
+      return;
+    }
+  }
+
   battle.forced = true;
   battle.busy = true;
   const box = $b('commands');
   if (box) box.innerHTML = '';
   logLine('择一灵兽接替。', 'accent');
-  const s = saveGame();
-  if (!s) return;
   s.team.forEach((m, i) => {
     if (i === battle.idx) return;
     const st = monView(m);
@@ -290,6 +307,7 @@ function forceSwitch(i) {
   logLine(monName(s.team[i]) + ' 入场。', 'accent');
   renderBattleUI();
   renderCommands();
+  if (typeof autoBattleOn === 'function' && autoBattleOn()) scheduleAutoTurn(420);
 }
 
 async function playerSwitch(i) {
@@ -405,6 +423,8 @@ async function attemptCatch() {
     battle.over = true;
     logAccent('契约成。');
     floatOver($b('foe-art'), '契成', 'heal');
+    battleSfx('catch');
+    if (typeof tutorialEvent === 'function') tutorialEvent('catch:success');
     await wait(500);
     if (window.LB && typeof LB.returnToWorld === 'function') {
       await LB.returnToWorld({
@@ -418,6 +438,7 @@ async function attemptCatch() {
   }
 
   logWarn('灵息一散，契未成。');
+  battleSfx('catchFail');
   await wait(380);
   await foeTurn();
   await checkBattleEnd();

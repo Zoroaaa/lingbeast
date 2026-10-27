@@ -52,6 +52,103 @@ function renderAccountChip() {
   if (chip) chip.title = online ? '已连接云端存档，点击查看' : '点击登录云端存档';
 }
 
+let pendingCloudConflict = null;
+
+function cloudTime(ts) {
+  if (!ts) return '未落笔';
+  try { return new Date(ts).toLocaleString('zh-CN', { hour12: false }); } catch (e) { return '未落笔'; }
+}
+
+function cloudSummary(obj) {
+  const r = obj && REGIONS[obj.region] ? REGIONS[obj.region] : null;
+  const team = obj && Array.isArray(obj.team) ? obj.team : [];
+  let topLv = 1;
+  team.forEach(function (m) { topLv = Math.max(topLv, Number(m.lv) || 1); });
+  return {
+    region: r ? r.name : '—',
+    chapter: (obj && obj.chapter) || 1,
+    team: team.length,
+    topLv: topLv,
+    jade: (obj && obj.jade) || 0,
+    at: (obj && obj.updatedAt) || 0,
+  };
+}
+
+function cloudConflictBody(local, remote) {
+  function col(title, sum, cls) {
+    return '<div class="conflict-col ' + cls + '"><p class="eyebrow">' + title + '</p><ul class="save-list">' +
+      '<li>区域<b>' + uiEsc(sum.region) + '</b></li>' +
+      '<li>章节<b>第 ' + sum.chapter + ' 章</b></li>' +
+      '<li>队伍<b>' + sum.team + ' 只 · 最高 Lv.' + sum.topLv + '</b></li>' +
+      '<li>灵玉<b>' + sum.jade + '</b></li>' +
+      '<li>落笔<b>' + uiEsc(cloudTime(sum.at)) + '</b></li>' +
+      '</ul></div>';
+  }
+  return '<div class="conflict-grid">' +
+    col('本机', local, 'local') + col('云端', remote, 'cloud') +
+    '</div><p class="sheet-note">两边进度都已落笔，只能选一边继续；另一边会被覆盖。</p>';
+}
+
+function applyCloudObject(obj, legacy) {
+  migratedNote = !!legacy;
+  state = obj;
+  const world = byId('view-world');
+  if (world && !world.hidden) enterRegion(state.region, state.pos, { title: false });
+  updateHud();
+  refreshTitle();
+}
+
+function handleCloudConflict(entry) {
+  if (!entry || !entry.payload) return;
+  if (battleActive() || activeDialog) {
+    pendingCloudConflict = entry;
+    toast('云端有冲突 · 战斗结束后提醒你选择');
+    return;
+  }
+  let obj = null;
+  let legacy = false;
+  try {
+    const raw = JSON.parse(entry.payload);
+    legacy = !!(raw && raw.v !== 4);
+    obj = migrate(raw);
+  } catch (e) { obj = null; }
+  if (!obj) { toast('云端存档无法读取'); return; }
+  if (!state) { applyCloudObject(obj, legacy); return; }
+
+  const remoteAt = Number(entry.updatedAt) || obj.updatedAt || 0;
+  const localAt = state.updatedAt || 0;
+  if (Math.abs(remoteAt - localAt) < 1000) { toast('云端与本机进度一致'); return; }
+  const remoteNewer = remoteAt > localAt;
+
+  openModal('云存档冲突 · 择一续行',
+    cloudConflictBody(cloudSummary(state), cloudSummary(obj)),
+    '<button type="button" class="btn-sm plain" data-cloud-later="1">稍后再说</button>' +
+    '<button type="button" class="btn-sm ' + (remoteNewer ? 'plain' : 'solid') + '" data-cloud-keep="1">保留本机并覆盖</button>' +
+    '<button type="button" class="btn-sm ' + (remoteNewer ? 'solid' : 'plain') + '" data-cloud-take="1">采用云端</button>');
+  const foot = byId('modal-foot');
+  if (!foot) return;
+  const later = foot.querySelector('[data-cloud-later]');
+  if (later) later.addEventListener('click', function () {
+    closeModal();
+    toast('稍后可在「存档 → 账号」里处理冲突');
+  });
+  const keep = foot.querySelector('[data-cloud-keep]');
+  if (keep) keep.addEventListener('click', function () {
+    const ts = Math.max(Date.now(), remoteAt + 1);
+    persist(ts);
+    if (window.Cloud && Cloud.online) Cloud.flushNow();
+    closeModal();
+    toast('已保留本机进度 · 正在覆盖云端');
+  });
+  const take = foot.querySelector('[data-cloud-take]');
+  if (take) take.addEventListener('click', function () {
+    applyCloudObject(obj, legacy);
+    persist();
+    closeModal();
+    toast('已采用云端进度');
+  });
+}
+
 function adoptCloud(entry, quiet) {
   if (!entry || !entry.payload) {
     if (!quiet) toast('云端暂无存档');
@@ -68,18 +165,32 @@ function adoptCloud(entry, quiet) {
     if (!quiet) toast('云端存档无法读取');
     return;
   }
-  migratedNote = legacy;
-  const localAt = state ? (state.updatedAt || 0) : 0;
-  if (state && (obj.updatedAt || 0) <= localAt) {
-    if (!quiet) toast('云端进度不新 · 继续本地');
+  if (!state) {
+    applyCloudObject(obj, legacy);
+    if (!quiet) toast('已载入云端存档');
     return;
   }
-  state = obj;
-  const world = byId('view-world');
-  if (world && !world.hidden) enterRegion(state.region, state.pos, { title: false });
-  updateHud();
-  refreshTitle();
-  toast('已采用云端较新进度');
+
+  const remoteAt = Number(entry.updatedAt) || obj.updatedAt || 0;
+  const localAt = state.updatedAt || 0;
+  if (remoteAt > localAt + 1000) {
+    handleCloudConflict(entry);
+    return;
+  }
+  if (remoteAt < localAt - 1000) {
+    persist();
+    if (!quiet) toast('本机进度较新 · 将覆盖云端');
+    return;
+  }
+  if (!quiet) toast('云端与本机一致');
+}
+
+function processPendingCloudConflict() {
+  if (!pendingCloudConflict) return;
+  if (battleActive() || activeDialog) return;
+  const entry = pendingCloudConflict;
+  pendingCloudConflict = null;
+  handleCloudConflict(entry);
 }
 
 function openAccountModal(tab) {
@@ -165,7 +276,7 @@ function attachAccount() {
   if (!window.Cloud) return;
   Cloud.init();
   Cloud.onChange(function () { updateHud(); });
-  Cloud.setConflictHandler(function () { toast('云端有较新进度 · 下次进入将采用'); });
+  Cloud.setConflictHandler(function (save) { handleCloudConflict(save); });
   if (Cloud.online) {
     Cloud.pull().then(function (r) {
       if (bootSyncDone) return;
@@ -271,7 +382,7 @@ function bindUi() {
 
 // ---------- 对外 API ----------
 LB.saveState = function () { return state; };
-LB.persist = function () { persist(); };
+LB.persist = function (at) { persist(at); };
 LB.loadLocal = function () { return loadLocal(); };
 LB.newGame = function () { startGame(true); };
 LB.isBlocked = isBlocked;
@@ -399,5 +510,11 @@ LB.onWorldReady = function () { updateHud(); };
     if (typeof validateBeastStyles === 'function') validateBeastStyles();
   } catch (e) {
     console.error('[灵兽录] 内容校验异常', e);
+  }
+  // 本地开发不注册，避免 Service Worker 缓存掩盖改动
+  if ('serviceWorker' in navigator && location.hostname !== 'localhost' && location.hostname !== '127.0.0.1') {
+    window.addEventListener('load', function () {
+      navigator.serviceWorker.register('/sw.js').catch(function () {});
+    });
   }
 })();

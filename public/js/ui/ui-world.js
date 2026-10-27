@@ -529,11 +529,37 @@ function renderSettings() {
       (on ? '开' : '关') + '</button></div>';
   }
 
+  function rangeRow(key, label, desc, min, max, step, suffix) {
+    var value = Number(settings[key]);
+    if (!isFinite(value)) value = min;
+    return '<div class="setting-row setting-range"><div class="sheet-main"><b>' + uiEsc(label) + '</b>' +
+      '<p class="sheet-note">' + uiEsc(desc) + '</p></div>' +
+      '<div class="range-wrap"><input type="range" data-range="' + key + '" min="' + min + '" max="' + max +
+      '" step="' + step + '" value="' + value + '" aria-label="' + uiEsc(label) + '">' +
+      '<output data-range-out="' + key + '">' + value + (suffix || '') + '</output></div></div>';
+  }
+
+  var battleSpeeds = [['1', '1x'], ['2', '2x'], ['skip', '跳过']];
+  var battleSeg = '<div class="segmented">' + battleSpeeds.map(function (pair) {
+    return '<button type="button" class="seg-btn' + (settings.battleSpeed === pair[0] ? ' active' : '') +
+      '" data-battle-speed-setting="' + pair[0] + '">' + pair[1] + '</button>';
+  }).join('') + '</div>';
+
   var body = '<section class="sheet-page">' +
     '<div class="setting-row"><div class="sheet-main"><b>文字速度</b><p class="sheet-note">对白逐字显现的快慢。</p></div>' + seg + '</div>' +
+    '<div class="setting-row"><div class="sheet-main"><b>战斗速度</b><p class="sheet-note">1x / 2x，或跳过回合演出直接结算。</p></div>' + battleSeg + '</div>' +
     toggleRow('reduceMotion', '减少动效', '关闭大幅转场与漂浮动画，保留必要反馈。') +
     toggleRow('shake', '震屏', '技能命中与 Boss 换阶段时的镜头轻震。') +
     toggleRow('confirm', '确认提示', '放归等不可逆操作前再问一次。') +
+    rangeRow('musicVol', '环境乐', '程序化生成的山林环境乐，0 为关闭。', 0, 100, 5, '%') +
+    rangeRow('sfxVol', '音效', '点击、命中、结契与升级反馈音量。', 0, 100, 5, '%') +
+    '<div class="sheet-subhead">自动战斗</div>' +
+    toggleRow('autoBattle', '自动战斗', '轮到自己时自动选术法，可随时在战斗界面关闭。') +
+    rangeRow('autoPotionPct', '低于多少气血吃药', '0 为不自动吃药；只服用刚好能补满的最小丹药。', 0, 90, 5, '%') +
+    toggleRow('autoCatch', '自动结契', '野生灵兽血量低于阈值时自动尝试结契。') +
+    rangeRow('autoCatchPct', '低于多少气血结契', '只对可结契的野生灵兽生效，Boss 不在此列。', 5, 80, 5, '%') +
+    '<div class="setting-row"><div class="sheet-main"><b>新手引导</b><p class="sheet-note">从入谷开始重看六步引导。</p></div>' +
+    '<button type="button" class="btn-sm plain" data-tutorial-restart="1">重看</button></div>' +
     '<p class="sheet-note">设置写入本地存档，随云存档同步。</p>' +
     '</section>';
 
@@ -546,6 +572,32 @@ function renderSettings() {
     LB.toast('设置已记下');
     renderSettings();
   });
+  uiBind('[data-battle-speed-setting]', 'click', function (node) {
+    var st = LB.saveState();
+    if (!st) return;
+    st.settings.battleSpeed = node.getAttribute('data-battle-speed-setting');
+    LB.persist();
+    if (typeof applyBattleSpeedClass === 'function') applyBattleSpeedClass();
+    if (typeof renderBattleTools === 'function') renderBattleTools();
+    LB.toast('战斗速度 · ' + node.textContent);
+    renderSettings();
+  });
+  uiBind('[data-range]', 'input', function (node) {
+    var st = LB.saveState();
+    if (!st) return;
+    var key = node.getAttribute('data-range');
+    var out = document.querySelector('[data-range-out="' + key + '"]');
+    if (out) out.textContent = node.value + (key.indexOf('Vol') >= 0 || key.indexOf('Pct') >= 0 ? '%' : '');
+    st.settings[key] = Number(node.value);
+    if (key === 'musicVol' || key === 'sfxVol') {
+      if (LB.audio && LB.audio.applySettings) LB.audio.applySettings();
+    }
+  });
+  uiBind('[data-range]', 'change', function (node) {
+    var st = LB.saveState();
+    if (!st) return;
+    LB.persist();
+  });
   uiBind('[data-toggle]', 'click', function (node) {
     var st = LB.saveState();
     if (!st) return;
@@ -555,6 +607,12 @@ function renderSettings() {
     if (typeof applyMotionPreference === 'function') applyMotionPreference();
     LB.toast('设置已记下');
     renderSettings();
+  });
+  uiBind('[data-tutorial-restart]', 'click', function () {
+    if (typeof startTutorial === 'function') {
+      LB.closeModal();
+      startTutorial();
+    }
   });
   uiBindClose();
 }

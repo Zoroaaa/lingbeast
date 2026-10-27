@@ -1,13 +1,16 @@
 {
   "name": "lingbeast-rpg",
   "private": true,
-  "version": "2.1.0",
+  "version": "2.2.0",
   "type": "module",
   "scripts": {
     "dev": "wrangler dev",
     "deploy": "wrangler deploy",
     "db:init:local": "wrangler d1 execute lingbeast --local --file=schema.sql",
-    "db:init:remote": "wrangler d1 execute lingbeast --remote --file=schema.sql"
+    "db:init:remote": "wrangler d1 execute lingbeast --remote --file=schema.sql",
+    "version:bump": "node scripts/version.mjs --bump",
+    "icons": "node scripts/make-icons.mjs",
+    "check": "node scripts/check.mjs"
   },
   "devDependencies": {
     "wrangler": "^4.0.0"

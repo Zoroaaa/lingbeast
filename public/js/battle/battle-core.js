@@ -6,7 +6,7 @@ const battle = {
   on: false, foe: null, idx: 0, busy: false, over: false, forced: false, lines: [],
   bond: 0, bondUsed: false, bossId: null, trialFloor: null, regionId: 'qingxi',
   field: null, phaseIndex: 0, elMod: {},
-  combo: { el: null, n: 0 },
+  combo: { el: null, n: 0 }, autoPending: false,
 };
 
 const $b = (id) => document.getElementById(id);
@@ -48,12 +48,27 @@ function reduceMotion() {
   const s = saveGame();
   return !!(s && s.settings && s.settings.reduceMotion);
 }
+function battleWaitScale() {
+  const s = saveGame();
+  const speed = s && s.settings ? s.settings.battleSpeed : '1';
+  if (speed === 'skip') return 0;
+  if (speed === '2') return 0.5;
+  return 1;
+}
+function battleDelay(ms) {
+  const scale = battleWaitScale();
+  if (scale <= 0) return 0;
+  return Math.max(1, Math.round(ms * (reduceMotion() ? 0.35 : 1) * scale));
+}
 function wait(ms) {
-  return sleep(reduceMotion() ? Math.max(40, Math.round(ms * 0.35)) : ms);
+  return sleep(battleDelay(ms));
 }
 function shakeAllowed() {
   const s = saveGame();
   return !(s && s.settings && s.settings.shake === false);
+}
+function battleSfx(name) {
+  if (window.LB && LB.audio && typeof LB.audio.sfx === 'function') LB.audio.sfx(name);
 }
 function needExp(lv) {
   if (window.LB && typeof LB.expNeed === 'function') return LB.expNeed(lv);
@@ -150,14 +165,14 @@ function animateHit(container) {
   container.classList.remove('hurt');
   void container.offsetWidth;
   container.classList.add('hurt');
-  setTimeout(() => container.classList.remove('hurt'), 420);
+  setTimeout(() => container.classList.remove('hurt'), battleDelay(420));
 }
 function animateAttack(container) {
   if (!container) return;
   container.classList.remove('attack');
   void container.offsetWidth;
   container.classList.add('attack');
-  setTimeout(() => container.classList.remove('attack'), 420);
+  setTimeout(() => container.classList.remove('attack'), battleDelay(420));
 }
 function spawnInkBurst(container, el, strong) {
   if (!container || reduceMotion()) return;

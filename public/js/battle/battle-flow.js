@@ -96,6 +96,7 @@ async function endRound() {
   if (battle.on && !battle.over && !battle.forced) {
     battle.busy = false;
     renderCommands();
+    if (typeof autoBattleOn === 'function' && autoBattleOn()) scheduleAutoTurn(520);
   }
 }
 
@@ -104,10 +105,12 @@ async function victory() {
   if (battle.over || !battle.foe) return;
   battle.over = true;
   battle.busy = true;
+  battle.autoPending = false;
   const s = saveGame();
   const foe = battle.foe;
   const box = $b('commands');
   if (box) box.innerHTML = '';
+  battleSfx('victory');
   logAccent(foe.name + ' 伏地，灵息散去。');
   await wait(720);
 
@@ -152,6 +155,7 @@ function gainExp(mon, amount) {
     const before = LB.skillsOf(mon).length;
     mon.lv += 1;
     mon.hp = monMax(mon);
+    battleSfx('level');
     const now = LB.skillsOf(mon);
     if (now.length > before) notes.push('习得「' + SKILLS[now[now.length - 1]].name + '」');
     else notes.push('升至 Lv.' + mon.lv);
@@ -178,6 +182,8 @@ function rollDrops(foe) {
 async function defeat() {
   battle.over = true;
   battle.busy = true;
+  battle.autoPending = false;
+  battleSfx('faint');
   const overlay = $b('battle-overlay');
   if (!overlay) return;
   overlay.hidden = false;

@@ -328,6 +328,7 @@ function renderTeam(active, stable) {
 
 function openTeam(tab) {
   if (!uiStateOrToast()) return;
+  if (typeof tutorialEvent === 'function') tutorialEvent('team:open');
   renderTeam(tab === 'storage' ? 'storage' : 'team', false);
 }
 

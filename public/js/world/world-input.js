@@ -382,6 +382,7 @@ Object.assign(WorldScene.prototype, {
   playEncounterCue(done) {
     if (this.encounterCueActive) { done(); return; }
     this.encounterCueActive = true;
+    if (window.LB && LB.audio) LB.audio.sfx('encounter');
     const px = this.player.x;
     const py = this.player.y;
     let fired = false;

@@ -241,8 +241,23 @@ function normalizeState(obj) {
     steps: Number(stats.steps) || 0,
     startedAt: Number(stats.startedAt) || Date.now(),
   };
-  s.settings = Object.assign({ textSpeed: 'normal', reduceMotion: false, shake: true, confirm: true }, s.settings || {});
+  s.settings = Object.assign({
+    textSpeed: 'normal', reduceMotion: false, shake: true, confirm: true,
+    musicVol: 32, sfxVol: 60, battleSpeed: '1',
+    autoBattle: false, autoPotionPct: 35, autoCatch: true, autoCatchPct: 30,
+  }, s.settings || {});
   if (TEXT_DELAYS[s.settings.textSpeed] === undefined) s.settings.textSpeed = 'normal';
+  if (['1', '2', 'skip'].indexOf(s.settings.battleSpeed) < 0) s.settings.battleSpeed = '1';
+  s.settings.musicVol = clampInt(Number(s.settings.musicVol), 0, 100);
+  s.settings.sfxVol = clampInt(Number(s.settings.sfxVol), 0, 100);
+  s.settings.autoBattle = !!s.settings.autoBattle;
+  s.settings.autoCatch = !!s.settings.autoCatch;
+  s.settings.autoPotionPct = clampInt(Number(s.settings.autoPotionPct), 0, 90);
+  s.settings.autoCatchPct = clampInt(Number(s.settings.autoCatchPct), 5, 80);
+  s.tutorial = Object.assign({ step: 0, done: true, skipped: false }, s.tutorial || {});
+  s.tutorial.step = clampInt(Number(s.tutorial.step) || 0, 0, 5);
+  s.tutorial.done = !!s.tutorial.done;
+  s.tutorial.skipped = !!s.tutorial.skipped;
   s.time = Object.assign({ phase: 'dawn', steps: 0 }, s.time || {});
   if (!TIME_PHASES[s.time.phase]) s.time.phase = 'dawn';
   Object.keys(RECIPES).forEach(function (id) {
@@ -286,7 +301,12 @@ function freshState() {
     ending: null,
     postgame: false,
     stats: { battles: 0, wins: 0, catches: 0, steps: 0, startedAt: Date.now() },
-    settings: { textSpeed: 'normal', reduceMotion: false, shake: true, confirm: true },
+    settings: {
+      textSpeed: 'normal', reduceMotion: false, shake: true, confirm: true,
+      musicVol: 32, sfxVol: 60, battleSpeed: '1',
+      autoBattle: false, autoPotionPct: 35, autoCatch: true, autoCatchPct: 30,
+    },
+    tutorial: { step: 0, done: false, skipped: false },
     time: { phase: 'dawn', steps: 0 },
     updatedAt: Date.now(),
   });
@@ -426,9 +446,9 @@ function hasStoredSave() {
   } catch (e) { return false; }
 }
 
-function persist() {
+function persist(at) {
   if (!state) return;
-  state.updatedAt = Date.now();
+  state.updatedAt = Number(at) || Date.now();
   const payload = JSON.stringify(state);
   try { localStorage.setItem(SAVE_KEY, payload); } catch (e) {}
   if (window.Cloud && typeof Cloud.push === 'function') {

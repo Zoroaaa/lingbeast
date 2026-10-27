@@ -7,6 +7,8 @@ function showView(id) {
     const el = byId(v);
     if (el) el.hidden = v !== id;
   });
+  if (typeof renderTutorial === 'function') renderTutorial();
+  if (typeof processPendingCloudConflict === 'function') processPendingCloudConflict();
 }
 
 function toast(msg) {
@@ -199,6 +201,9 @@ function advanceDialog() {
     activeDialog = null;
     if (cb) {
       try { cb(); } catch (e) { console.error('[灵兽录] 对话回调失败', e); }
+    }
+    if (typeof processPendingCloudConflict === 'function') {
+      setTimeout(processPendingCloudConflict, 400);
     }
     return;
   }

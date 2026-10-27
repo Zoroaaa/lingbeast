@@ -5,8 +5,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#f2ede2">
 <title>灵兽录 · 山海新契</title>
-<link rel="stylesheet" href="vendor/nes.min.css?v=73">
-<link rel="stylesheet" href="style.css?v=73">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="灵兽录">
+<link rel="stylesheet" href="vendor/nes.min.css?v=74">
+<link rel="stylesheet" href="style.css?v=74">
 </head>
 <body>
 <div id="app">
@@ -98,6 +103,19 @@
       <button class="touch-action" id="btn-interact" aria-label="交互">契</button>
     </div>
 
+    <aside class="tutorial-card" id="tutorial-card" hidden>
+      <div class="tc-head">
+        <span class="tc-eyebrow" id="tc-eyebrow">一 · 入谷</span>
+        <button type="button" class="tc-skip" id="tc-skip">跳过引导</button>
+      </div>
+      <b class="tc-title" id="tc-title">走到青溪谷</b>
+      <p class="tc-hint" id="tc-hint"></p>
+      <div class="tc-foot">
+        <span class="tc-bar"><i id="tc-fill"></i></span>
+        <span class="tc-count" id="tc-count">1 / 6</span>
+      </div>
+    </aside>
+
     <div class="dialog" id="dialog" hidden>
       <div class="dialog-seal" id="dialog-seal"></div>
       <div class="dialog-main">
@@ -114,6 +132,14 @@
       <div class="battle-bg" id="battle-bg" aria-hidden="true"></div>
 
       <header class="battle-head">
+        <div class="battle-tools" id="battle-tools">
+          <button type="button" class="bt-auto" id="bt-auto" aria-pressed="false">自动 · 关</button>
+          <div class="bt-speed" role="group" aria-label="战斗速度">
+            <button type="button" class="bt-speed-btn active" data-battle-speed="1">1x</button>
+            <button type="button" class="bt-speed-btn" data-battle-speed="2">2x</button>
+            <button type="button" class="bt-speed-btn" data-battle-speed="skip">跳过</button>
+          </div>
+        </div>
         <div class="foe-info">
           <div class="foe-head">
             <span class="foe-name" id="foe-name"></span>
@@ -194,80 +220,83 @@
 </div>
 <script src="vendor/phaser.min.js"></script>
 <script src="cloud.js"></script>
+<script src="js/audio.js?v=74"></script>
 <!-- 数据层 -->
-<script src="js/data/core.js?v=73"></script>
-<script src="js/data/skills.js?v=73"></script>
-<script src="js/data/species.js?v=73"></script>
-<script src="js/data/items.js?v=73"></script>
-<script src="js/data/gear.js?v=73"></script>
-<script src="js/data/bosses.js?v=73"></script>
-<script src="js/data/map-core.js?v=73"></script>
-<script src="js/data/world-atlas.js?v=73"></script>
-<script src="js/data/regions/region-shanmen.js?v=73"></script>
-<script src="js/data/regions/region-qingxi.js?v=73"></script>
-<script src="js/data/regions/region-wuyin.js?v=73"></script>
-<script src="js/data/regions/region-luoxing.js?v=73"></script>
-<script src="js/data/regions/region-guixu.js?v=73"></script>
-<script src="js/data/regions/region-yunmeng.js?v=73"></script>
-<script src="js/data/regions/region-gutan.js?v=73"></script>
-<script src="js/data/regions/region-shenyuan.js?v=73"></script>
-<script src="js/data/regions/region-yunzhan.js?v=73"></script>
-<script src="js/data/regions/region-xuangu.js?v=73"></script>
-<script src="js/data/regions/region-chenyu.js?v=73"></script>
-<script src="js/data/regions/region-jiuzhang.js?v=73"></script>
-<script src="js/data/regions/region-yaopu.js?v=73"></script>
-<script src="js/data/regions/region-anshi.js?v=73"></script>
-<script src="js/data/regions/region-rongku.js?v=73"></script>
-<script src="js/data/regions/region-jingdi.js?v=73"></script>
-<script src="js/data/regions/region-xingkeng.js?v=73"></script>
-<script src="js/data/regions/region-shihai.js?v=73"></script>
-<script src="js/data/regions/region-beilin.js?v=73"></script>
-<script src="js/data/weather.js?v=73"></script>
-<script src="js/data/quests.js?v=73"></script>
-<script src="js/data/choices.js?v=73"></script>
-<script src="js/data/lore.js?v=73"></script>
-<script src="js/data/validate.js?v=73"></script>
+<script src="js/data/core.js?v=74"></script>
+<script src="js/data/skills.js?v=74"></script>
+<script src="js/data/species.js?v=74"></script>
+<script src="js/data/items.js?v=74"></script>
+<script src="js/data/gear.js?v=74"></script>
+<script src="js/data/bosses.js?v=74"></script>
+<script src="js/data/map-core.js?v=74"></script>
+<script src="js/data/world-atlas.js?v=74"></script>
+<script src="js/data/regions/region-shanmen.js?v=74"></script>
+<script src="js/data/regions/region-qingxi.js?v=74"></script>
+<script src="js/data/regions/region-wuyin.js?v=74"></script>
+<script src="js/data/regions/region-luoxing.js?v=74"></script>
+<script src="js/data/regions/region-guixu.js?v=74"></script>
+<script src="js/data/regions/region-yunmeng.js?v=74"></script>
+<script src="js/data/regions/region-gutan.js?v=74"></script>
+<script src="js/data/regions/region-shenyuan.js?v=74"></script>
+<script src="js/data/regions/region-yunzhan.js?v=74"></script>
+<script src="js/data/regions/region-xuangu.js?v=74"></script>
+<script src="js/data/regions/region-chenyu.js?v=74"></script>
+<script src="js/data/regions/region-jiuzhang.js?v=74"></script>
+<script src="js/data/regions/region-yaopu.js?v=74"></script>
+<script src="js/data/regions/region-anshi.js?v=74"></script>
+<script src="js/data/regions/region-rongku.js?v=74"></script>
+<script src="js/data/regions/region-jingdi.js?v=74"></script>
+<script src="js/data/regions/region-xingkeng.js?v=74"></script>
+<script src="js/data/regions/region-shihai.js?v=74"></script>
+<script src="js/data/regions/region-beilin.js?v=74"></script>
+<script src="js/data/weather.js?v=74"></script>
+<script src="js/data/quests.js?v=74"></script>
+<script src="js/data/choices.js?v=74"></script>
+<script src="js/data/lore.js?v=74"></script>
+<script src="js/data/validate.js?v=74"></script>
 <!-- 图像层 -->
-<script src="js/art.js?v=73"></script>
-<script src="js/art/beasts/kit.js?v=73"></script>
-<script src="js/art/beasts/parts.js?v=73"></script>
-<script src="js/art/beasts/signatures.js?v=73"></script>
-<script src="js/art/beasts/birds.js?v=73"></script>
-<script src="js/art/beasts/land.js?v=73"></script>
-<script src="js/art/beasts/reptiles.js?v=73"></script>
-<script src="js/art/beasts/spirits.js?v=73"></script>
-<script src="js/art/beasts/aquatic.js?v=73"></script>
-<script src="js/art-people.js?v=73"></script>
+<script src="js/art.js?v=74"></script>
+<script src="js/art/beasts/kit.js?v=74"></script>
+<script src="js/art/beasts/parts.js?v=74"></script>
+<script src="js/art/beasts/signatures.js?v=74"></script>
+<script src="js/art/beasts/birds.js?v=74"></script>
+<script src="js/art/beasts/land.js?v=74"></script>
+<script src="js/art/beasts/reptiles.js?v=74"></script>
+<script src="js/art/beasts/spirits.js?v=74"></script>
+<script src="js/art/beasts/aquatic.js?v=74"></script>
+<script src="js/art-people.js?v=74"></script>
 <!-- 界面层 -->
-<script src="js/ui/ui-core.js?v=73"></script>
-<script src="js/ui/ui-hud.js?v=73"></script>
-<script src="js/ui/ui-gear.js?v=73"></script>
-<script src="js/ui/ui-codex.js?v=73"></script>
-<script src="js/ui/ui-shop.js?v=73"></script>
-<script src="js/ui/ui-world.js?v=73"></script>
-<script src="js/ui/ui-exports.js?v=73"></script>
+<script src="js/ui/ui-core.js?v=74"></script>
+<script src="js/ui/ui-hud.js?v=74"></script>
+<script src="js/ui/ui-gear.js?v=74"></script>
+<script src="js/ui/ui-codex.js?v=74"></script>
+<script src="js/ui/ui-shop.js?v=74"></script>
+<script src="js/ui/ui-world.js?v=74"></script>
+<script src="js/ui/ui-exports.js?v=74"></script>
 <!-- 探索层 -->
-<script src="js/world/world-core.js?v=73"></script>
-<script src="js/world/world-terrain.js?v=73"></script>
-<script src="js/world/world-props.js?v=73"></script>
-<script src="js/world/world-entities.js?v=73"></script>
-<script src="js/world/world-weather.js?v=73"></script>
-<script src="js/world/world-input.js?v=73"></script>
-<script src="js/world/world-boot.js?v=73"></script>
+<script src="js/world/world-core.js?v=74"></script>
+<script src="js/world/world-terrain.js?v=74"></script>
+<script src="js/world/world-props.js?v=74"></script>
+<script src="js/world/world-entities.js?v=74"></script>
+<script src="js/world/world-weather.js?v=74"></script>
+<script src="js/world/world-input.js?v=74"></script>
+<script src="js/world/world-boot.js?v=74"></script>
 <!-- 战斗层 -->
-<script src="js/battle/battle-core.js?v=73"></script>
-<script src="js/battle/battle-view.js?v=73"></script>
-<script src="js/battle/battle-engine.js?v=73"></script>
-<script src="js/battle/battle-flow.js?v=73"></script>
+<script src="js/battle/battle-core.js?v=74"></script>
+<script src="js/battle/battle-view.js?v=74"></script>
+<script src="js/battle/battle-engine.js?v=74"></script>
+<script src="js/battle/battle-auto.js?v=74"></script>
+<script src="js/battle/battle-flow.js?v=74"></script>
 <!-- 主控层 -->
-<script src="js/main/main-state.js?v=73"></script>
-<script src="js/main/main-shell.js?v=73"></script>
-<script src="js/main/main-progress.js?v=73"></script>
-<script src="js/main/main-choice.js?v=73"></script>
-<script src="js/main/main-economy.js?v=73"></script>
-<script src="js/main/main-gear.js?v=73"></script>
-<script src="js/main/main-world.js?v=73"></script>
-<script src="js/main/main-battle-flow.js?v=73"></script>
-<script src="js/main/main-boot.js?v=73"></script>
+<script src="js/main/main-state.js?v=74"></script>
+<script src="js/main/main-shell.js?v=74"></script>
+<script src="js/main/main-tutorial.js?v=74"></script>
+<script src="js/main/main-progress.js?v=74"></script>
+<script src="js/main/main-choice.js?v=74"></script>
+<script src="js/main/main-economy.js?v=74"></script>
+<script src="js/main/main-gear.js?v=74"></script>
+<script src="js/main/main-world.js?v=74"></script>
+<script src="js/main/main-battle-flow.js?v=74"></script>
+<script src="js/main/main-boot.js?v=74"></script>
 </body>
 </html>

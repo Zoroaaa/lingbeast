@@ -29,6 +29,7 @@ function openBattle(cfg) {
   battle.field = null;
   battle.phaseIndex = 0;
   battle.combo = { el: null, n: 0 };
+  battle.autoPending = false;
 
   const weather = s.weather && WEATHERS[s.weather] ? s.weather : ((REGIONS[region] && REGIONS[region].weather) || 'clear');
   const phase = s.time && TIME_PHASES[s.time.phase] ? s.time.phase : 'dawn';
@@ -70,6 +71,7 @@ function openBattle(cfg) {
   if (typeof LB.bestiaryMark === 'function') LB.bestiaryMark(cfg.sp, 'seen');
 
   battleView('view-battle');
+  applyBattleSpeedClass();
   const overlay = $b('battle-overlay');
   if (overlay) overlay.hidden = true;
   const banner = $b('boss-banner');
@@ -90,6 +92,7 @@ function openBattle(cfg) {
       logLine('（野外灵兽可先削弱，再以「结契」收服；灵符可再提一成八成功率。）', 'accent');
       if (typeof LB.persist === 'function') LB.persist();
     }
+    if (typeof tutorialEvent === 'function') tutorialEvent('battle:start');
   }
 
   const envParts = [];
@@ -109,6 +112,9 @@ function openBattle(cfg) {
 
   renderBattleUI();
   renderCommands();
+  bindBattleTools();
+  renderBattleTools();
+  if (typeof autoBattleOn === 'function' && autoBattleOn()) scheduleAutoTurn(760);
   if (window.LB && typeof LB.pauseWorld === 'function') LB.pauseWorld();
 }
 
@@ -466,6 +472,77 @@ function battleItemIds() {
   return Object.keys(ITEMS).filter((id) => ITEMS[id].battle && (s.items[id] || 0) > 0);
 }
 
+// ---------- 战斗工具条：自动 / 速度 ----------
+let battleToolsBound = false;
+
+function currentBattleSpeed() {
+  const s = saveGame();
+  return (s && s.settings && s.settings.battleSpeed) || '1';
+}
+
+function applyBattleSpeedClass() {
+  const scene = $b('battle-scene');
+  if (!scene) return;
+  const speed = currentBattleSpeed();
+  scene.classList.toggle('speed-2', speed === '2');
+  scene.classList.toggle('speed-skip', speed === 'skip');
+}
+
+function bindBattleTools() {
+  if (battleToolsBound) return;
+  battleToolsBound = true;
+  const auto = $b('bt-auto');
+  if (auto) auto.addEventListener('click', function () { toggleAutoBattle(); });
+  Array.prototype.forEach.call(document.querySelectorAll('[data-battle-speed]'), function (b) {
+    b.addEventListener('click', function () { setBattleSpeed(b.getAttribute('data-battle-speed')); });
+  });
+}
+
+function renderBattleTools() {
+  const s = saveGame();
+  const auto = $b('bt-auto');
+  const on = !!(s && s.settings && s.settings.autoBattle);
+  if (auto) {
+    auto.textContent = '自动 · ' + (on ? '开' : '关');
+    auto.classList.toggle('on', on);
+    auto.setAttribute('aria-pressed', on ? 'true' : 'false');
+  }
+  const speed = currentBattleSpeed();
+  Array.prototype.forEach.call(document.querySelectorAll('[data-battle-speed]'), function (b) {
+    b.classList.toggle('active', b.getAttribute('data-battle-speed') === speed);
+  });
+}
+
+function setBattleSpeed(value) {
+  const s = saveGame();
+  if (!s || ['1', '2', 'skip'].indexOf(value) < 0) return;
+  s.settings.battleSpeed = value;
+  if (window.LB && typeof LB.persist === 'function') LB.persist();
+  applyBattleSpeedClass();
+  renderBattleTools();
+  if (typeof autoBattleOn === 'function' && autoBattleOn() && !battle.busy) scheduleAutoTurn(140);
+}
+
+function toggleAutoBattle(force) {
+  const s = saveGame();
+  if (!s) return;
+  const on = typeof force === 'boolean' ? force : !s.settings.autoBattle;
+  s.settings.autoBattle = on;
+  if (window.LB && typeof LB.persist === 'function') LB.persist();
+  renderBattleTools();
+  if (on) {
+    logAccent('自动战斗已开。');
+    if (battle.forced) {
+      const next = pickAutoSwitch();
+      if (next >= 0) { forceSwitch(next); return; }
+    }
+    scheduleAutoTurn(260);
+  } else {
+    logLine('自动战斗已关。');
+    if (!battle.busy && !battle.over && !battle.forced) renderCommands();
+  }
+}
+
 function renderCommands() {
   const box = $b('commands');
   if (!box) return;
@@ -475,6 +552,20 @@ function renderCommands() {
   const s = saveGame();
   const mon = currentMon();
   if (!s || !mon) return;
+
+  if (typeof autoBattleOn === 'function' && autoBattleOn()) {
+    const cfg = autoSettings();
+    box.className = 'commands auto-panel';
+    box.innerHTML = '<div class="auto-card">' +
+      '<p class="auto-title">自动战斗中</p>' +
+      '<p class="auto-note">气血 ≤ ' + cfg.potionPct + '% 服丹 · ' +
+      (cfg.catchOn ? '灵兽 ≤ ' + cfg.catchPct + '% 结契' : '不自动结契') + '</p>' +
+      '<button type="button" class="btn-sm plain" id="auto-off">关闭自动</button>' +
+      '</div>';
+    const off = $b('auto-off');
+    if (off) off.addEventListener('click', function () { toggleAutoBattle(false); });
+    return;
+  }
 
   const skills = LB.skillsOf(mon);
   const items = battleItemIds().filter((id) => !itemBlockReason(id, mon)).length;
