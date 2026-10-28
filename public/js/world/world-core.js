@@ -64,7 +64,8 @@ Object.assign(WorldScene.prototype, {
     this.joyCenter = { x: 0, y: 0 };
     this.lastJoyStep = 0;
     this.domCleanup = [];
-    this.reduceMotion = !!(st && st.settings && st.settings.reduceMotion);
+    this.reduceMotion = !!(st && st.settings && st.settings.reduceMotion) ||
+      !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
   },
 
   preload() {
@@ -95,6 +96,7 @@ Object.assign(WorldScene.prototype, {
     this.buildDayNight();
     this.buildMinimap();
     this.bindInput();
+    this.updateInteractHint();
 
     const cam = this.cameras.main;
     cam.setBounds(0, 0, this.worldW, this.worldH);

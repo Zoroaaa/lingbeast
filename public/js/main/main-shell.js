@@ -9,6 +9,14 @@ function showView(id) {
   });
   if (typeof renderTutorial === 'function') renderTutorial();
   if (typeof processPendingCloudConflict === 'function') processPendingCloudConflict();
+  if (typeof setHudMenu === 'function') setHudMenu(false);
+  if (modalOpen()) return;
+  const active = byId(id);
+  if (!active) return;
+  active.setAttribute('tabindex', '-1');
+  try { active.focus({ preventScroll: true }); } catch (e) { try { active.focus(); } catch (e2) { /* 忽略 */ } }
+  const names = { 'view-title': '标题', 'view-world': '探索', 'view-battle': '战斗', 'view-end': '结局' };
+  if (typeof announce === 'function') announce(names[id] || '');
 }
 
 function toast(msg) {
@@ -20,13 +28,22 @@ function toast(msg) {
   void el.offsetWidth;
   el.classList.add('show');
   clearTimeout(toastTimerId);
-  toastTimerId = setTimeout(function () { el.hidden = true; }, 2600);
+  toastTimerId = setTimeout(function () { el.hidden = true; }, 3000);
+}
+
+function prefersReduceMotion() {
+  try {
+    return !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+  } catch (e) { return false; }
+}
+
+function effectiveReduceMotion() {
+  return !!(state && state.settings && state.settings.reduceMotion) || prefersReduceMotion();
 }
 
 async function fadeTo(fn) {
-  const reduce = state && state.settings ? state.settings.reduceMotion : false;
   const f = byId('fade');
-  if (reduce || !f) { fn(); return; }
+  if (effectiveReduceMotion() || !f) { fn(); return; }
   f.classList.add('on');
   await new Promise(function (r) { setTimeout(r, 380); });
   fn();
@@ -34,10 +51,23 @@ async function fadeTo(fn) {
   f.classList.remove('on');
 }
 
-function applyMotionPreference() {
+function applyUiPreferences() {
   if (!document || !document.body) return;
-  const reduce = !!(state && state.settings && state.settings.reduceMotion);
-  document.body.classList.toggle('reduce-motion', reduce);
+  const settings = (state && state.settings) || {};
+  document.documentElement.setAttribute('data-text-scale', settings.textScale === 'large' ? 'large' : 'normal');
+  document.body.dataset.touchControls = settings.touchControls || 'auto';
+  document.body.classList.toggle('reduce-motion', effectiveReduceMotion());
+}
+
+function applyMotionPreference() { applyUiPreferences(); }
+
+function announce(text) {
+  const live = byId('sr-live');
+  if (!live) return;
+  live.textContent = '';
+  const msg = String(text || '');
+  if (!msg) return;
+  setTimeout(function () { live.textContent = msg; }, 30);
 }
 
 function battleActive() {
@@ -93,6 +123,11 @@ function showDialog(name, lines, done) {
     return;
   }
   box.hidden = false;
+  box.setAttribute('role', 'dialog');
+  box.setAttribute('aria-labelledby', 'dialog-name');
+  box.setAttribute('aria-describedby', 'dialog-text');
+  box.setAttribute('tabindex', '-1');
+  try { box.focus({ preventScroll: true }); } catch (e) { box.focus(); }
   const nm = byId('dialog-name');
   if (nm) nm.textContent = activeDialog.name;
   const seal = byId('dialog-seal');
@@ -107,10 +142,14 @@ function showLine() {
   const el = byId('dialog-text');
   if (!el) return;
   clearInterval(activeDialog.timer);
+  const finish = function () {
+    activeDialog.typing = false;
+    if (typeof announce === 'function') announce(activeDialog.name + '：' + line);
+  };
   const delay = dialogDelay();
   if (!delay || !line.length) {
     el.textContent = line;
-    activeDialog.typing = false;
+    finish();
     return;
   }
   el.textContent = '';
@@ -121,7 +160,7 @@ function showLine() {
     el.textContent = line.slice(0, n);
     if (n >= line.length) {
       clearInterval(activeDialog.timer);
-      activeDialog.typing = false;
+      finish();
     }
   }, delay);
 }
@@ -134,6 +173,10 @@ function showChoice(name, prompt, options, done, onPick) {
   activeDialog = null;
   dlg.classList.add('choice-mode');
   dlg.hidden = false;
+  dlg.setAttribute('role', 'dialog');
+  dlg.setAttribute('aria-labelledby', 'dialog-name');
+  dlg.setAttribute('aria-describedby', 'dialog-text');
+  dlg.setAttribute('tabindex', '-1');
   const nm = byId('dialog-name');
   if (nm) nm.textContent = name || '旁白';
   const seal = byId('dialog-seal');
@@ -152,6 +195,19 @@ function showChoice(name, prompt, options, done, onPick) {
       pickChoice(Number(btn.getAttribute('data-choice-index')));
     });
   });
+  const first = box.querySelector('[data-choice-index]');
+  if (first) { try { first.focus({ preventScroll: true }); } catch (e) { first.focus(); } }
+  if (typeof announce === 'function') {
+    announce((name || '旁白') + '：' + (prompt || '') + '。选项：' +
+      (options || []).map(function (opt, i) { return (i + 1) + '，' + opt.label; }).join('；'));
+  }
+}
+
+function returnFocusToWorld() {
+  const v = byId('view-world');
+  if (!v || v.hidden) return;
+  v.setAttribute('tabindex', '-1');
+  try { v.focus({ preventScroll: true }); } catch (e) { try { v.focus(); } catch (e2) { /* 忽略 */ } }
 }
 
 function pickChoice(index) {
@@ -170,6 +226,7 @@ function pickChoice(index) {
     const dlg = byId('dialog');
     if (dlg) dlg.hidden = true;
     window.__uiTapGuardUntil = Date.now() + 400;
+    returnFocusToWorld();
     if (typeof choice.done === 'function') {
       try { choice.done(index); } catch (e) { console.error('[灵兽录] 抉择回调失败', e); }
     }
@@ -189,6 +246,7 @@ function advanceDialog() {
     const el = byId('dialog-text');
     if (el) el.textContent = activeDialog.full;
     activeDialog.typing = false;
+    if (typeof announce === 'function') announce(activeDialog.name + '：' + activeDialog.full);
     return;
   }
   activeDialog.i += 1;
@@ -199,6 +257,7 @@ function advanceDialog() {
     window.__uiTapGuardUntil = Date.now() + 400;
     const cb = activeDialog.done;
     activeDialog = null;
+    returnFocusToWorld();
     if (cb) {
       try { cb(); } catch (e) { console.error('[灵兽录] 对话回调失败', e); }
     }
@@ -211,28 +270,80 @@ function advanceDialog() {
 }
 
 // ---------- 模态框 ----------
-function openModal(title, bodyHtml, footHtml) {
+let modalReturnFocus = null;
+let modalFocusRelease = null;
+
+function setModalInert(on) {
+  const views = document.querySelectorAll('#app > .view');
+  Array.prototype.forEach.call(views, function (el) {
+    try { el.inert = !!on; } catch (e) { /* 旧浏览器忽略 */ }
+    if (on) el.setAttribute('aria-hidden', 'true');
+    else el.removeAttribute('aria-hidden');
+  });
+}
+
+function focusInitialInModal(m, opts) {
+  if (!m) return;
+  const preferred = opts && opts.autofocus ? m.querySelector(opts.autofocus) : m.querySelector('[data-autofocus]');
+  const target = preferred || (typeof uiFocusables === 'function' ? uiFocusables(m)[0] : null);
+  if (target && target.focus) {
+    try { target.focus({ preventScroll: true }); } catch (e) { target.focus(); }
+    return;
+  }
+  const title = byId('modal-title');
+  if (title) {
+    title.setAttribute('tabindex', '-1');
+    try { title.focus({ preventScroll: true }); } catch (e) { title.focus(); }
+  }
+}
+
+function openModal(title, bodyHtml, footHtml, opts) {
   const m = byId('modal');
   if (!m) return;
+  const wasOpen = !m.hidden;
+  const b = byId('modal-body');
+  const prevScroll = wasOpen && b ? b.scrollTop : 0;
+  const prevFocus = wasOpen ? uiFocusToken(document.activeElement) : null;
+
   const t = byId('modal-title');
   if (t) t.textContent = title || '';
-  const b = byId('modal-body');
   if (b) b.innerHTML = bodyHtml || '';
   const f = byId('modal-foot');
   if (f) f.innerHTML = footHtml || '';
-  if (typeof uiPixelize === 'function') uiPixelize(m);
   m.hidden = false;
+  m.setAttribute('role', 'dialog');
+  m.setAttribute('aria-modal', 'true');
+  m.setAttribute('aria-labelledby', 'modal-title');
+  if (typeof setHudMenu === 'function') setHudMenu(false);
+  if (typeof uiEnhanceTabs === 'function') uiEnhanceTabs(m);
+
+  if (!wasOpen) {
+    modalReturnFocus = uiFocusToken(document.activeElement);
+    setModalInert(true);
+    document.body.classList.add('modal-open');
+    modalFocusRelease = typeof uiTrapFocus === 'function' ? uiTrapFocus(m) : null;
+    focusInitialInModal(m, opts);
+  } else {
+    if (b) b.scrollTop = prevScroll;
+    if (!prevFocus || !uiRestoreFocus(prevFocus)) focusInitialInModal(m, opts);
+  }
 }
 
 function closeModal() {
   const m = byId('modal');
-  if (m) m.hidden = true;
+  if (!m || m.hidden) return;
+  m.hidden = true;
+  if (modalFocusRelease) { modalFocusRelease(); modalFocusRelease = null; }
+  setModalInert(false);
+  document.body.classList.remove('modal-open');
+  if (modalReturnFocus) uiRestoreFocus(modalReturnFocus);
+  modalReturnFocus = null;
   window.__uiTapGuardUntil = Date.now() + 400;
 }
 
 function confirmModal(title, text, okLabel, onOk, danger) {
   openModal(title, '<p class="note">' + text + '</p>',
-    '<button class="btn-sm plain" data-modal-cancel="1">再想想</button>' +
+    '<button class="btn-sm plain" data-modal-cancel="1" data-autofocus="1">再想想</button>' +
     '<button class="btn-sm ' + (danger ? 'danger' : 'solid') + '" data-modal-ok="1">' + okLabel + '</button>');
   const foot = byId('modal-foot');
   if (!foot) return;

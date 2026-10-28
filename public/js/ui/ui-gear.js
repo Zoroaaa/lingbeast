@@ -90,7 +90,11 @@ function renderGearPicker(mon, back) {
 
 function openGearPicker(mon, back) {
   if (!uiStateOrToast()) return;
-  renderGearPicker(mon, back);
+  const snap = typeof uiSnapshotPanel === 'function' ? uiSnapshotPanel() : null;
+  renderGearPicker(mon, function () {
+    if (typeof back === 'function') back();
+    if (typeof uiRestorePanel === 'function') uiRestorePanel(snap);
+  });
 }
 
 function gearBagHtml() {

@@ -63,7 +63,10 @@ function renderShop(shop, active) {
   }
 
   LB.openModal(shop.name || '山门货铺', tabs + bar + '<section class="sheet-page">' + page + '</section>', uiCloseFoot());
-  uiBind('[data-sheet-tab]', 'click', function (node) { renderShop(shop, node.getAttribute('data-sheet-tab')); });
+  uiBindTabs(function (tab) {
+    renderShop(shop, tab);
+    uiPanelTop();
+  });
   uiBind('[data-buy-item]', 'click', function (node) {
     var id = node.getAttribute('data-buy-item');
     var kind = node.getAttribute('data-buy-kind');

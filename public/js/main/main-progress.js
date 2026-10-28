@@ -54,9 +54,10 @@ function refreshTitle() {
     return;
   }
   const region = REGIONS[state.region];
-  const ch = chapterDef();
+  const bp = typeof bestiaryProgress === 'function' ? bestiaryProgress() : { seen: 0, total: 0 };
   prog.hidden = false;
-  prog.textContent = '第 ' + state.chapter + ' 章 · ' + (ch ? ch.title : '') + ' · ' + (region ? region.name : '');
+  prog.textContent = '第 ' + state.chapter + ' 章 · ' + (region ? region.name : '') +
+    (bp.total ? ' · 图鉴 ' + bp.seen + '/' + bp.total : '');
 }
 
 // ---------- 区域 ----------
@@ -103,10 +104,14 @@ function showRegionTitle(r) {
   box.classList.remove('show');
   void box.offsetWidth;
   box.classList.add('show');
+  const world = byId('view-world');
+  if (world) world.classList.add('region-intro');
+  if (typeof announce === 'function') announce(r.name + (r.subtitle ? ' · ' + r.subtitle : ''));
   clearTimeout(regionTitleTimer);
   regionTitleTimer = setTimeout(function () {
     box.hidden = true;
     box.classList.remove('show');
+    if (world) world.classList.remove('region-intro');
   }, 2200);
 }
 
@@ -120,6 +125,7 @@ function enterRegion(id, spawn, opts) {
   state.visited[id] = true;
   state.pos = { x: p.x, y: p.y };
   refreshWeatherGathers(id);
+  if (typeof showWorldLoading === 'function') showWorldLoading();
   if (window.World) {
     if (typeof World.resume === 'function') World.resume();
     if (typeof World.load === 'function') World.load(id, p);

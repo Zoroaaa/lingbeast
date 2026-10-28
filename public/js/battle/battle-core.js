@@ -46,7 +46,8 @@ function saveGame() {
 }
 function reduceMotion() {
   const s = saveGame();
-  return !!(s && s.settings && s.settings.reduceMotion);
+  return !!(s && s.settings && s.settings.reduceMotion) ||
+    !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
 }
 function battleWaitScale() {
   const s = saveGame();
@@ -65,7 +66,7 @@ function wait(ms) {
 }
 function shakeAllowed() {
   const s = saveGame();
-  return !(s && s.settings && s.settings.shake === false);
+  return !(s && s.settings && s.settings.shake === false) && !reduceMotion();
 }
 function battleSfx(name) {
   if (window.LB && LB.audio && typeof LB.audio.sfx === 'function') LB.audio.sfx(name);
@@ -122,17 +123,34 @@ function monView(m) {
 }
 
 // ---------- 日志 / 表现 ----------
+function clearLog() {
+  battle.lines = [];
+  const box = $b('battle-log');
+  if (box) box.innerHTML = '';
+}
+function appendLogRow(l) {
+  const box = $b('battle-log');
+  if (!box) return;
+  const row = document.createElement('p');
+  row.className = 'log-line ' + (l.cls || '');
+  row.textContent = l.text;
+  box.appendChild(row);
+  while (box.children.length > 5) box.removeChild(box.firstChild);
+  Array.prototype.forEach.call(box.children, function (el, i, list) {
+    el.style.opacity = String(0.4 + (i + 1) / list.length * 0.6);
+  });
+  box.scrollTop = box.scrollHeight;
+}
 function logLine(text, cls) {
   battle.lines.push({ text: text, cls: cls || '' });
   if (battle.lines.length > 5) battle.lines.shift();
-  renderLog();
+  appendLogRow({ text: text, cls: cls || '' });
 }
 function renderLog() {
   const box = $b('battle-log');
   if (!box) return;
-  box.innerHTML = battle.lines.map((l, i) =>
-    '<p class="log-line ' + l.cls + '" style="opacity:' + (0.4 + (i + 1) / battle.lines.length * 0.6) + '">' + l.text + '</p>'
-  ).join('');
+  box.innerHTML = '';
+  battle.lines.forEach(appendLogRow);
 }
 function logAccent(t) { logLine(t, 'accent'); }
 function logWarn(t) { logLine(t, 'warn'); }
@@ -143,7 +161,17 @@ function setText(id, text) {
 }
 function setBar(node, ratio) {
   if (!node) return;
-  node.style.transform = 'scaleX(' + clamp(ratio, 0, 1) + ')';
+  const v = clamp(ratio, 0, 1);
+  node.style.transform = 'scaleX(' + v + ')';
+  const box = node.parentElement;
+  if (box && box.getAttribute('role') === 'progressbar') {
+    const pct = Math.round(v * 100);
+    box.setAttribute('aria-valuemin', '0');
+    box.setAttribute('aria-valuemax', '100');
+    box.setAttribute('aria-valuenow', String(pct));
+    box.setAttribute('aria-valuetext', pct + '%');
+    box.classList.toggle('low', v > 0 && v <= 0.25);
+  }
 }
 
 function floatOver(container, text, cls) {

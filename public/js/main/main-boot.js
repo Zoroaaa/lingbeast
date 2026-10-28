@@ -223,16 +223,16 @@ function openAccountModal(tab) {
 
   const isReg = tab === 'register';
   openModal('道号 · 云端存档',
-    '<div class="auth-tabs">' +
-    '<button class="auth-tab' + (isReg ? '' : ' active') + '" data-tab="login">登录</button>' +
-    '<button class="auth-tab' + (isReg ? ' active' : '') + '" data-tab="register">注册</button></div>' +
+    '<div class="auth-tabs" role="tablist" aria-label="登录或注册">' +
+    '<button type="button" class="auth-tab' + (isReg ? '' : ' active') + '" data-tab="login" role="tab" aria-selected="' + (isReg ? 'false' : 'true') + '">登录</button>' +
+    '<button type="button" class="auth-tab' + (isReg ? ' active' : '') + '" data-tab="register" role="tab" aria-selected="' + (isReg ? 'true' : 'false') + '">注册</button></div>' +
     '<form id="auth-form" class="auth-form">' +
-    '<label><span>道号</span><input id="auth-name" autocomplete="username" maxlength="20" placeholder="3-20 位中文、字母或数字"></label>' +
+    '<label><span>道号</span><input id="auth-name" autocomplete="username" autocapitalize="off" spellcheck="false" maxlength="20" data-autofocus="1" placeholder="3-20 位中文、字母或数字"></label>' +
     '<label><span>密语</span><input id="auth-pass" type="password" autocomplete="current-password" maxlength="64" placeholder="至少 6 位"></label>' +
-    '<p class="auth-msg" id="auth-msg"></p>' +
+    '<p class="auth-msg" id="auth-msg" role="status" aria-live="polite"></p>' +
     '<button class="btn-sm solid" type="submit" id="auth-submit">' + (isReg ? '立契' : '入山') + '</button>' +
     '</form><p class="note">未登录也可完整游玩。登录后进度自动同步云端。</p>',
-    '<button class="btn-sm plain" id="acc-close">合上</button>');
+    '<button type="button" class="btn-sm plain" id="acc-close">合上</button>');
   const closeBtn = byId('acc-close');
   if (closeBtn) closeBtn.addEventListener('click', closeModal);
 
@@ -240,27 +240,49 @@ function openAccountModal(tab) {
   const body = byId('modal-body');
   if (body) {
     Array.prototype.forEach.call(body.querySelectorAll('[data-tab]'), function (b) {
-      b.addEventListener('click', function () { openAccountModal(b.getAttribute('data-tab')); });
+      b.addEventListener('click', function () {
+        mode = b.getAttribute('data-tab') === 'register' ? 'register' : 'login';
+        Array.prototype.forEach.call(body.querySelectorAll('[data-tab]'), function (tabBtn) {
+          var on = tabBtn === b;
+          tabBtn.classList.toggle('active', on);
+          tabBtn.setAttribute('aria-selected', on ? 'true' : 'false');
+        });
+        const submit = byId('auth-submit');
+        if (submit) submit.textContent = mode === 'register' ? '立契' : '入山';
+        const pass = byId('auth-pass');
+        if (pass) pass.setAttribute('autocomplete', mode === 'register' ? 'new-password' : 'current-password');
+      });
     });
   }
   const form = byId('auth-form');
   if (!form) return;
   form.addEventListener('submit', async function (e) {
     e.preventDefault();
-    const name = byId('auth-name').value.trim();
-    const pass = byId('auth-pass').value;
+    const nameInput = byId('auth-name');
+    const passInput = byId('auth-pass');
+    const submit = byId('auth-submit');
+    const name = nameInput ? nameInput.value.trim() : '';
+    const pass = passInput ? passInput.value : '';
     const msg = byId('auth-msg');
-    msg.textContent = '灵息交缠……';
-    msg.className = 'auth-msg';
+    if (submit) { submit.disabled = true; submit.setAttribute('aria-busy', 'true'); }
+    if (msg) {
+      msg.textContent = '灵息交缠……';
+      msg.className = 'auth-msg';
+      msg.setAttribute('role', 'status');
+    }
     const fn = mode === 'register' ? Cloud.register : Cloud.login;
-    const r = await fn(name, pass);
+    let r = { ok: false, error: '失败，请再试' };
+    try { r = await fn(name, pass); } catch (err) { r = { ok: false, error: '云端未应 · 请稍后再试' }; }
     if (!r.ok) {
-      msg.textContent = r.error || '失败，请再试';
-      msg.className = 'auth-msg error';
+      if (msg) {
+        msg.textContent = r.error || '失败，请再试';
+        msg.className = 'auth-msg error';
+        msg.setAttribute('role', 'alert');
+      }
+      if (submit) { submit.disabled = false; submit.removeAttribute('aria-busy'); }
       return;
     }
-    msg.textContent = '已连上云端';
-    msg.className = 'auth-msg ok';
+    if (msg) { msg.textContent = '已连上云端'; msg.className = 'auth-msg ok'; }
     updateHud();
     const pulled = await Cloud.pull();
     if (pulled.ok && pulled.save) adoptCloud(pulled.save);
@@ -300,7 +322,66 @@ function interactNearby() {
   else if (typeof sc.talkNearby === 'function') sc.talkNearby();
 }
 
+// ---------- 移动端 HUD 菜单 ----------
+function hudMenuOpen() {
+  const hud = document.querySelector('.world-hud');
+  return !!(hud && hud.classList.contains('nav-open'));
+}
+
+function setHudMenu(open, focus) {
+  const hud = document.querySelector('.world-hud');
+  const btn = byId('btn-menu');
+  if (!hud || !btn) return;
+  hud.classList.toggle('nav-open', !!open);
+  document.body.classList.toggle('hud-menu-open', !!open);
+  btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+  if (open && focus !== false) {
+    const first = document.querySelector('#hud-nav .link-btn');
+    if (first) { try { first.focus({ preventScroll: true }); } catch (e) { first.focus(); } }
+  } else if (!open && focus === true) {
+    try { btn.focus({ preventScroll: true }); } catch (e) { btn.focus(); }
+  }
+}
+
+function bindHudMenu() {
+  const btn = byId('btn-menu');
+  if (btn) btn.addEventListener('click', function () { setHudMenu(!hudMenuOpen()); });
+  const nav = byId('hud-nav');
+  if (nav) {
+    nav.addEventListener('click', function (e) {
+      const link = e.target && e.target.closest ? e.target.closest('.link-btn') : null;
+      if (link) setHudMenu(false);
+    }, true);
+  }
+  document.addEventListener('pointerdown', function (e) {
+    if (!hudMenuOpen()) return;
+    const hud = document.querySelector('.world-hud');
+    if (hud && e.target && hud.contains(e.target)) return;
+    setHudMenu(false);
+  }, true);
+  window.addEventListener('resize', function () {
+    if (window.innerWidth > 820) setHudMenu(false);
+  });
+}
+
+function bindHudHeight() {
+  const hud = document.querySelector('.world-hud');
+  const view = byId('view-world');
+  if (!hud || !view) return;
+  const update = function () {
+    view.style.setProperty('--hud-h', Math.round(hud.getBoundingClientRect().height) + 'px');
+  };
+  update();
+  if (window.ResizeObserver) {
+    try { new ResizeObserver(update).observe(hud); } catch (e) { /* 忽略 */ }
+  } else {
+    window.addEventListener('resize', update);
+  }
+}
+
 function bindUi() {
+  bindHudMenu();
+  bindHudHeight();
   on('btn-start', 'click', function () {
     if (state || hasStoredSave()) {
       confirmModal('另有旧途', '本地已有进度。入山会重新起笔，旧存档将被覆盖。', '重新起笔', function () {
@@ -363,6 +444,7 @@ function bindUi() {
       return;
     }
     if (e.key === 'Escape') {
+      if (hudMenuOpen()) { e.preventDefault(); setHudMenu(false, true); return; }
       if (modalOpen()) { e.preventDefault(); closeModal(); }
       return;
     }
@@ -408,6 +490,9 @@ LB.enterRegion = enterRegion;
 LB.updateHud = updateHud;
 
 LB.toast = toast;
+LB.announce = announce;
+LB.applyUiPreferences = applyUiPreferences;
+LB.applyMotionPreference = applyUiPreferences;
 LB.showDialog = showDialog;
 LB.advanceDialog = advanceDialog;
 LB.openModal = openModal;
@@ -487,7 +572,28 @@ LB.maxLevel = MAX_LV;
 LB.pauseWorld = pauseWorld;
 LB.resumeWorld = function () { if (window.World && typeof World.resume === 'function') World.resume(); };
 
-LB.onWorldReady = function () { updateHud(); };
+let worldLoadingTimer = null;
+function showWorldLoading() {
+  const el = byId('world-loading');
+  if (!el) return;
+  if (window.World && World.game && World.game.isBooted) return;
+  el.hidden = false;
+  clearTimeout(worldLoadingTimer);
+  worldLoadingTimer = setTimeout(hideWorldLoading, 5000);
+}
+function hideWorldLoading() {
+  const el = byId('world-loading');
+  if (el) el.hidden = true;
+  clearTimeout(worldLoadingTimer);
+  worldLoadingTimer = null;
+}
+LB.showWorldLoading = showWorldLoading;
+LB.hideWorldLoading = hideWorldLoading;
+
+LB.onWorldReady = function () {
+  hideWorldLoading();
+  updateHud();
+};
 
 // ---------- 启动 ----------
 (function boot() {
@@ -497,6 +603,12 @@ LB.onWorldReady = function () { updateHud(); };
   if (titleBeast && typeof beastSvg === 'function') titleBeast.innerHTML = beastSvg('yanwei', true);
   state = loadLocal();
   if (typeof applyMotionPreference === 'function') applyMotionPreference();
+  if (window.matchMedia) {
+    try {
+      const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
+      if (mq && mq.addEventListener) mq.addEventListener('change', applyUiPreferences);
+    } catch (e) { /* 忽略 */ }
+  }
   showView('view-title');
   updateHud();
   refreshTitle();

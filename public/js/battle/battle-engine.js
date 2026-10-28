@@ -425,12 +425,27 @@ async function attemptCatch() {
     floatOver($b('foe-art'), '契成', 'heal');
     battleSfx('catch');
     if (typeof tutorialEvent === 'function') tutorialEvent('catch:success');
-    await wait(500);
+    await wait((typeof effectiveReduceMotion === 'function' && effectiveReduceMotion()) ? 0 : 500);
+    const catchJade = calcJade(foe);
+    if (typeof showBattleResult === 'function') {
+      await showBattleResult({
+        eyebrow: '契成',
+        title: '结契',
+        foeName: foe.name,
+        rows: [
+          { label: '灵玉', value: '+' + catchJade, accent: true },
+          { label: '图鉴', value: foe.name + ' · 已记' },
+          { label: '同伴', value: '收入队伍或灵兽栏', accent: true },
+        ],
+        note: typeof autoBattleOn === 'function' && autoBattleOn() ? '自动战斗中，即将返回山海。' : '',
+        auto: typeof autoBattleOn === 'function' && autoBattleOn(),
+      });
+    }
     if (window.LB && typeof LB.returnToWorld === 'function') {
       await LB.returnToWorld({
         win: true, caught: true,
         foeSp: foe.sp, foeLv: foe.lv, foeName: foe.name,
-        jade: calcJade(foe), drops: [],
+        jade: catchJade, drops: [],
         message: '结契成功 · ' + foe.name + ' 随你同行',
       });
     }

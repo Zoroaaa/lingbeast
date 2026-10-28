@@ -21,6 +21,7 @@ function openBattle(cfg) {
   battle.busy = false;
   battle.forced = false;
   battle.lines = [];
+  if (typeof clearLog === 'function') clearLog();
   battle.bond = 0;
   battle.bondUsed = false;
   battle.bossId = cfg.bossId || null;
@@ -345,15 +346,18 @@ function renderStatusChips(box, statuses) {
   if (!box) return;
   const keys = Object.keys(statuses || {}).filter((k) => STATUSES[k]);
   if (!keys.length) { box.innerHTML = ''; return; }
-  box.innerHTML = keys.map((k) =>
-    '<span class="status-chip" style="--st:' + STATUSES[k].color + '" title="' + STATUSES[k].desc + '">' +
-    STATUSES[k].ch + ' ' + statuses[k].turns + '</span>'
-  ).join('');
+  box.innerHTML = keys.map((k) => {
+    const st = STATUSES[k];
+    return '<span class="status-chip" style="--st:' + st.color + ';--st-soft:' + (st.soft || '') + ';--st-ink:' + (st.ink || '') +
+      '" title="' + uiEsc(st.desc) + '" aria-label="' + uiEsc(st.name + '，剩余 ' + statuses[k].turns + ' 回合：' + st.desc) + '">' +
+      uiEsc(st.ch) + ' ' + statuses[k].turns + '</span>';
+  }).join('');
 }
 
 function updateBondUI() {
   const fill = $b('bond-fill');
-  if (fill) fill.style.transform = 'scaleX(' + clamp(battle.bond / 100, 0, 1) + ')';
+  const ratio = clamp(battle.bond / 100, 0, 1);
+  if (fill) fill.style.transform = 'scaleX(' + ratio + ')';
   const label = $b('bond-label');
   if (label) {
     if (battle.bondUsed) label.textContent = '合契已用';
@@ -361,6 +365,12 @@ function updateBondUI() {
   }
   const bond = $b('bond');
   if (bond) bond.classList.toggle('ready', battle.bond >= 100 && !battle.bondUsed);
+  const track = $b('bond-track');
+  if (track) {
+    const pct = Math.round(ratio * 100);
+    track.setAttribute('aria-valuenow', String(pct));
+    track.setAttribute('aria-valuetext', pct + '%');
+  }
 }
 
 function renderComboMeter() {
@@ -417,6 +427,7 @@ function renderTurnOrder() {
   const meSpd = effStats(mon, false).spd;
   const foeSpd = effStats(battle.foe, true).spd;
   const order = meSpd >= foeSpd ? [monName(mon), battle.foe.name] : [battle.foe.name, monName(mon)];
+  box.setAttribute('aria-label', '行动顺序：' + order.join('，'));
   box.innerHTML = order.map((n, i) =>
     '<span class="turn-token' + (i === 0 ? ' first' : '') + '">' + n + '</span>'
   ).join('<span class="turn-sep">→</span>');
@@ -434,7 +445,8 @@ function renderPartyStrip() {
     const chips = Object.keys(m.statuses || {}).filter((k) => STATUSES[k]).map((k) =>
       '<span class="pc-st" title="' + STATUSES[k].name + '">' + STATUSES[k].ch + '</span>'
     ).join('');
-    return '<button class="party-chip' + (i === battle.idx ? ' active' : '') + (m.hp <= 0 ? ' down' : '') + '" data-switch="' + i + '">' +
+    return '<button type="button" class="party-chip' + (i === battle.idx ? ' active' : '') + (m.hp <= 0 ? ' down' : '') + '" data-switch="' + i + '"' +
+      ' aria-label="' + uiEsc(st.name + ' Lv.' + m.lv + '，气血 ' + m.hp + '/' + st.hp + (i === battle.idx ? '，当前出战' : '')) + '">' +
       '<span class="pc-name">' + st.name + '</span>' +
       '<span class="pc-lv">Lv.' + m.lv + '</span>' +
       (chips ? '<span class="pc-states">' + chips + '</span>' : '') +
@@ -456,14 +468,45 @@ function renderPartyStrip() {
 
 // ---------- 指令 ----------
 function addCmd(label, sub, handler, disabled, cls) {
+  const box = $b('commands');
+  const index = box ? box.children.length + 1 : 1;
   const b = document.createElement('button');
+  b.type = 'button';
   b.className = 'cmd ' + (cls || '');
-  b.innerHTML = '<span class="cmd-label">' + label + '</span>' + (sub ? '<span class="cmd-sub">' + sub + '</span>' : '');
+  b.setAttribute('data-cmd-index', String(index));
+  b.setAttribute('aria-keyshortcuts', String(index));
+  b.setAttribute('aria-label', label + (sub ? '，' + sub : '') + (disabled ? '，暂不可用' : ''));
+  b.innerHTML = '<span class="cmd-key" aria-hidden="true">' + index + '</span>' +
+    '<span class="cmd-label">' + label + '</span>' + (sub ? '<span class="cmd-sub">' + sub + '</span>' : '');
   b.disabled = !!disabled;
   if (!disabled && handler) b.addEventListener('click', handler);
-  const box = $b('commands');
   if (box) box.appendChild(b);
   return b;
+}
+
+function bindBattleKeys() {
+  if (battle.keyBound) return;
+  battle.keyBound = true;
+  document.addEventListener('keydown', function (e) {
+    if (!battle.on || battle.over || battle.busy) return;
+    if (typeof modalOpen === 'function' && modalOpen()) return;
+    if (typeof activeDialog !== 'undefined' && activeDialog) return;
+    const box = $b('commands');
+    if (!box) return;
+    if (e.key === 'Escape' || e.key === 'Backspace') {
+      const back = box.querySelector('.cmd.back');
+      if (back) { e.preventDefault(); back.click(); }
+      return;
+    }
+    const n = parseInt(e.key, 10);
+    if (!n || n < 1 || n > 9) return;
+    const cmds = box.querySelectorAll('.cmd');
+    const target = cmds[n - 1];
+    if (!target) return;
+    e.preventDefault();
+    if (!target.disabled) target.click();
+    else if (typeof announce === 'function') announce(target.getAttribute('aria-label') || '该指令暂不可用');
+  });
 }
 
 function battleItemIds() {
@@ -491,6 +534,7 @@ function applyBattleSpeedClass() {
 function bindBattleTools() {
   if (battleToolsBound) return;
   battleToolsBound = true;
+  bindBattleKeys();
   const auto = $b('bt-auto');
   if (auto) auto.addEventListener('click', function () { toggleAutoBattle(); });
   Array.prototype.forEach.call(document.querySelectorAll('[data-battle-speed]'), function (b) {
@@ -509,7 +553,9 @@ function renderBattleTools() {
   }
   const speed = currentBattleSpeed();
   Array.prototype.forEach.call(document.querySelectorAll('[data-battle-speed]'), function (b) {
-    b.classList.toggle('active', b.getAttribute('data-battle-speed') === speed);
+    const on = b.getAttribute('data-battle-speed') === speed;
+    b.classList.toggle('active', on);
+    b.setAttribute('aria-pressed', on ? 'true' : 'false');
   });
 }
 
@@ -584,7 +630,8 @@ function renderCommands() {
   else if (battle.bond >= 100) bondSub = '契势 100 · 可合';
   addCmd('合契', bondSub, showBondTargets, bondOff);
 
-  addCmd('遁走', battle.foe.isBoss ? 'Boss 不可' : '六成', flee, battle.foe.isBoss, 'danger');
+  addCmd('遁走', battle.foe.isBoss ? '首领战不可遁走' : '六成把握', flee, battle.foe.isBoss, 'danger');
+  if (typeof announce === 'function') announce('你的回合，选择指令：' + (skills.length ? '术法、结契、合契、丹药、换灵、遁走' : '结契、丹药、换灵、遁走'));
 }
 
 function showSkills() {
@@ -627,7 +674,7 @@ function itemBlockReason(id, mon) {
   if (it.use === 'heal') return mon.hp >= monMax(mon) ? '气血已满' : '';
   if (it.use === 'cleanse') return hasNegative(mon) ? '' : '无负面状态';
   if (it.use === 'revive') return faintCount() > 0 ? '' : '无力竭后备';
-  if (it.use === 'escape') return battle.foe && battle.foe.isBoss ? 'Boss 不可遁' : '';
+  if (it.use === 'escape') return battle.foe && battle.foe.isBoss ? '首领战不可遁走' : '';
   if (it.use === 'focus') return mon.statuses && mon.statuses.charge ? '已蓄势' : '';
   return '';
 }
@@ -676,4 +723,51 @@ function showBondTargets() {
   });
   if (!n) addCmd('合契', '无后备灵兽', null, true);
   addCmd('返回', '收起', renderCommands, false, 'back');
+}
+
+// ---------- 战果页 ----------
+function showBattleResult(summary) {
+  return new Promise(function (resolve) {
+    const overlay = $b('battle-overlay');
+    if (!overlay) { resolve(); return; }
+    const title = (summary && summary.title) || '得胜';
+    const eyebrow = (summary && summary.eyebrow) || '战果';
+    const rows = (summary && summary.rows) || [];
+    const auto = !!(summary && summary.auto);
+    overlay.hidden = false;
+    overlay.setAttribute('role', 'dialog');
+    overlay.setAttribute('aria-modal', 'true');
+    overlay.setAttribute('aria-label', title);
+    overlay.innerHTML = '<div class="panel battle-result">' +
+      '<p class="eyebrow">' + uiEsc(eyebrow) + '</p>' +
+      '<h3>' + uiEsc(title) + '</h3>' +
+      '<p class="result-foe">' + uiEsc(summary && summary.foeName ? summary.foeName : '') + '</p>' +
+      '<ul class="result-list">' + rows.map(function (row) {
+        return '<li><span>' + uiEsc(row.label) + '</span><b' + (row.accent ? ' class="accent"' : '') + '>' + uiEsc(row.value) + '</b></li>';
+      }).join('') + '</ul>' +
+      (summary && summary.note ? '<p class="sheet-note">' + uiEsc(summary.note) + '</p>' : '') +
+      '<div class="row"><button type="button" class="btn-sm solid" id="result-continue" data-autofocus="1">继续</button></div>' +
+      '</div>';
+    const btn = $b('result-continue');
+    const release = typeof uiTrapFocus === 'function' ? uiTrapFocus(overlay) : function () {};
+    let done = false;
+    let timer = null;
+    const finish = function () {
+      if (done) return;
+      done = true;
+      if (timer) clearTimeout(timer);
+      release();
+      overlay.hidden = true;
+      overlay.innerHTML = '';
+      resolve();
+    };
+    if (btn) {
+      btn.addEventListener('click', finish);
+      try { btn.focus({ preventScroll: true }); } catch (e) { btn.focus(); }
+    }
+    if (typeof announce === 'function') {
+      announce(title + '。' + rows.map(function (r) { return r.label + ' ' + r.value; }).join('，') + '。继续按钮');
+    }
+    if (auto) timer = setTimeout(finish, (typeof reduceMotion === 'function' && reduceMotion()) ? 0 : 1400);
+  });
 }

@@ -123,14 +123,57 @@ Object.assign(WorldScene.prototype, {
     return null;
   },
 
-  interactNearby() {
-    if (!this.player) return;
+  nearbyEntity() {
+    if (!this.player) return null;
     const p = this.playerTile;
-    const near = this.entitySprites.find((e) => {
+    return this.entitySprites.find((e) => {
       if (['npc', 'boss', 'gather', 'chest', 'stele', 'herb', 'secret'].indexOf(e.kind) < 0) return false;
       return Math.max(Math.abs(e.x - p.x), Math.abs(e.y - p.y)) <= 1;
-    });
-    if (near) this.interactWith(near);
+    }) || null;
+  },
+
+  interactLabel(ent) {
+    if (!ent) return { talk: '交谈', touch: '契', aria: '附近没有可交互目标' };
+    const map = {
+      npc: { talk: '交谈', touch: '谈', aria: '与附近的人交谈' },
+      boss: { talk: '挑战', touch: '战', aria: '挑战附近的灵兽' },
+      gather: { talk: '采集', touch: '采', aria: '采集附近的灵物' },
+      herb: { talk: '采药', touch: '采', aria: '采集附近的草药' },
+      chest: { talk: '开启', touch: '启', aria: '开启附近的宝箱' },
+      stele: { talk: '拓印', touch: '拓', aria: '拓印附近的碑文' },
+      secret: { talk: '探查', touch: '查', aria: '探查附近的秘处' },
+    };
+    const hit = map[ent.kind] || map.npc;
+    const name = ent.ref && ent.ref.name ? ent.ref.name : '';
+    return { talk: hit.talk, touch: hit.touch, aria: hit.aria + (name ? '：' + name : '') };
+  },
+
+  updateInteractHint() {
+    const ent = this.nearbyEntity();
+    const label = this.interactLabel(ent);
+    const talk = document.getElementById('btn-talk');
+    const touch = document.getElementById('btn-interact');
+    if (talk) {
+      talk.textContent = label.talk;
+      talk.setAttribute('aria-label', label.aria);
+      talk.setAttribute('aria-disabled', ent ? 'false' : 'true');
+    }
+    if (touch) {
+      touch.textContent = label.touch;
+      touch.setAttribute('aria-label', label.aria);
+      touch.setAttribute('aria-disabled', ent ? 'false' : 'true');
+    }
+    return ent;
+  },
+
+  interactNearby() {
+    if (!this.player) return;
+    const near = this.updateInteractHint();
+    if (!near) {
+      if (LB.toast) LB.toast('靠近人物或灵物再试');
+      return;
+    }
+    this.interactWith(near);
   },
 
   talkNearby() {
@@ -145,6 +188,7 @@ Object.assign(WorldScene.prototype, {
       if (typeof fn !== 'function') return;
       try { fn(); } catch (e) { console.error('[灵兽录] 交互失败', e); }
       this.drawMinimap();
+      this.updateInteractHint();
     };
     if (ent.kind === 'npc') {
       this.approach(ent, () => run(() => LB.talkTo(ent.ref.id)));
@@ -357,6 +401,7 @@ Object.assign(WorldScene.prototype, {
 
     this.revealAround(tile.x, tile.y, 5);
     this.drawMinimap();
+    this.updateInteractHint();
 
     const exit = (this.region.exits || []).find((e) => e.x === tile.x && e.y === tile.y);
     if (exit) {
@@ -427,7 +472,9 @@ Object.assign(WorldScene.prototype, {
       hold: 80,
       onComplete: () => mark.destroy(),
     });
-    this.cameras.main.shake(90, 0.0015);
+    const st = window.LB && LB.saveState ? LB.saveState() : null;
+    const shakeOff = !!(st && st.settings && st.settings.shake === false) || this.reduceMotion;
+    if (!shakeOff) this.cameras.main.shake(90, 0.0015);
     this.time.delayedCall(420, finish);
   },
 
@@ -488,6 +535,7 @@ Object.assign(WorldScene.prototype, {
     this.entitySprites.splice(idx, 1);
     if (kind === 'boss') { this.bossNode = null; this.bossHit = null; }
     this.drawMinimap();
+    this.updateInteractHint();
   },
 
   highlightEntity() {},

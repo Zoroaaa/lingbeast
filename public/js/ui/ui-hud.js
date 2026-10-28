@@ -1,24 +1,6 @@
 // 灵兽录 · 界面层 · HUD、队伍与灵兽栏
 
 // ---------- HUD ----------
-function paintTitleProgress() {
-  var prog = $('title-progress');
-  var cont = $('btn-continue');
-  var s = LB.saveState();
-  if (!prog) return;
-  if (!s) {
-    prog.hidden = true;
-    prog.textContent = '';
-    if (cont) cont.hidden = true;
-    return;
-  }
-  var r = REGIONS[s.region];
-  var bp = LB.bestiaryProgress ? LB.bestiaryProgress() : { seen: 0, total: 16 };
-  prog.hidden = false;
-  prog.textContent = '第 ' + s.chapter + ' 章 · ' + (r ? r.name : '') + ' · 图鉴 ' + bp.seen + '/' + bp.total;
-  if (cont) cont.hidden = false;
-}
-
 function renderPartyMini(s) {
   var box = $('party-mini');
   if (!box) return;
@@ -28,17 +10,18 @@ function renderPartyMini(s) {
     var sp = SPECIES[mon.sp] || {};
     var st = uiStatsOf(mon);
     var el = uiElOf(sp.el);
-    html += '<button type="button" class="mini-mon' + (mon.hp <= 0 ? ' down' : '') + '" data-team-open="1" style="--el:' + el.color + '" title="' + uiEsc(sp.name) + '">' +
-      '<span class="mini-el">' + uiEsc(el.ch) + '</span>' +
+    var label = (sp.name || '灵兽') + ' Lv.' + mon.lv + '，气血 ' + Math.max(0, mon.hp) + '/' + st.hp;
+    html += '<button type="button" class="mini-mon' + (mon.hp <= 0 ? ' down' : '') + '" data-team-open="1" aria-label="' + uiEsc(label) + '" style="--el:' + el.color + ';--el-ink:' + (el.ink || el.color) + ';--el-soft:' + el.soft + '" title="' + uiEsc(sp.name) + '">' +
+      '<span class="mini-el" aria-hidden="true">' + uiEsc(el.ch) + '</span>' +
       '<span class="mini-info"><b>' + uiEsc(sp.name || '灵兽') + '</b><i>Lv.' + mon.lv + '</i></span>' +
-      '<span class="mini-bar"><i style="width:' + uiPctOf(Math.max(0, mon.hp), st.hp) + '%"></i></span>' +
+      '<span class="mini-bar" aria-hidden="true"><i style="width:' + uiPctOf(Math.max(0, mon.hp), st.hp) + '%"></i></span>' +
       '</button>';
   });
   for (var i = team.length; i < 3; i += 1) {
-    html += '<button type="button" class="mini-mon empty" data-team-open="1">' +
-      '<span class="mini-el">空</span>' +
+    html += '<button type="button" class="mini-mon empty" data-team-open="1" aria-label="空契位，待结契">' +
+      '<span class="mini-el" aria-hidden="true">空</span>' +
       '<span class="mini-info"><b>契位</b><i>待结</i></span>' +
-      '<span class="mini-bar"><i style="width:0"></i></span>' +
+      '<span class="mini-bar" aria-hidden="true"><i style="width:0"></i></span>' +
       '</button>';
   }
   box.innerHTML = html;
@@ -67,7 +50,6 @@ function renderHud() {
     if (minimap) minimap.textContent = '';
     var party = $('party-mini');
     if (party) party.innerHTML = '';
-    paintTitleProgress();
     return;
   }
 
@@ -95,10 +77,6 @@ function renderHud() {
   }
 
   renderPartyMini(s);
-  paintTitleProgress();
-  // main.js 的 refreshTitle 紧随 renderHud 同步执行，延后一笔保证标题页显示图鉴进度。
-  if (typeof Promise === 'function') Promise.resolve().then(paintTitleProgress);
-  else setTimeout(paintTitleProgress, 0);
 }
 
 // ---------- 队伍 / 灵兽栏 ----------
@@ -132,26 +110,26 @@ function beastCardHtml(mon, index, place) {
 
   var actions = '';
   if (place === 'team') {
-    if (!isLead) actions += '<button type="button" class="nes-btn is-small" data-lead="' + uiEsc(mon.uid) + '">设为首发</button>';
-    actions += '<button type="button" class="nes-btn is-small" data-store="' + uiEsc(mon.uid) + '">存入灵兽栏</button>';
-    actions += '<button type="button" class="nes-btn is-small ' + (check.ok ? 'is-success' : 'is-disabled') + '" data-evolve="' + uiEsc(mon.uid) + '"' +
+    if (!isLead) actions += '<button type="button" class="btn-sm plain" data-lead="' + uiEsc(mon.uid) + '">设为首发</button>';
+    actions += '<button type="button" class="btn-sm plain" data-store="' + uiEsc(mon.uid) + '">存入灵兽栏</button>';
+    actions += '<button type="button" class="btn-sm ' + (check.ok ? 'solid' : 'plain') + '" data-evolve="' + uiEsc(mon.uid) + '"' +
       (check.ok ? '' : ' disabled title="' + uiEsc(check.msg) + '"') + '>进化</button>';
-    actions += '<button type="button" class="nes-btn is-small" data-passive="' + uiEsc(mon.uid) + '">灵诀</button>';
-    actions += '<button type="button" class="nes-btn is-small" data-gear="' + uiEsc(mon.uid) + '">灵器</button>';
+    actions += '<button type="button" class="btn-sm plain" data-passive="' + uiEsc(mon.uid) + '">灵诀</button>';
+    actions += '<button type="button" class="btn-sm plain" data-gear="' + uiEsc(mon.uid) + '">灵器</button>';
   } else {
-    actions += '<button type="button" class="nes-btn is-small is-success" data-take="' + uiEsc(mon.uid) + '">取出到队伍</button>';
-    actions += '<button type="button" class="nes-btn is-small" data-view="' + uiEsc(mon.uid) + '">查看</button>';
-    actions += '<button type="button" class="nes-btn is-small is-error" data-release="' + uiEsc(mon.uid) + '">放归</button>';
+    actions += '<button type="button" class="btn-sm solid" data-take="' + uiEsc(mon.uid) + '">取出到队伍</button>';
+    actions += '<button type="button" class="btn-sm plain" data-view="' + uiEsc(mon.uid) + '">查看</button>';
+    actions += '<button type="button" class="btn-sm danger" data-release="' + uiEsc(mon.uid) + '">放归</button>';
   }
 
-  return '<article class="beast-card" style="--el:' + el.color + '">' +
+  return '<article class="beast-card" style="--el:' + el.color + ';--el-ink:' + (el.ink || el.color) + ';--el-soft:' + el.soft + '">' +
     '<div class="beast-head">' +
     beastSvg(mon.sp) +
     '<div class="beast-title"><b>' + uiEsc(sp.name) + '</b><span>Lv.' + mon.lv + ' · ' + uiEsc(el.ch) + '</span></div>' +
-    (isLead ? '<span class="nes-badge"><span class="is-success">首发</span></span>' : '') +
+    (isLead ? '<span class="badge lead">首发</span>' : '') +
     '</div>' +
     '<div class="beast-stats">' +
-    '<progress class="nes-progress is-success nes-beast-hp" value="' + Math.max(0, mon.hp) + '" max="' + st.hp + '" aria-label="气血"></progress>' +
+    uiBarHtml(mon.hp, st.hp, 'beast-hp', '气血') +
     '<span>气血 ' + Math.max(0, mon.hp) + '/' + st.hp + '</span>' +
     '<span>攻 ' + st.atk + '</span><span>防 ' + st.def + '</span><span>速 ' + st.spd + '</span>' +
     '<span>资质 ' + tal.label + '</span><span>亲密 ' + (mon.bond || 0) + '</span>' +
@@ -209,8 +187,9 @@ function renderTeam(active, stable) {
       list + '</section>' + cageHtml(s),
     uiCloseFoot());
 
-  uiBind('[data-sheet-tab]', 'click', function (node) {
-    renderTeam(node.getAttribute('data-sheet-tab'), stable);
+  uiBindTabs(function (tab) {
+    renderTeam(tab, stable);
+    uiPanelTop();
   });
 
   uiBind('[data-lead]', 'click', function (node) {
@@ -340,6 +319,11 @@ function openStable() {
 function openPassivePicker(mon, back) {
   var s = LB.saveState();
   if (!s) return;
+  var snap = typeof uiSnapshotPanel === 'function' ? uiSnapshotPanel() : null;
+  var backToTeam = function () {
+    if (typeof back === 'function') back();
+    if (typeof uiRestorePanel === 'function') uiRestorePanel(snap);
+  };
   var owned = Object.keys(PASSIVES).filter(function (id) { return LB.hasPassive(id); });
   var rows = '';
   if (!owned.length) {
@@ -371,14 +355,14 @@ function openPassivePicker(mon, back) {
     LB.persist();
     LB.toast('已佩灵诀 · ' + PASSIVES[id].name);
     LB.updateHud();
-    back();
+    backToTeam();
   });
   uiBind('[data-passive-clear]', 'click', function () {
     mon.passive = null;
     LB.persist();
     LB.toast('灵诀已卸下');
     LB.updateHud();
-    back();
+    backToTeam();
   });
-  uiBind('[data-passive-back]', 'click', back);
+  uiBind('[data-passive-back]', 'click', backToTeam);
 }

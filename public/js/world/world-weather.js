@@ -185,7 +185,8 @@ Object.assign(WorldScene.prototype, {
 
   drawMinimap() {
     const ctx = this.mapCtx;
-    if (!ctx) return;
+    // 战斗/标题态会隐藏探索视图；此时整图重绘没有意义，也省掉每步一次的全量 fillRect。
+    if (!ctx || !this.mapCanvas || !this.mapCanvas.isConnected || this.mapCanvas.offsetParent === null) return;
     const r = this.region;
     const cw = this.mapCanvas.width || 180;
     const ch = this.mapCanvas.height || 120;

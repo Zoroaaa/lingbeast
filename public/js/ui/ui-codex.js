@@ -20,7 +20,8 @@ function bestiaryCardHtml(spid) {
   var art = known ? beastSvg(spid) : '<span class="beast-unknown">?</span>';
   // 稀有度始终显示：未见的灵兽只封住立绘，不封住卡框，让收藏目标有层次
   var badge = '<span class="rarity-badge" title="稀有度 ' + sp.rarity + ' · ' + r.name + '">' + sp.rarity + '</span>';
-  return '<article class="beast-card r-' + sp.rarity + (known ? '' : ' locked') + '" data-codex-beast="' + uiEsc(spid) + '" role="button" tabindex="0" style="--el:' + uiElOf(sp.el).color + ';--rar:' + r.color + ';--rar-soft:' + r.soft + '">' +
+  return '<article class="beast-card r-' + sp.rarity + (known ? '' : ' locked') + '" data-codex-beast="' + uiEsc(spid) + '" role="button" tabindex="0" aria-label="' +
+    uiEsc(known ? sp.name + '，' + sp.rarity + ' 级，' + uiElOf(sp.el).ch + ' 属性，查看详情' : '未识之灵，尚未显影') + '" style="--el:' + uiElOf(sp.el).color + ';--el-ink:' + (uiElOf(sp.el).ink || uiElOf(sp.el).color) + ';--el-soft:' + uiElOf(sp.el).soft + ';--rar:' + r.color + ';--rar-ink:' + r.ink + ';--rar-soft:' + r.soft + '">' +
     '<div class="beast-head">' +
     '<div class="beast-art-wrap">' + art + badge + '</div>' +
     '<div class="beast-title"><b>' + uiEsc(known ? sp.name : '未识之灵') + '</b><span>' +
@@ -127,8 +128,16 @@ function renderCodex(active) {
   }
 
   LB.openModal(tab === 'bestiary' ? '灵兽录 · 山海图鉴' : '山海志 · 九嶂纪事', body, uiCloseFoot());
-  uiBind('[data-sheet-tab]', 'click', function (node) { renderCodex(node.getAttribute('data-sheet-tab')); });
+  uiBindTabs(function (tab) {
+    renderCodex(tab);
+    uiPanelTop();
+  });
   uiBind('[data-codex-beast]', 'click', function (node) {
+    openBeastDetail(node.getAttribute('data-codex-beast'), function () { renderCodex('bestiary'); }, '返回图鉴');
+  });
+  uiBind('[data-codex-beast]', 'keydown', function (node, e) {
+    if (e.key !== 'Enter' && e.key !== ' ') return;
+    e.preventDefault();
     openBeastDetail(node.getAttribute('data-codex-beast'), function () { renderCodex('bestiary'); }, '返回图鉴');
   });
   uiBindClose();
@@ -144,6 +153,7 @@ function openBeastDetail(spid, back, backLabel) {
   if (!s) return;
   var sp = SPECIES[spid];
   if (!sp) return;
+  var snap = typeof uiSnapshotPanel === 'function' ? uiSnapshotPanel() : null;
   var b = (s.bestiary && s.bestiary[spid]) || {};
   var known = !!b.seen;
   var body;
@@ -166,7 +176,7 @@ function openBeastDetail(spid, back, backLabel) {
     var growthCells = [['气血', gi.hp], ['攻击', gi.atk], ['防御', gi.def], ['速度', gi.spd]].map(function (g) {
       return '<li><i>' + g[0] + '</i><b>+' + g[1] + '</b></li>';
     }).join('');
-    body = '<section class="beast-detail r-' + sp.rarity + '" style="--el:' + uiElOf(sp.el).color + ';--rar:' + rar.color + ';--rar-soft:' + rar.soft + '">' +
+    body = '<section class="beast-detail r-' + sp.rarity + '" style="--el:' + uiElOf(sp.el).color + ';--el-ink:' + (uiElOf(sp.el).ink || uiElOf(sp.el).color) + ';--el-soft:' + uiElOf(sp.el).soft + ';--rar:' + rar.color + ';--rar-ink:' + rar.ink + ';--rar-soft:' + rar.soft + '">' +
       '<div class="beast-detail-art">' + beastSvg(spid, true) + '</div>' +
       '<div class="beast-detail-name">' + sealSvg(sp.name, sp.el) + '<b>' + uiEsc(sp.name) + '</b>' +
       '<span class="rarity-badge lg" title="稀有度 ' + sp.rarity + ' · ' + rar.name + '">' + sp.rarity + '</span></div>' +
@@ -190,7 +200,10 @@ function openBeastDetail(spid, back, backLabel) {
   LB.openModal(known ? sp.name : '未识之灵', body,
     '<button type="button" class="btn-sm plain" data-close="1">合上</button>' +
     '<button type="button" class="btn-sm solid" data-detail-back="1">' + uiEsc(backLabel || '返回图鉴') + '</button>');
-  uiBind('[data-detail-back]', 'click', function () { if (typeof back === 'function') back(); });
+  uiBind('[data-detail-back]', 'click', function () {
+    if (typeof back === 'function') back();
+    if (typeof uiRestorePanel === 'function') uiRestorePanel(snap);
+  });
   uiBindClose();
 }
 
@@ -370,7 +383,10 @@ function renderBag(active) {
   }
 
   LB.openModal('行囊 · 契者之囊', tabs + bar + '<section class="sheet-page">' + page + '</section>', uiCloseFoot());
-  uiBind('[data-sheet-tab]', 'click', function (node) { renderBag(node.getAttribute('data-sheet-tab')); });
+  uiBindTabs(function (tab) {
+    renderBag(tab);
+    uiPanelTop();
+  });
   uiBind('[data-use-item]', 'click', function (node) {
     useItem(node.getAttribute('data-use-item'), function () { renderBag('items'); });
   });

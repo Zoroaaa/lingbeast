@@ -112,7 +112,7 @@ async function victory() {
   if (box) box.innerHTML = '';
   battleSfx('victory');
   logAccent(foe.name + ' 伏地，灵息散去。');
-  await wait(720);
+  await wait((typeof effectiveReduceMotion === 'function' && effectiveReduceMotion()) ? 0 : 720);
 
   const exp = (20 + foe.lv * 9) * (foe.isBoss ? 2 : 1);
   const me = currentMon();
@@ -133,6 +133,28 @@ async function victory() {
     : '';
   const head = foe.isBoss ? (battle.trialFloor ? '试炼已过' : 'Boss 已伏') : '得胜';
   const message = head + ' · 经验 +' + exp + (notes.length ? ' · ' + notes.join(' · ') : '') + dropText;
+
+  if (typeof showBattleResult === 'function') {
+    const rows = [{ label: '经验', value: '+' + exp, accent: true }];
+    if (jade) rows.push({ label: '灵玉', value: '+' + jade, accent: true });
+    if (drops.length) rows.push({ label: '掉落', value: drops.map((d) => (MATERIALS[d.id] ? MATERIALS[d.id].name : d.id) + ' ×' + d.count).join('、') });
+    if (notes.length) rows.push({ label: '成长', value: notes.join(' · ') });
+    let firstGear = '';
+    if (battle.bossId && BOSSES[battle.bossId] && BOSSES[battle.bossId].gear &&
+      typeof flag === 'function' && !flag('boss_' + battle.bossId)) {
+      const gid = BOSSES[battle.bossId].gear;
+      firstGear = GEAR[gid] ? GEAR[gid].name : '';
+    }
+    if (firstGear) rows.push({ label: '首领首杀', value: firstGear, accent: true });
+    await showBattleResult({
+      eyebrow: foe.isBoss ? (battle.trialFloor ? '试炼' : '首领') : '野外',
+      title: head,
+      foeName: foe.name,
+      rows: rows,
+      note: typeof autoBattleOn === 'function' && autoBattleOn() ? '自动战斗中，即将返回山海。' : '',
+      auto: typeof autoBattleOn === 'function' && autoBattleOn(),
+    });
+  }
 
   if (window.LB && typeof LB.returnToWorld === 'function') {
     await LB.returnToWorld({
@@ -187,23 +209,32 @@ async function defeat() {
   const overlay = $b('battle-overlay');
   if (!overlay) return;
   overlay.hidden = false;
+  overlay.setAttribute('role', 'alertdialog');
+  overlay.setAttribute('aria-modal', 'true');
+  overlay.setAttribute('aria-label', '全队力竭');
   overlay.innerHTML = '<div class="panel">' +
     '<p class="eyebrow">全队力竭</p>' +
     '<h3>灵息已散</h3>' +
-    '<p>山雾漫上来。可以退回入口重整旗鼓，或回到上一次落笔处。</p>' +
-    '<div class="row"><button class="btn-sm solid" id="ov-retreat">退回入口</button>' +
-    '<button class="btn-sm plain" id="ov-load">读取存档</button></div></div>';
-  if (typeof uiPixelize === 'function') uiPixelize(overlay);
+    '<p>山雾漫上来。可以退回入口重整旗鼓，或回到上一次落笔处。战败不会删除存档。</p>' +
+    '<div class="row"><button type="button" class="btn-sm solid" id="ov-retreat" data-autofocus="1">退回入口</button>' +
+    '<button type="button" class="btn-sm plain" id="ov-load">读取存档</button></div></div>';
   const retreat = $b('ov-retreat');
-  if (retreat) retreat.addEventListener('click', () => {
-    overlay.hidden = true;
-    if (window.LB && typeof LB.defeatRetreat === 'function') LB.defeatRetreat();
-  });
   const load = $b('ov-load');
+  const release = typeof uiTrapFocus === 'function' ? uiTrapFocus(overlay) : function () {};
+  if (retreat) {
+    retreat.addEventListener('click', () => {
+      release();
+      overlay.hidden = true;
+      if (window.LB && typeof LB.defeatRetreat === 'function') LB.defeatRetreat();
+    });
+    try { retreat.focus({ preventScroll: true }); } catch (e) { retreat.focus(); }
+  }
   if (load) load.addEventListener('click', () => {
+    release();
     overlay.hidden = true;
     if (window.LB && typeof LB.defeatReload === 'function') LB.defeatReload();
   });
+  if (typeof announce === 'function') announce('全队力竭。可以退回入口，或读取存档。');
 }
 
 // ---------- 入口 ----------

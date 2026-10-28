@@ -353,7 +353,7 @@ function atlasBuildSvg(sel, here) {
     '<text y="-2.42" text-anchor="middle" font-size="0.95" fill="#2a2318" stroke="#f3e7ca" stroke-width="0.16" paint-order="stroke">北</text>' +
     '</g>');
 
-  return '<svg class="atlas-svg" viewBox="0 0 ' + g.w + ' ' + g.h + '" role="img" aria-label="九嶂大荒山河图" shape-rendering="crispEdges">' +
+  return '<svg class="atlas-svg" viewBox="0 0 ' + g.w + ' ' + g.h + '" role="group" aria-label="九嶂大荒山河图" shape-rendering="crispEdges">' +
     out.join('') + '</svg>';
 }
 
@@ -456,6 +456,62 @@ function atlasLegendHtml() {
     '</div>';
 }
 
+function bindAtlasInfoActions() {
+  uiBind('[data-map-go]', 'click', function (node) {
+    var id = node.getAttribute('data-map-go');
+    LB.closeModal();
+    LB.travelTo(id);
+  });
+}
+
+// 局部换选：只更新选中态、信息栏和传送按钮，不重建整张SVG山河图。
+// 重建整图会丢掉键盘焦点，也会在低端设备上造成明显的一次长任务。
+function atlasSelectNode(id, here) {
+  var modal = document.getElementById('modal');
+  if (!modal || !REGIONS[id]) return;
+  var plots = modal.querySelectorAll('.atlas-plot');
+  var target = null;
+  for (var i = 0; i < plots.length; i += 1) {
+    var g = plots[i];
+    var on = g.getAttribute('data-atlas-node') === id;
+    g.classList.toggle('selected', on);
+    if (on) {
+      target = g;
+      g.setAttribute('aria-current', 'true');
+    } else {
+      g.removeAttribute('aria-current');
+    }
+    var oldRing = g.querySelector('.atlas-selected-ring');
+    if (oldRing) oldRing.remove();
+  }
+  var side = modal.querySelector('.atlas-sidecol');
+  if (side) {
+    side.innerHTML = atlasInfoHtml(id, here);
+    bindAtlasInfoActions();
+  }
+  if (target) {
+    var bg = target.querySelector('.atlas-plot-bg');
+    if (bg && window.document.createElementNS) {
+      var x = parseFloat(bg.getAttribute('x')) - 0.46;
+      var y = parseFloat(bg.getAttribute('y')) - 0.46;
+      var w = parseFloat(bg.getAttribute('width')) + 0.92;
+      var h = parseFloat(bg.getAttribute('height')) + 0.92;
+      var ring = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+      ring.setAttribute('class', 'atlas-selected-ring');
+      ring.setAttribute('x', x.toFixed(2));
+      ring.setAttribute('y', y.toFixed(2));
+      ring.setAttribute('width', w.toFixed(2));
+      ring.setAttribute('height', h.toFixed(2));
+      ring.setAttribute('fill', 'none');
+      ring.setAttribute('stroke', '#fff7e6');
+      ring.setAttribute('stroke-width', '0.16');
+      ring.setAttribute('stroke-dasharray', '0.7 0.55');
+      target.appendChild(ring);
+    }
+    if (LB.announce) LB.announce(REGIONS[id].name + ' 详情已更新');
+  }
+}
+
 function renderWorldMap(selected) {
   var s = LB.saveState();
   if (!s) return;
@@ -463,7 +519,14 @@ function renderWorldMap(selected) {
   var sel = selected && REGIONS[selected] && WORLD_ATLAS.regions[selected] ? selected : here;
   var reduceMotion = !!(s.settings && s.settings.reduceMotion);
 
-  var body = '<div class="atlas-page">' +
+  var quick = '<div class="sr-only" role="group" aria-label="区域快速列表">' + REGION_ORDER.filter(function (id) {
+    return !!REGIONS[id];
+  }).map(function (id) {
+    return '<button type="button" data-atlas-node="' + uiEsc(id) + '">' +
+      uiEsc(LB.regionUnlocked(id) ? REGIONS[id].name : '未点亮的区域') + '</button>';
+  }).join('') + '</div>';
+
+  var body = '<div class="atlas-page">' + quick +
     '<div class="atlas-head">' +
     '<div class="atlas-title">九嶂大荒 · 山河全图<small>点地块查看详情 · 传送只往已点亮之处</small></div>' +
     '<div class="atlas-stats">' + atlasStatHtml() + '</div>' +
@@ -482,12 +545,12 @@ function renderWorldMap(selected) {
     '<button type="button" class="btn-sm plain" data-close="1">合上</button>');
 
   uiBind('[data-atlas-node]', 'click', function (node) {
-    renderWorldMap(node.getAttribute('data-atlas-node'));
+    atlasSelectNode(node.getAttribute('data-atlas-node'), here);
   });
   uiBind('[data-atlas-node]', 'keydown', function (node, e) {
     if (e.key === 'Enter' || e.key === ' ') {
       e.preventDefault();
-      renderWorldMap(node.getAttribute('data-atlas-node'));
+      atlasSelectNode(node.getAttribute('data-atlas-node'), here);
     }
   });
   uiBind('[data-atlas-planned]', 'click', function () { LB.toast('此地尚在图中 · 待后续开辟'); });
@@ -498,11 +561,13 @@ function renderWorldMap(selected) {
     }
   });
   uiBind('[data-atlas-blank]', 'click', function () { LB.toast('此地方舆未载 · 留待后手'); });
-  uiBind('[data-map-go]', 'click', function (node) {
-    var id = node.getAttribute('data-map-go');
-    LB.closeModal();
-    LB.travelTo(id);
+  uiBind('[data-atlas-blank]', 'keydown', function (node, e) {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      LB.toast('此地方舆未载 · 留待后手');
+    }
   });
+  bindAtlasInfoActions();
   uiBind('[data-map-travel-list]', 'click', function () { LB.openTravel(); });
   uiBindClose();
 }
@@ -539,16 +604,30 @@ function renderSettings() {
       '<output data-range-out="' + key + '">' + value + (suffix || '') + '</output></div></div>';
   }
 
-  var battleSpeeds = [['1', '1x'], ['2', '2x'], ['skip', '跳过']];
+  var battleSpeeds = [['1', '1x'], ['2', '2x'], ['skip', '跳过演出']];
   var battleSeg = '<div class="segmented">' + battleSpeeds.map(function (pair) {
     return '<button type="button" class="seg-btn' + (settings.battleSpeed === pair[0] ? ' active' : '') +
       '" data-battle-speed-setting="' + pair[0] + '">' + pair[1] + '</button>';
   }).join('') + '</div>';
 
+  var scaleSpeeds = [['normal', '标准'], ['large', '大']];
+  var scaleSeg = '<div class="segmented">' + scaleSpeeds.map(function (pair) {
+    return '<button type="button" class="seg-btn' + ((settings.textScale || 'normal') === pair[0] ? ' active' : '') +
+      '" data-text-scale-setting="' + pair[0] + '" aria-pressed="' + ((settings.textScale || 'normal') === pair[0] ? 'true' : 'false') + '">' + pair[1] + '</button>';
+  }).join('') + '</div>';
+
+  var touchModes = [['auto', '自动'], ['on', '常显'], ['off', '隐藏']];
+  var touchSeg = '<div class="segmented">' + touchModes.map(function (pair) {
+    return '<button type="button" class="seg-btn' + ((settings.touchControls || 'auto') === pair[0] ? ' active' : '') +
+      '" data-touch-setting="' + pair[0] + '" aria-pressed="' + ((settings.touchControls || 'auto') === pair[0] ? 'true' : 'false') + '">' + pair[1] + '</button>';
+  }).join('') + '</div>';
+
   var body = '<section class="sheet-page">' +
     '<div class="setting-row"><div class="sheet-main"><b>文字速度</b><p class="sheet-note">对白逐字显现的快慢。</p></div>' + seg + '</div>' +
     '<div class="setting-row"><div class="sheet-main"><b>战斗速度</b><p class="sheet-note">1x / 2x，或跳过回合演出直接结算。</p></div>' + battleSeg + '</div>' +
-    toggleRow('reduceMotion', '减少动效', '关闭大幅转场与漂浮动画，保留必要反馈。') +
+    '<div class="setting-row"><div class="sheet-main"><b>界面字号</b><p class="sheet-note">放大所有界面文字，不放大场景画布。</p></div>' + scaleSeg + '</div>' +
+    '<div class="setting-row"><div class="sheet-main"><b>触屏控件</b><p class="sheet-note">自动跟随设备；混合触屏笔记本可选常显。</p></div>' + touchSeg + '</div>' +
+    toggleRow('reduceMotion', '减少动效', '关闭大幅转场、漂浮动画与震屏，保留必要反馈。') +
     toggleRow('shake', '震屏', '技能命中与 Boss 换阶段时的镜头轻震。') +
     toggleRow('confirm', '确认提示', '放归等不可逆操作前再问一次。') +
     rangeRow('musicVol', '环境乐', '程序化生成的山林环境乐，0 为关闭。', 0, 100, 5, '%') +
@@ -560,6 +639,8 @@ function renderSettings() {
     rangeRow('autoCatchPct', '低于多少气血结契', '只对可结契的野生灵兽生效，Boss 不在此列。', 5, 80, 5, '%') +
     '<div class="setting-row"><div class="sheet-main"><b>新手引导</b><p class="sheet-note">从入谷开始重看六步引导。</p></div>' +
     '<button type="button" class="btn-sm plain" data-tutorial-restart="1">重看</button></div>' +
+    '<div class="sheet-subhead">操作</div>' +
+    '<p class="sheet-note">移动：WASD / 方向键 / 点击地面。交互：E / 空格。战斗：数字键 1–6 选择指令，Esc 返回。面板：Esc 关闭，Tab 在面板内循环。</p>' +
     '<p class="sheet-note">设置写入本地存档，随云存档同步。</p>' +
     '</section>';
 
@@ -580,6 +661,23 @@ function renderSettings() {
     if (typeof applyBattleSpeedClass === 'function') applyBattleSpeedClass();
     if (typeof renderBattleTools === 'function') renderBattleTools();
     LB.toast('战斗速度 · ' + node.textContent);
+    renderSettings();
+  });
+  uiBind('[data-text-scale-setting]', 'click', function (node) {
+    var st = LB.saveState();
+    if (!st) return;
+    st.settings.textScale = node.getAttribute('data-text-scale-setting') === 'large' ? 'large' : 'normal';
+    LB.persist();
+    if (typeof LB.applyUiPreferences === 'function') LB.applyUiPreferences();
+    renderSettings();
+  });
+  uiBind('[data-touch-setting]', 'click', function (node) {
+    var st = LB.saveState();
+    if (!st) return;
+    var mode = node.getAttribute('data-touch-setting');
+    st.settings.touchControls = ['auto', 'on', 'off'].indexOf(mode) >= 0 ? mode : 'auto';
+    LB.persist();
+    if (typeof LB.applyUiPreferences === 'function') LB.applyUiPreferences();
     renderSettings();
   });
   uiBind('[data-range]', 'input', function (node) {
@@ -827,7 +925,10 @@ function renderQuests(active) {
     '<button type="button" class="btn-sm solid" data-track-main="1">追踪主线</button>' +
     '<button type="button" class="btn-sm plain" data-close="1">合上</button>');
 
-  uiBind('[data-sheet-tab]', 'click', function (node) { renderQuests(node.getAttribute('data-sheet-tab')); });
+  uiBindTabs(function (tab) {
+    renderQuests(tab);
+    uiPanelTop();
+  });
   uiBind('[data-accept-quest]', 'click', function (node) {
     var id = node.getAttribute('data-accept-quest');
     LB.acceptSideQuest(id);

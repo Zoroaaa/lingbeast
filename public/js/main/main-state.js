@@ -245,9 +245,12 @@ function normalizeState(obj) {
     textSpeed: 'normal', reduceMotion: false, shake: true, confirm: true,
     musicVol: 32, sfxVol: 60, battleSpeed: '1',
     autoBattle: false, autoPotionPct: 35, autoCatch: true, autoCatchPct: 30,
+    textScale: 'normal', touchControls: 'auto',
   }, s.settings || {});
   if (TEXT_DELAYS[s.settings.textSpeed] === undefined) s.settings.textSpeed = 'normal';
   if (['1', '2', 'skip'].indexOf(s.settings.battleSpeed) < 0) s.settings.battleSpeed = '1';
+  if (['normal', 'large'].indexOf(s.settings.textScale) < 0) s.settings.textScale = 'normal';
+  if (['auto', 'on', 'off'].indexOf(s.settings.touchControls) < 0) s.settings.touchControls = 'auto';
   s.settings.musicVol = clampInt(Number(s.settings.musicVol), 0, 100);
   s.settings.sfxVol = clampInt(Number(s.settings.sfxVol), 0, 100);
   s.settings.autoBattle = !!s.settings.autoBattle;
@@ -305,6 +308,7 @@ function freshState() {
       textSpeed: 'normal', reduceMotion: false, shake: true, confirm: true,
       musicVol: 32, sfxVol: 60, battleSpeed: '1',
       autoBattle: false, autoPotionPct: 35, autoCatch: true, autoCatchPct: 30,
+      textScale: 'normal', touchControls: 'auto',
     },
     tutorial: { step: 0, done: false, skipped: false },
     time: { phase: 'dawn', steps: 0 },

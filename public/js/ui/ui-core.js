@@ -28,8 +28,8 @@ function uiElOf(id) { return ELEMENTS[id] || ELEMENTS.wood; }
 
 function uiElChip(el, text) {
   var d = uiElOf(el);
-  return '<span class="seal-chip" style="--el:' + d.color + ';color:' + d.color + ';border-color:' + d.color + '">' +
-    uiEsc(text || d.ch) + '</span>';
+  return '<span class="seal-chip" style="--el:' + d.color + ';--el-ink:' + (d.ink || d.color) +
+    ';--el-soft:' + d.soft + '">' + uiEsc(text || d.ch) + '</span>';
 }
 
 function uiTalentOf(t) {
@@ -87,7 +87,7 @@ function uiGearSlotLineHtml(mon) {
     var ref = typeof gearRefOf === 'function' ? gearRefOf(mon, slot) : null;
     var def = ref ? GEAR[ref.id] : null;
     return '<span class="gear-slot' + (def ? '' : ' empty') + '" title="' + uiEsc(GEAR_SLOTS[slot].name) + '"' +
-      (def ? ' style="--rarity:' + uiRarityOf(def.rarity).color + ';color:' + uiRarityOf(def.rarity).color + '"' : '') + '>' +
+      (def ? ' style="--rarity:' + uiRarityOf(def.rarity).color + '"' : '') + '>' +
       uiEsc(GEAR_SLOTS[slot].ch) + ' ' + uiEsc(def ? def.name : '未佩') +
       '</span>';
   }).join('');
@@ -108,8 +108,13 @@ function uiPctOf(cur, max) {
   return Math.max(0, Math.min(100, Math.round(cur / max * 100)));
 }
 
-function uiBarHtml(cur, max, cls) {
-  return '<div class="' + (cls || 'beast-hp') + '"><i style="width:' + uiPctOf(cur, max) + '%"></i></div>';
+function uiBarHtml(cur, max, cls, label) {
+  var pct = uiPctOf(cur, max);
+  var maxv = Math.max(1, Number(max) || 1);
+  var curv = Math.max(0, Math.min(maxv, Number(cur) || 0));
+  return '<div class="' + (cls || 'beast-hp') + '" role="progressbar" aria-label="' + uiEsc(label || '进度') +
+    '" aria-valuemin="0" aria-valuemax="' + maxv + '" aria-valuenow="' + curv + '" aria-valuetext="' +
+    curv + ' / ' + maxv + '"><i style="width:' + pct + '%"></i></div>';
 }
 
 function uiRegionName(id) {
@@ -192,18 +197,6 @@ function uiRegionLockText(id) {
   return parts.length ? parts.join(' · ') : '前路未开';
 }
 
-// 把面板内的旧按钮统一升级为 NES.css 像素组件
-function uiPixelize(root) {
-  if (!root) return;
-  Array.prototype.forEach.call(root.querySelectorAll('button.btn-sm'), function (btn) {
-    if (btn.classList.contains('nes-btn')) return;
-    btn.classList.add('nes-btn');
-    if (btn.classList.contains('solid')) btn.classList.add('is-success');
-    else if (btn.classList.contains('danger')) btn.classList.add('is-error');
-    else if (btn.classList.contains('warn')) btn.classList.add('is-warning');
-  });
-}
-
 function uiBind(selector, event, fn, root) {
   var scope = root || $('modal');
   if (!scope) return;
@@ -223,7 +216,7 @@ function uiBindClose() {
 function uiConfirmAction(title, text, okLabel, onOk, onCancel, danger) {
   LB.openModal(title,
     '<p class="sheet-note">' + uiEsc(text) + '</p>',
-    '<button type="button" class="btn-sm plain" data-confirm-cancel="1">再想想</button>' +
+    '<button type="button" class="btn-sm plain" data-confirm-cancel="1" data-autofocus="1">再想想</button>' +
     '<button type="button" class="btn-sm ' + (danger ? 'danger' : 'solid') + '" data-confirm-ok="1">' +
     uiEsc(okLabel) + '</button>');
   uiBind('[data-confirm-cancel]', 'click', function () {
@@ -232,5 +225,176 @@ function uiConfirmAction(title, text, okLabel, onOk, onCancel, danger) {
   uiBind('[data-confirm-ok]', 'click', function () {
     LB.closeModal();
     if (typeof onOk === 'function') onOk();
+  });
+}
+
+// ---------- 焦点与册页通用 ----------
+
+var UI_FOCUS_ATTRS = [
+  'data-focus-key', 'data-sheet-tab', 'data-toggle', 'data-range', 'data-speed',
+  'data-battle-speed-setting', 'data-use-item', 'data-buy-item', 'data-sell-item',
+  'data-craft', 'data-trial', 'data-codex-beast', 'data-atlas-node', 'data-confirm-cancel',
+  'data-detail-back', 'data-gear-back', 'data-passive-back', 'data-close',
+  'data-text-scale-setting', 'data-touch-setting',
+];
+
+function uiFocusables(root) {
+  if (!root) return [];
+  return Array.prototype.filter.call(root.querySelectorAll(
+    'a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),' +
+    'textarea:not([disabled]),[tabindex]:not([tabindex="-1"])'
+  ), function (el) {
+    return !!(el.offsetWidth || el.offsetHeight || el.getClientRects().length);
+  });
+}
+
+function uiFocusToken(el) {
+  if (!el || el === document.body || el === document.documentElement) return null;
+  if (el.id) return { kind: 'id', value: el.id };
+  for (var i = 0; i < UI_FOCUS_ATTRS.length; i += 1) {
+    var attr = UI_FOCUS_ATTRS[i];
+    if (el.hasAttribute && el.hasAttribute(attr)) {
+      return { kind: 'attr', attr: attr, value: el.getAttribute(attr) };
+    }
+  }
+  return null;
+}
+
+function uiRestoreFocus(token) {
+  if (!token) return false;
+  var el = null;
+  if (token.kind === 'id') {
+    el = document.getElementById(token.value);
+  } else {
+    var val = String(token.value).replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+    el = document.querySelector('[' + token.attr + '="' + val + '"]');
+  }
+  if (!el || !el.focus) return false;
+  try { el.focus({ preventScroll: true }); } catch (e) { try { el.focus(); } catch (e2) { return false; } }
+  return true;
+}
+
+// Tab 焦点陷阱；返回 release 函数
+function uiTrapFocus(root) {
+  if (!root) return function () {};
+  function onKey(e) {
+    if (e.key !== 'Tab') return;
+    var list = uiFocusables(root);
+    if (!list.length) { e.preventDefault(); return; }
+    var first = list[0];
+    var last = list[list.length - 1];
+    var active = document.activeElement;
+    if (e.shiftKey) {
+      if (active === first || !root.contains(active)) { e.preventDefault(); last.focus(); }
+    } else if (active === last || !root.contains(active)) {
+      e.preventDefault(); first.focus();
+    }
+  }
+  document.addEventListener('keydown', onKey, true);
+  return function () { document.removeEventListener('keydown', onKey, true); };
+}
+
+// 统一 tab 条：role/aria-selected/roving tabindex 由这里生成
+function uiTabBar(items, active, prefix) {
+  var id = prefix || 'sheet';
+  return '<div class="sheet-tabs" role="tablist">' + (items || []).map(function (it) {
+    var on = it.key === active;
+    return '<button type="button" class="sheet-tab' + (on ? ' active' : '') +
+      '" id="' + uiEsc(id) + '-tab-' + uiEsc(it.key) + '" role="tab" aria-selected="' + (on ? 'true' : 'false') +
+      '" tabindex="' + (on ? '0' : '-1') + '" aria-controls="' + uiEsc(id) + '-panel-' + uiEsc(it.key) +
+      '" data-sheet-tab="' + uiEsc(it.key) + '">' + uiEsc(it.label) + '</button>';
+  }).join('') + '</div>';
+}
+
+function uiFocusTab(key) {
+  var scope = $('modal') || document;
+  var tabs = scope.querySelectorAll('[data-sheet-tab]');
+  for (var i = 0; i < tabs.length; i += 1) {
+    if (tabs[i].getAttribute('data-sheet-tab') !== key) continue;
+    try { tabs[i].focus({ preventScroll: true }); } catch (e) { try { tabs[i].focus(); } catch (e2) { return false; } }
+    return true;
+  }
+  return false;
+}
+
+function uiBindTabs(handler) {
+  uiBind('[data-sheet-tab]', 'click', function (node) {
+    var key = node.getAttribute('data-sheet-tab');
+    handler(key);
+    // 面板重渲染后把焦点还给当前 tab，避免焦点停在已失效的旧节点上
+    uiFocusTab(key);
+  });
+  uiBind('[data-sheet-tab]', 'keydown', function (node, e) {
+    if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight' && e.key !== 'Home' && e.key !== 'End') return;
+    var tabs = Array.prototype.slice.call(node.parentNode.querySelectorAll('[data-sheet-tab]'));
+    if (!tabs.length) return;
+    var idx = tabs.indexOf(node);
+    var next = idx;
+    if (e.key === 'ArrowLeft') next = (idx - 1 + tabs.length) % tabs.length;
+    else if (e.key === 'ArrowRight') next = (idx + 1) % tabs.length;
+    else if (e.key === 'Home') next = 0;
+    else if (e.key === 'End') next = tabs.length - 1;
+    e.preventDefault();
+    var key = tabs[next].getAttribute('data-sheet-tab');
+    handler(key);
+    uiFocusTab(key);
+  });
+}
+
+function uiPanelTop() {
+  var body = $('modal-body');
+  if (body) body.scrollTop = 0;
+}
+
+function uiSnapshotPanel() {
+  var body = $('modal-body');
+  return {
+    scrollTop: body ? body.scrollTop : 0,
+    focus: typeof uiFocusToken === 'function' ? uiFocusToken(document.activeElement) : null,
+  };
+}
+
+function uiRestorePanel(snap) {
+  if (!snap) return;
+  var body = $('modal-body');
+  if (body) body.scrollTop = snap.scrollTop || 0;
+  if (snap.focus && typeof uiRestoreFocus === 'function') uiRestoreFocus(snap.focus);
+}
+
+// 给各面板手写的 .sheet-tabs 补上基础 ARIA（不要求调用方重写模板）
+function uiEnhanceTabs(root) {
+  if (!root) return;
+  Array.prototype.forEach.call(root.querySelectorAll('.sheet-tabs'), function (bar) {
+    bar.setAttribute('role', 'tablist');
+    var activeKey = '';
+    var activeTab = null;
+    Array.prototype.forEach.call(bar.querySelectorAll('.sheet-tab'), function (tab) {
+      var on = tab.classList.contains('active');
+      var key = tab.getAttribute('data-sheet-tab') || String(tab.textContent || '').trim();
+      var safe = key.replace(/[^a-zA-Z0-9_-]/g, '-');
+      tab.setAttribute('role', 'tab');
+      tab.setAttribute('aria-selected', on ? 'true' : 'false');
+      tab.tabIndex = on ? 0 : -1;
+      if (!tab.id) tab.id = 'sheet-tab-' + safe;
+      if (on) {
+        tab.setAttribute('data-autofocus', '1');
+        tab.setAttribute('aria-controls', 'sheet-panel-' + safe);
+        activeKey = safe;
+        activeTab = tab;
+      } else {
+        tab.removeAttribute('data-autofocus');
+        tab.removeAttribute('aria-controls');
+      }
+    });
+    if (!activeTab) return;
+    var page = bar.parentNode ? bar.parentNode.querySelector('.sheet-page') : null;
+    if (page) {
+      page.id = 'sheet-panel-' + activeKey;
+      page.setAttribute('role', 'tabpanel');
+      page.setAttribute('aria-labelledby', activeTab.id);
+    }
+  });
+  Array.prototype.forEach.call(root.querySelectorAll('.sheet-page'), function (panel) {
+    if (!panel.hasAttribute('role')) panel.setAttribute('role', 'tabpanel');
   });
 }
