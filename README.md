@@ -4,7 +4,7 @@
 
 前端为 Phaser 3.90 + 原生脚本（无构建工具、可离线运行），后端为 Cloudflare Worker + D1，静态资源与 `/api/*` 同源部署。
 
-> 版本 2.2.0 · 存档 v4 · 十九境 · 62 种灵兽 · 12 章主线 · 63 条支线
+> 版本 2.4.1 · 存档 v4 · 十九境 · 62 种灵兽 · 12 章主线 · 63 条支线
 
 ## 世界观
 
@@ -106,12 +106,21 @@
 | 战斗自动 / 速度 | 战斗界面左上「自动」「1x / 2x / 跳过」 |
 | 关闭弹窗 | Esc / 点击遮罩 / 关闭按钮 |
 
+## UI 与可访问性
+
+- 统一设计 token：颜色、间距、字号、焦点环与动效参数集中在 `public/style.css` 顶部；新增界面优先复用 `.panel`、`.btn`、`.badge`、`.bar` 等基础件，不再引入新的 UI 框架或外部字体
+- 像素羊皮纸视觉：自有按钮、册页、对话框、战斗 HUD 与移动端 HUD 样式；NES.css 已移除，`public/vendor/` 只保留 Phaser
+- 键盘与读屏：模态使用 `role="dialog"` + `aria-modal` + 背景 `inert`，打开时锁定焦点、关闭时回到触发按钮；页签支持左右方向键与 Home / End；战斗指令、战果页、提示消息均带可读标签
+- 显示偏好：设置中提供标准 / 大字号、减少动效、震屏与触摸控件开关；大字号只放大界面文字，不放大场景画布
+- 移动端：窄屏 HUD 收为三列菜单与顶部状态条，适配安全区；触屏提供左侧摇杆与右侧「契」键，菜单展开时不会被引导卡遮挡
+- 性能：山河图换选只更新选中节点与详情面板，不重建整张 SVG；小地图在不可见时跳过重绘
+
 ## 技术栈
 
 - Phaser 3.90（`public/vendor/phaser.min.js`，离线内置）
 - 原生 JavaScript，经典 `<script>` 顺序加载，无打包、无框架、无构建步骤
 - WebAudio 程序化音效与环境乐，无外部音频文件
-- NES.css + 自定义像素样式（`public/style.css`）
+- 自有设计 token + 像素羊皮纸样式（`public/style.css`，规范见 `docs/ui-guidelines.md`）
 - Cloudflare Workers：静态资源（`ASSETS` 绑定）+ API
 - Cloudflare D1：账号、会话与云存档
 - PWA：manifest + Service Worker，可安装、可离线续玩本地进度
@@ -149,8 +158,9 @@ public/
   js/battle/              战斗状态、演出、自动决策、结算与流程
   js/ui/                  HUD、灵器、图鉴、商店、世界面板
   js/main/                状态与存档、视图、进度、新手引导、抉择、经济、战斗桥接、启动
-  vendor/                 Phaser 与 NES.css
-scripts/                  图标生成、版本递增与工程自检脚本
+  vendor/                 Phaser（离线内置）
+scripts/                  图标生成、版本递增、工程自检与 UI 静态检查脚本
+docs/                     UI 规范与界面维护说明
 src/index.js              Worker 路由与 API
 schema.sql                D1 建表语句
 wrangler.jsonc            Wrangler 配置（静态资源、D1 绑定）
@@ -186,12 +196,24 @@ npx serve public
 工程脚本：
 
 ```bash
-npm run check          # 资源引用、版本号一致性与 PWA 图标自检
+npm run check          # 资源引用、版本号、PWA 图标与 UI 静态检查
+npm run ui:check       # 只跑 UI：对比度、ARIA、重复 id、脚本语法
 npm run version:bump   # 所有 ?v= 与 sw.js VERSION 一起 +1
 npm run icons          # 重新生成 PWA 图标
 ```
 
 新增或修改 `public/` 下的资源后，运行 `npm run version:bump`，不要手工逐行改 `?v=`。
+
+### 浏览器实测
+
+本地用 Chrome 无头模式（CDP）跑真实交互回归，桌面视口 1280×900、移动视口 390×844：
+
+- 覆盖标题页、入山对话、世界 HUD、设置与焦点恢复、山河图、队伍页签、灵兽录、战斗指令、战果页、移动端菜单与触屏界面
+- 最近一次结果：**85 项断言全部通过，0 页面 JS 错误，15 张关键截图**
+- 测试脚本、截图、Chrome profile 和报告均属于本地产物，统一放在 `.tmp/` 或 `.screenshots/`，已由 `.gitignore` 排除，不随仓库分发
+- 浏览器实测需要能启动本机 Chrome；若在受限沙箱中运行，需为执行 Chrome 的命令单独授权
+
+改动 UI 后建议顺序：`npm run ui:check` → 桌面 / 移动浏览器实测 → `npm run check` → 版本递增。
 
 ## 部署
 

@@ -2,6 +2,12 @@ node_modules/
 .wrangler/
 .trae/
 .workbuddy/
+# 本地浏览器实测与临时产物
+.tmp/
+.screenshots/
+test-results/
+playwright-report/
+coverage/
 .dev.vars
 .env
 .DS_Store
