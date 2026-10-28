@@ -14,16 +14,21 @@ function PixelCanvas(size) {
   this.parts = [];
 }
 PixelCanvas.prototype.rect = function (x, y, w, h, fill, opacity) {
+  // 全部先取整再校验：亚像素宽度会被 Math.round 压成 0，产生非法 <rect width="0">
+  x = Math.round(x);
+  y = Math.round(y);
+  w = Math.round(w);
+  h = Math.round(h);
   if (w <= 0 || h <= 0) return this;
   if (opacity == null || opacity >= 0.5) {
     const bb = this.bb || (this.bb = { x0: 1e9, y0: 1e9, x1: -1e9, y1: -1e9 });
-    bb.x0 = Math.min(bb.x0, Math.round(x));
-    bb.y0 = Math.min(bb.y0, Math.round(y));
-    bb.x1 = Math.max(bb.x1, Math.round(x) + Math.round(w));
-    bb.y1 = Math.max(bb.y1, Math.round(y) + Math.round(h));
+    bb.x0 = Math.min(bb.x0, x);
+    bb.y0 = Math.min(bb.y0, y);
+    bb.x1 = Math.max(bb.x1, x + w);
+    bb.y1 = Math.max(bb.y1, y + h);
   }
-  this.parts.push('<rect x="' + Math.round(x) + '" y="' + Math.round(y) + '" width="' + Math.round(w) +
-    '" height="' + Math.round(h) + '" fill="' + fill + '"' + (opacity != null ? ' opacity="' + opacity + '"' : '') + '/>');
+  this.parts.push('<rect x="' + x + '" y="' + y + '" width="' + w +
+    '" height="' + h + '" fill="' + fill + '"' + (opacity != null ? ' opacity="' + opacity + '"' : '') + '/>');
   return this;
 };
 PixelCanvas.prototype.px = function (x, y, fill) { return this.rect(x, y, 1, 1, fill); };
@@ -34,7 +39,8 @@ PixelCanvas.prototype.blob = function (cx, cy, rx, ry, fill, opacity) {
     const half = rx * Math.sqrt(1 - dy * dy);
     const x0 = Math.round(cx - half);
     const x1 = Math.round(cx + half);
-    this.rect(x0, y, x1 - x0, 1, fill, opacity);
+    // 圆钝到只剩不到 1px 时补 1px，避免 width="0" 的非法 rect（细尾/角/鳍常见）
+    this.rect(x0, y, Math.max(1, x1 - x0), 1, fill, opacity);
   }
   return this;
 };
@@ -54,9 +60,12 @@ PixelCanvas.prototype.shadow = function (cx, cy, rx) {
   return this;
 };
 PixelCanvas.prototype.socket = function (x, y, white, pupil) {
-  this.rect(x, y, 4, 3, '#0b0d12');
-  this.rect(x + 1, y, 2, 2, white || '#f7f2df');
-  this.rect(x + 2, y + 1, 1, 1, pupil || '#10131a');
+  // 眼窝外沿 + 亮眼白 + 前侧瞳仁 + 上眼睑高光，44 像素下也能读成「有神的眼睛」
+  this.rect(x - 1, y - 1, 6, 5, '#0b0d12');
+  this.rect(x, y, 4, 3, white || '#f7f2df');
+  this.rect(x + 2, y, 2, 2, pupil || '#10131a');
+  this.px(x + 1, y, '#ffffff');
+  this.px(x + 3, y + 2, mixHex(pupil || '#10131a', white || '#f7f2df', 0.5));
   return this;
 };
 PixelCanvas.prototype.gem = function (x, y, color) {

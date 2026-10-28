@@ -177,9 +177,10 @@ function openBeastDetail(spid, back, backLabel) {
       return '<li><i>' + g[0] + '</i><b>+' + g[1] + '</b></li>';
     }).join('');
     body = '<section class="beast-detail r-' + sp.rarity + '" style="--el:' + uiElOf(sp.el).color + ';--el-ink:' + (uiElOf(sp.el).ink || uiElOf(sp.el).color) + ';--el-soft:' + uiElOf(sp.el).soft + ';--rar:' + rar.color + ';--rar-ink:' + rar.ink + ';--rar-soft:' + rar.soft + '">' +
-      '<div class="beast-detail-art">' + beastSvg(spid, true) + '</div>' +
+      '<div class="beast-detail-art' + (sp.evolved ? ' evolved' : '') + '" data-glyph="' + uiEsc(uiElOf(sp.el).ch) + '">' + beastSvg(spid, true) + '</div>' +
       '<div class="beast-detail-name">' + sealSvg(sp.name, sp.el) + '<b>' + uiEsc(sp.name) + '</b>' +
-      '<span class="rarity-badge lg" title="稀有度 ' + sp.rarity + ' · ' + rar.name + '">' + sp.rarity + '</span></div>' +
+      '<span class="rarity-badge lg" title="稀有度 ' + sp.rarity + ' · ' + rar.name + '">' + sp.rarity + '</span>' +
+      (sp.evolved ? '<span class="evo-tag">进化</span>' : '') + '</div>' +
       '<div class="rarity-line">稀有度 ' + sp.rarity + ' · ' + rar.name + ' · 属性 ×' + rar.mult.toFixed(2) + '</div>' +
       '<div class="growth-panel">' +
       '<div class="growth-rank gr-' + gi.rank + '"><b>' + gi.rank + '</b><span>成长资质</span></div>' +
@@ -409,7 +410,10 @@ LB.beastGallery = function () {
   if (!LB.openModal) return;
   var cells = Object.keys(SPECIES).map(function (id) {
     var sp = SPECIES[id];
-    return '<figure class="beast-gallery-cell">' + beastSvg(id, true) +
+    var r = rarityOf(sp);
+    return '<figure class="beast-gallery-cell r-' + sp.rarity + (sp.evolved ? ' evolved' : '') + '" style="--el:' + uiElOf(sp.el).color +
+      ';--el-soft:' + uiElOf(sp.el).soft + ';--rar:' + r.color + '">' + beastSvg(id, true) +
+      (sp.evolved ? '<span class="gallery-tag">进化</span>' : '') +
       '<figcaption>' + uiEsc(sp.name) + '<small>' + id + ' · ' + sp.art + '</small></figcaption></figure>';
   }).join('');
   LB.openModal('灵兽立绘总览 · 62', '<div class="beast-gallery">' + cells + '</div>', uiCloseFoot());

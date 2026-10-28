@@ -196,11 +196,15 @@ npx serve public
 工程脚本：
 
 ```bash
-npm run check          # 资源引用、版本号、PWA 图标与 UI 静态检查
+npm run check          # 资源引用、PWA 图标、UI 静态检查与灵兽立绘自检
 npm run ui:check       # 只跑 UI：对比度、ARIA、重复 id、脚本语法
+npm run art:check      # 灵兽立绘：rect 预算、bbox、家族区分度、进化链
+npm run art:preview    # 生成 62 只灵兽立绘总览（.tmp/art-preview.html）
 npm run version:bump   # 所有 ?v= 与 sw.js VERSION 一起 +1
 npm run icons          # 重新生成 PWA 图标
 ```
+
+灵兽立绘的分层、家族表、验收标准与「为什么保留部件拼贴引擎」见 [`docs/beast-art.md`](docs/beast-art.md)。
 
 新增或修改 `public/` 下的资源后，运行 `npm run version:bump`，不要手工逐行改 `?v=`。
 

@@ -10,8 +10,10 @@
     "db:init:remote": "wrangler d1 execute lingbeast --remote --file=schema.sql",
     "version:bump": "node scripts/version.mjs --bump",
     "icons": "node scripts/make-icons.mjs",
-    "check": "node scripts/check.mjs && node scripts/ui-check.mjs",
-    "ui:check": "node scripts/ui-check.mjs"
+    "check": "node scripts/check.mjs && node scripts/ui-check.mjs && node scripts/art-check.mjs",
+    "ui:check": "node scripts/ui-check.mjs",
+    "art:check": "node scripts/art-check.mjs",
+    "art:preview": "node scripts/art-preview.mjs"
   },
   "devDependencies": {
     "wrangler": "^4.0.0"

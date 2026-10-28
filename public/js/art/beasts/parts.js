@@ -117,17 +117,50 @@ const FAMILY_DEFAULTS = {
   },
 };
 
+// 头颈接驳：头没有贴住身体的物种，用一段渐细的颈把头和身体连起来；
+// 已有 style.neck 的物种保留自己的颈柱。
+function beastNeck(p, style, c) {
+  if (style.neck) return;
+  const b = style.body;
+  const h = style.head;
+  const dx = h.x - b.x;
+  const dy = h.y - b.y;
+  const dist = Math.sqrt(dx * dx + dy * dy);
+  const steps = Math.max(3, Math.round(dist));
+  for (let i = 1; i < steps; i += 1) {
+    const t = i / steps;
+    const x = b.x + dx * t;
+    const y = b.y + dy * t;
+    const r = 2.6 - t * 0.6;
+    p.rect(Math.round(x - r), Math.round(y - 1), Math.round(r * 2), 3, c.base);
+    p.rect(Math.round(x - r), Math.round(y - 1), 1, 1, c.light);
+    p.px(Math.round(x + r - 1), Math.round(y + 1), c.dark);
+    p.px(Math.round(x - r), Math.round(y + 1), c.dark);
+  }
+}
+
 function beastShadow(p, style) {
   const b = style.body;
   p.shadow(b.x, 58, Math.max(10, b.w * 0.72));
+  if (style.palette) beastNeck(p, style, style.palette);
 }
 
 function beastEye(p, style, c, x, y) {
   p.socket(x, y, c.pale, c.ink);
+  const e = style.eye || {};
+  if (e.glow) p.px(x + 2, y + 2, c.glow);
+  if (e.mode === 'many') {
+    p.px(x - 3, y + 2, c.pale);
+    p.px(x + 6, y + 1, c.pale);
+  }
 }
 
 function beastFeet(p, x, y, w, c) {
   p.rect(x, y, w, 2, c.dark);
+  p.rect(x, y + 2, w - 1, 1, mixHex(c.dark, '#000000', 0.35), 0.6);
+  p.px(x, y + 1, c.base);
+  p.px(x + w - 1, y + 1, c.base);
+  p.rect(x + 1, y + 1, 1, 1, c.light, 0.55);
 }
 
 function drawLegs(p, style, c) {
@@ -140,8 +173,13 @@ function drawLegs(p, style, c) {
     ? [b.x - Math.round(b.w * 0.34), b.x - Math.round(b.w * 0.12), b.x + Math.round(b.w * 0.12), b.x + Math.round(b.w * 0.34)]
     : [b.x - 6, b.x + 5];
   xs.forEach(function (x) {
-    p.outlineRect(x, b.y + Math.round(b.h / 2) - 2, thick, len, l.color || c.base, c.dark);
-    beastFeet(p, x - 2, b.y + Math.round(b.h / 2) - 2 + len, thick + 4, c);
+    const top = b.y + Math.round(b.h / 2) - 2;
+    p.outlineRect(x, top, thick, len, l.color || c.base, c.dark);
+    // 膝节 + 胫前高光，避免腿是一根纯色竖条
+    const knee = top + Math.max(2, Math.round(len * 0.5));
+    p.rect(x + 1, knee, Math.max(1, thick - 1), 1, c.light, 0.75);
+    p.rect(x, top + 1, 1, 1, c.light, 0.55);
+    beastFeet(p, x - 1, top + len, thick + 3, c);
   });
 }
 
@@ -216,7 +254,10 @@ function drawFeatherWing(p, style, c, far) {
   const w = style.wing || {};
   if (!w.kind || w.kind === 'none') return;
   const b = style.body;
-  const span = w.span || 28;
+  // 翼展收在体宽以内：旧版 span 36–40 会把包围盒撑宽，fitBeastViewBox 反而把整只灵兽缩小
+  const span = w.kind === 'folded'
+    ? Math.min(w.span || 28, Math.round(b.w * 1.1))
+    : Math.min(w.span || 28, Math.round(b.w * 0.9));
   const rows = w.rows || 4;
   const baseX = b.x - Math.round(b.w * 0.45) + (far ? 3 : 0);
   const baseY = b.y - Math.round(b.h * 0.42) + (far ? -2 : 0);
@@ -250,6 +291,10 @@ function drawFeatherWing(p, style, c, far) {
       p.rect(x, y, len, 4, dark);
       p.rect(x + 1, y, Math.max(2, len - 2), 2, i % 2 ? lite : mid);
       p.rect(x + len - 7, y + 2, 6, 2, far ? mid : c.pale);
+      // 羽排分界：一条低透明度墨线，让叠羽有层次
+      p.rect(x, y + 3, len, 1, c.ink, 0.3);
+      // 羽尖收窄 1px，避免每根羽毛都是齐头方块
+      p.rect(x - 1, y + 1, 1, 1, far ? mid : c.pale, 0.75);
     }
   } else if (w.kind === 'pointed') {
     for (let i = 0; i < rows; i += 1) {
@@ -257,6 +302,8 @@ function drawFeatherWing(p, style, c, far) {
       const y = baseY + i * 3;
       p.rect(baseX - len, y, len, 2, dark);
       p.rect(baseX - len + 1, y, len - 2, 1, lite);
+      p.rect(baseX - len, y + 1, len, 1, c.ink, 0.35);
+      p.rect(baseX - len - 2, y + 1, 2, 1, far ? mid : c.pale, 0.9);
     }
     p.rect(baseX - span - 2, baseY - 2, 4, 3, c.pale);
   } else if (w.kind === 'round') {

@@ -25,8 +25,11 @@ SIGNATURES.bell = function (p, style, c) {
 
 SIGNATURES.eyeMask = function (p, style, c) {
   const h = sigHead(style);
-  p.rect(h.x - Math.round(h.w / 2) + 1, h.y - 2, Math.round(h.w) - 2, 3, c.ink, 0.75);
-  p.rect(h.x + 1, h.y - 2, 3, 2, c.pale);
+  const y = h.y - Math.round(h.h * 0.4);
+  p.rect(h.x - Math.round(h.w / 2) + 1, y, Math.round(h.w) - 2, 2, c.ink, 0.8);
+  p.rect(h.x - Math.round(h.w / 2) + 1, y + 2, 2, 2, c.ink, 0.55);
+  p.rect(h.x + Math.round(h.w / 2) - 3, y + 2, 2, 2, c.ink, 0.55);
+  p.px(h.x + 1, y, c.pale);
 };
 
 SIGNATURES.goldCrown = function (p, style, c) {
