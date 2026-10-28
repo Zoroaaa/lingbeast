@@ -45,6 +45,7 @@ Object.assign(WorldScene.prototype, {
     const hit = this.add.zone(sp.x, sp.y, 48, 74).setOrigin(0.5, 1).setDepth(sp.depth + 1);
     hit.setInteractive({ useHandCursor: true });
     hit.on('pointerdown', (pointer) => {
+      if (!this.isWorldTap(pointer)) return;
       if (pointer && pointer.event && pointer.event.stopPropagation) pointer.event.stopPropagation();
       this.interactWith({ kind: 'npc', ref: npc, x: npc.x, y: npc.y });
     });
@@ -98,6 +99,7 @@ Object.assign(WorldScene.prototype, {
     hit.setData('ref', herb);
     hit.setInteractive({ useHandCursor: true });
     hit.on('pointerdown', (pointer) => {
+      if (!this.isWorldTap(pointer)) return;
       if (pointer && pointer.event && pointer.event.stopPropagation) pointer.event.stopPropagation();
       this.interactWith({ kind: 'herb', ref: herb, x: herb.x, y: herb.y });
     });
@@ -138,6 +140,7 @@ Object.assign(WorldScene.prototype, {
     hit.setData('ref', node);
     hit.setInteractive({ useHandCursor: true });
     hit.on('pointerdown', (pointer) => {
+      if (!this.isWorldTap(pointer)) return;
       if (pointer && pointer.event && pointer.event.stopPropagation) pointer.event.stopPropagation();
       this.interactWith({ kind: 'gather', ref: node, x: node.x, y: node.y });
     });
@@ -229,6 +232,7 @@ Object.assign(WorldScene.prototype, {
     const hit = this.add.zone(px, py - 20, 40, 50).setOrigin(0.5, 1).setDepth(py + 5);
     hit.setInteractive({ useHandCursor: true });
     hit.on('pointerdown', (pointer) => {
+      if (!this.isWorldTap(pointer)) return;
       if (pointer && pointer.event && pointer.event.stopPropagation) pointer.event.stopPropagation();
       this.interactWith({ kind: 'stele', ref: stele, x: stele.x, y: stele.y });
     });
@@ -253,6 +257,7 @@ Object.assign(WorldScene.prototype, {
     const hit = this.add.zone(px, py - 12, 36, 32).setOrigin(0.5, 1).setDepth(py + 7);
     hit.setInteractive({ useHandCursor: true });
     hit.on('pointerdown', (pointer) => {
+      if (!this.isWorldTap(pointer)) return;
       if (pointer && pointer.event && pointer.event.stopPropagation) pointer.event.stopPropagation();
       this.interactWith({ kind: 'chest', ref: chest, x: chest.x, y: chest.y });
     });
@@ -277,6 +282,7 @@ Object.assign(WorldScene.prototype, {
     const hit = this.add.zone(px, py - 10, 36, 30).setOrigin(0.5, 1).setDepth(py + 6);
     hit.setInteractive({ useHandCursor: true });
     hit.on('pointerdown', (pointer) => {
+      if (!this.isWorldTap(pointer)) return;
       if (pointer && pointer.event && pointer.event.stopPropagation) pointer.event.stopPropagation();
       this.interactWith({ kind: 'secret', ref: secret, x: secret.x, y: secret.y });
     });
@@ -323,6 +329,7 @@ Object.assign(WorldScene.prototype, {
     const hit = this.add.zone(px, py - 20, 110, 120).setOrigin(0.5, 1).setDepth(py + 4);
     hit.setInteractive({ useHandCursor: true });
     hit.on('pointerdown', (pointer) => {
+      if (!this.isWorldTap(pointer)) return;
       if (pointer && pointer.event && pointer.event.stopPropagation) pointer.event.stopPropagation();
       this.interactWith({ kind: 'boss', ref: boss, x: boss.x, y: boss.y });
     });

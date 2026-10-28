@@ -54,6 +54,7 @@
 - 所有可交互元素有 `:focus-visible` 焦点环；禁止裸 `outline: none`。
 - `Tab` 在模态内循环；`Esc` 先关子菜单/菜单，再关模态；关闭后焦点回到触发元素。
 - 探索：WASD/方向键移动，E/空格交互，M/B/I/J/T/Q 开面板。
+- 覆盖层点击不得穿透到场景：Phaser 的 window 级指针监听会按坐标命中地图热区，新增 `setInteractive` 的地图对象必须先用 `WorldScene.prototype.isWorldTap(pointer)` 过滤（见 `public/js/world/world-input.js`）。
 - 战斗：数字 1–9 选择指令，Esc/Backspace 在子菜单返回；对话选项 1–4 优先。
 - 模态重渲染默认保留滚动与焦点；tab 切换显式回顶；图鉴详情/灵器/灵诀返回时恢复父面板滚动与焦点。
 

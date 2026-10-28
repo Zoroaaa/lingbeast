@@ -1,6 +1,6 @@
 // 灵兽录 · Service Worker
 // 导航请求网络优先；静态资源缓存优先并回填。API 请求一律绕过缓存。
-const VERSION = '78';
+const VERSION = '79';
 const CACHE = 'lingbeast-' + VERSION;
 const SHELL = [
   './',

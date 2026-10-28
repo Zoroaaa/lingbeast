@@ -1,16 +1,24 @@
 // 灵兽录 · 探索层 · 输入、交互与寻路
 Object.assign(WorldScene.prototype, {
+  // HTML 界面（对话弹窗、HUD、模态框）上的点击同样会被 Phaser 的 window 级触摸监听收进指针系统，
+  // 再按指针坐标对地图做命中检测；实体热区必须先经过这里过滤，否则点击弹窗会穿透成地图点击。
+  isWorldTap(pointer) {
+    if (!pointer) return false;
+    const domTarget = pointer.downElement || (pointer.event && pointer.event.target) || null;
+    if (domTarget && domTarget !== this.game.canvas) return false;
+    // UI 关闭后的同一手势可能继续冒泡到画布，短暂屏蔽避免角色被带走
+    if (window.__uiTapGuardUntil && Date.now() < window.__uiTapGuardUntil) return false;
+    if (window.LB && LB.isBlocked && LB.isBlocked()) return false;
+    return true;
+  },
+
   bindInput() {
     this.input.on('pointerdown', this._pointerHandler = (pointer, over) => {
       if (over && over.length) return;
       // 仅接受画布本身的指针；对话框、模态框等 HTML 覆盖层上的点击不得触发寻路
-      const domTarget = pointer && pointer.event ? pointer.event.target : null;
-      if (domTarget && domTarget !== this.game.canvas) return;
-      // UI 关闭后的同一手势可能继续冒泡到画布，短暂屏蔽避免角色被带走
-      if (window.__uiTapGuardUntil && Date.now() < window.__uiTapGuardUntil) return;
+      if (!this.isWorldTap(pointer)) return;
       // 实体点击与场景点击可能在同一帧先后触发，避免重复动作
       if (this._lastInteractAt && this.time.now - this._lastInteractAt < 160) return;
-      if (window.LB && LB.isBlocked && LB.isBlocked()) return;
       const wx = pointer.worldX, wy = pointer.worldY;
       const tx = Math.floor(wx / TILE), ty = Math.floor(wy / TILE);
       const ent = this.entityAt(tx, ty);
